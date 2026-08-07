@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Planillas El Salvador{% endblock %}
+
+{% block header_title %}Dashboard HR 360{% endblock %}
+
+{% block content %}
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+    
+    <!-- Tarjeta de Métrica 1 -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 border-l-4 border-l-blue-600">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-sm font-medium text-gray-500 mb-1">Total Empleados</p>
+                <h3 class="text-3xl font-bold text-gray-800">24</h3>
+            </div>
+            <div class="p-3 bg-blue-50 rounded-lg">
+                <i class="ph ph-users text-2xl text-blue-600"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tarjeta de Métrica 2 -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 border-l-4 border-l-green-500">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-sm font-medium text-gray-500 mb-1">Planilla Activa</p>
+                <h3 class="text-3xl font-bold text-gray-800">1a Quincena</h3>
+            </div>
+            <div class="p-3 bg-green-50 rounded-lg">
+                <i class="ph ph-calendar-check text-2xl text-green-500"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tarjeta de Métrica 3 -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 border-l-4 border-l-purple-500">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-sm font-medium text-gray-500 mb-1">Estado de Servidor</p>
+                <h3 class="text-3xl font-bold text-gray-800">Óptimo</h3>
+            </div>
+            <div class="p-3 bg-purple-50 rounded-lg">
+                <i class="ph ph-hard-drives text-2xl text-purple-500"></i>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- Sección de Tabla Reciente -->
+<div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+    <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center bg-gray-50">
+        <h2 class="text-lg font-bold text-gray-800">Últimos Empleados Registrados</h2>
+        <button class="text-sm text-blue-600 hover:text-blue-800 font-medium">Ver todos &rarr;</button>
+    </div>
+    <div class="p-0 overflow-x-auto">
+        <table class="w-full text-left border-collapse">
+            <thead>
+                <tr class="bg-white text-xs uppercase tracking-wider text-gray-500 border-b border-gray-200">
+                    <th class="px-6 py-3 font-semibold">ID</th>
+                    <th class="px-6 py-3 font-semibold">Nombre</th>
+                    <th class="px-6 py-3 font-semibold">Departamento</th>
+                    <th class="px-6 py-3 font-semibold">Estado</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-200">
+                {% if empleados_recientes %}
+                    {% for emp in empleados_recientes %}
+                    <tr class="hover:bg-gray-50 transition-colors">
+                        <td class="px-6 py-4 text-sm text-gray-900">#{{ emp.id }}</td>
+                        <td class="px-6 py-4 text-sm font-medium text-gray-900">{{ emp.nombres }} {{ emp.apellidos }}</td>
+                        <td class="px-6 py-4 text-sm text-gray-500">Operaciones</td>
+                        <td class="px-6 py-4">
+                            <span class="px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">Activo</span>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr>
+                        <td colspan="4" class="px-6 py-8 text-center text-sm text-gray-500">No hay empleados registrados en el sistema.</td>
+                    </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

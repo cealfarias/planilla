@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+
+{% block title %}{{ titulo }}{% endblock %}
+
+{% block header_title %}Módulo de Recursos Humanos{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto">
+    
+    <!-- Encabezado de Sección y Acción Principal -->
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-8 space-y-4 md:space-y-0">
+        <div>
+            <h2 class="text-xl font-bold text-gray-900 tracking-tight">Nómina de Colaboradores</h2>
+            <p class="text-sm text-gray-500 mt-1">Listado general de personal registrado y estado de cumplimiento contractual ante el MINTRAB.</p>
+        </div>
+        <div>
+            <a href="/empleados/nuevo" class="inline-flex items-center justify-center px-4 py-2.5 rounded-lg bg-blue-700 hover:bg-blue-800 text-white text-sm font-bold shadow transition-colors duration-150">
+                <i class="ph-bold ph-user-plus text-base mr-2"></i> Registrar Nuevo Empleado
+            </a>
+        </div>
+    </div>
+
+    <!-- Contenedor de la Tabla Adaptativa -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="bg-gray-50 border-b border-gray-200 text-xs font-bold text-gray-400 uppercase tracking-wider">
+                        <th class="px-6 py-4">Colaborador</th>
+                        <th class="px-6 py-4">Documentos de Identidad</th>
+                        <th class="px-6 py-4">Contacto e Institucional</th>
+                        <th class="px-6 py-4">Municipio Residencia</th>
+                        <th class="px-6 py-4">Estado</th>
+                        <th class="px-6 py-4 text-right">Acciones Operativas</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100 text-sm text-gray-700">
+                    {% for empleado in lista_empleados %}
+                    <tr class="hover:bg-slate-50/70 transition-colors">
+                        
+                        <!-- Columna: Nombres y Profesión -->
+                        <td class="px-6 py-4">
+                            <div class="font-bold text-gray-900">
+                                {{ empleado.primer_nombre }} {{ empleado.primer_apellido }}
+                            </div>
+                            <div class="text-xs text-gray-400 mt-0.5 font-medium">
+                                {{ empleado.profesion_oficio }}
+                            </div>
+                        </td>
+                        
+                        <!-- Columna: DUI y NIT -->
+                        <td class="px-6 py-4 font-mono text-xs text-gray-600 space-y-1">
+                            <div><span class="font-sans font-semibold text-gray-400">DUI:</span> {{ empleado.dui }}</div>
+                            <div><span class="font-sans font-semibold text-gray-400">NIT:</span> {{ empleado.nit }}</div>
+                        </td>
+                        
+                        <!-- Columna: Correo y Teléfono -->
+                        <td class="px-6 py-4 text-xs">
+                            <div class="font-medium text-gray-900">
+                                {{ empleado.email_institucional if empleado.email_institucional else 'Sin correo asignado' }}
+                            </div>
+                            <div class="text-gray-400 mt-0.5">
+                                {{ empleado.telefono if empleado.telefono else 'Sin teléfono' }}
+                            </div>
+                        </td>
+                        
+                        <!-- Columna: Municipio de Residencia -->
+                        <td class="px-6 py-4 text-gray-600 text-xs font-medium">
+                            {{ empleado.municipio_residencia }}
+                        </td>
+                        
+                        <!-- Columna: Estado Administrativo -->
+                        <td class="px-6 py-4">
+                            {% if empleado.estado == "Activo" %}
+                            <span class="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-bold bg-green-50 text-green-700 border border-green-200">
+                                <span class="h-1.5 w-1.5 rounded-full bg-green-500 mr-1.5"></span> Activo
+                            </span>
+                            {% else %}
+                            <span class="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-bold bg-gray-50 text-gray-600 border border-gray-200">
+                                <span class="h-1.5 w-1.5 rounded-full bg-gray-400 mr-1.5"></span> Inactivo
+                            </span>
+                            {% endif %}
+                        </td>
+                        
+                        <!-- Columna Acciones: Integración de Botones del Contrato -->
+                        <td class="px-6 py-4 text-right space-x-2 whitespace-nowrap">
+                            <!-- Enlace para Asignar / Renovar Contrato Laboral -->
+                            <a href="/empleados/{{ empleado.id }}/contrato/nuevo" class="inline-flex items-center px-3 py-1.5 rounded-lg border border-gray-300 text-gray-700 font-bold text-xs bg-white hover:bg-gray-50 transition-colors duration-150 shadow-sm">
+                                <i class="ph ph-file-plus mr-1.5 text-sm text-gray-500"></i> Asignar Contrato
+                            </a>
+                            
+                            <!-- Enlace para Imprimir el Contrato Legal Activo (Abre en pestaña nueva) -->
+                            <a href="/empleados/{{ empleado.id }}/contrato/imprimir" target="_blank" class="inline-flex items-center px-3 py-1.5 rounded-lg border border-blue-200 text-blue-700 font-bold text-xs bg-blue-50 hover:bg-blue-100 transition-colors duration-150 shadow-sm">
+                                <i class="ph ph-printer mr-1.5 text-sm text-blue-600"></i> Imprimir Contrato
+                            </a>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <!-- Caso: Listado Vacío -->
+                    <tr>
+                        <td colspan="6" class="px-6 py-12 text-center text-gray-400">
+                            <i class="ph ph-users-three text-4xl mb-2 block mx-auto text-gray-300"></i>
+                            No existen colaboradores registrados en la base de datos del sistema actualmente.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

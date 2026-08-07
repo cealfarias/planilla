@@ -1,0 +1,137 @@
+{% extends "base.html" %}
+
+{% block title %}{{ titulo }}{% endblock %}
+
+{% block header_title %}Registro de Nuevo Empleado{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+    
+    <div class="mb-6">
+        <a href="/empleados" class="text-sm font-semibold text-blue-700 hover:text-blue-900 flex items-center">
+            <i class="ph ph-arrow-left text-base mr-1"></i> Regresar al listado general
+        </a>
+    </div>
+
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+        <div class="px-6 py-4 border-b border-gray-200 bg-gray-50">
+            <h2 class="text-lg font-bold text-gray-800">Ficha de Información Personal</h2>
+            <p class="text-xs text-gray-500">Ingrese los datos tal como aparecen en el Documento Único de Identidad (DUI).</p>
+        </div>
+
+        <form action="/empleados/nuevo" method="POST" class="p-6 space-y-6">
+            
+            <!-- SECCIÓN 1: Identificación e Información Básica -->
+            <div>
+                <h3 class="text-sm font-bold text-gray-400 uppercase tracking-wider mb-4">1. Identificación y Nombres</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-1">Primer Nombre *</label>
+                        <input type="text" name="primer_nombre" value="{{ valores.primer_nombre if valores else '' }}" required class="w-full px-4 py-2 bg-slate-50 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-600 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-1">Segundo Nombre</label>
+                        <input type="text" name="segundo_nombre" value="{{ valores.segundo_nombre if valores else '' }}" class="w-full px-4 py-2 bg-slate-50 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-600 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-1">Primer Apellido *</label>
+                        <input type="text" name="primer_apellido" value="{{ valores.primer_apellido if valores else '' }}" required class="w-full px-4 py-2 bg-slate-50 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-600 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-1">Segundo Apellido</label>
+                        <input type="text" name="segundo_apellido" value="{{ valores.segundo_apellido if valores else '' }}" class="w-full px-4 py-2 bg-slate-50 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-600 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-1">DUI (con guion) *</label>
+                        <input type="text" name="dui" placeholder="00000000-0" value="{{ valores.dui if valores else '' }}" required class="w-full px-4 py-2 bg-slate-50 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-600 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-1">NIT *</label>
+                        <input type="text" name="nit" placeholder="0000-000000-000-0" value="{{ valores.nit if valores else '' }}" required class="w-full px-4 py-2 bg-slate-50 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-600 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-1">Fecha de Nacimiento *</label>
+                        <input type="date" name="fecha_nacimiento" value="{{ valores.fecha_nacimiento if valores else '' }}" required class="w-full px-4 py-2 bg-slate-50 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-600 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-1">Género *</label>
+                        <select name="genero" required class="w-full px-4 py-2 bg-slate-50 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-600 focus:outline-none">
+                            <option value="">Seleccione...</option>
+                            <option value="M" {% if valores and valores.genero == 'M' %}selected{% endif %}>Masculino</option>
+                            <option value="F" {% if valores and valores.genero == 'F' %}selected{% endif %}>Femenino</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECCIÓN 2: Generales de Ley (MINTRAB Art. 23) -->
+            <div class="border-t border-gray-100 pt-6">
+                <h3 class="text-sm font-bold text-gray-400 uppercase tracking-wider mb-4">2. Generales de Ley (Requisito Contractual)</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-1">Estado Familiar / Civil *</label>
+                        <select name="estado_familiar" required class="w-full px-4 py-2 bg-slate-50 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-600 focus:outline-none">
+                            <option value="Soltero" {% if valores and valores.estado_familiar == 'Soltero' %}selected{% endif %}>Soltero(a)</option>
+                            <option value="Casado" {% if valores and valores.estado_familiar == 'Casado' %}selected{% endif %}>Casado(a)</option>
+                            <option value="Divorciado" {% if valores and valores.estado_familiar == 'Divorciado' %}selected{% endif %}>Divorciado(a)</option>
+                            <option value="Viudo" {% if valores and valores.estado_familiar == 'Viudo' %}selected{% endif %}>Viudo(a)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-1">Profesión u Oficio *</label>
+                        <input type="text" name="profesion_oficio" placeholder="Ej. Ingeniero en Sistemas, Secretaria" value="{{ valores.profesion_oficio if valores else '' }}" required class="w-full px-4 py-2 bg-slate-50 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-600 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-1">Nacionalidad *</label>
+                        <input type="text" name="nacionalidad" value="{{ valores.nacionalidad if valores else 'Salvadoreña' }}" required class="w-full px-4 py-2 bg-slate-50 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-600 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-1">Municipio y Departamento de Residencia *</label>
+                        <input type="text" name="municipio_residencia" placeholder="Ej. San Salvador, San Salvador" value="{{ valores.municipio_residencia if valores else '' }}" required class="w-full px-4 py-2 bg-slate-50 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-600 focus:outline-none">
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECCIÓN 3: Contacto y Previsión Social -->
+            <div class="border-t border-gray-100 pt-6">
+                <h3 class="text-sm font-bold text-gray-400 uppercase tracking-wider mb-4">3. Contacto y Previsión Social</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-1">Número de Afiliación ISSS</label>
+                        <input type="text" name="isss_afiliacion" placeholder="Ej. 123456789" value="{{ valores.isss_afiliacion if valores else '' }}" class="w-full px-4 py-2 bg-slate-50 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-600 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-1">NUP / AFP</label>
+                        <input type="text" name="nup_afp" placeholder="Ej. 543216789012" value="{{ valores.nup_afp if valores else '' }}" class="w-full px-4 py-2 bg-slate-50 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-600 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-1">Correo Electrónico Institucional</label>
+                        <input type="email" name="email_institucional" placeholder="empleado@empresa.com" value="{{ valores.email_institucional if valores else '' }}" class="w-full px-4 py-2 bg-slate-50 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-600 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-1">Teléfono de Contacto</label>
+                        <input type="text" name="telefono" placeholder="Ej. 2200-0000" value="{{ valores.telefono if valores else '' }}" class="w-full px-4 py-2 bg-slate-50 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-600 focus:outline-none">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Alerta de Errores Remotos del Backend -->
+            {% if error %}
+            <div class="bg-red-50 border-l-4 border-red-500 p-4 rounded-r-lg">
+                <p class="text-xs font-mono text-red-800 whitespace-pre-wrap">{{ error }}</p>
+            </div>
+            {% endif %}
+
+            <!-- Botones de Acción -->
+            <div class="border-t border-gray-200 pt-6 flex justify-end space-x-3 bg-gray-50 -mx-6 -mb-6 p-6">
+                <a href="/empleados" class="px-5 py-2.5 rounded-lg border border-gray-300 text-gray-700 font-semibold text-sm bg-white hover:bg-gray-50 transition-colors">
+                    Cancelar
+                </a>
+                <button type="submit" class="px-5 py-2.5 rounded-lg bg-blue-700 hover:bg-blue-800 text-white font-semibold text-sm shadow transition-colors">
+                    Guardar Empleado
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

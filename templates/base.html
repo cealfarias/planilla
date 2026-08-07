@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="es" class="h-full bg-slate-50">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Sistema de Planillas{% endblock %}</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Iconos Phosphor -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+</head>
+<body class="h-full font-sans text-slate-900 flex overflow-hidden">
+
+    <!-- 1. BARRA LATERAL DE NAVEGACIÓN (SIDEBAR) -->
+    <aside class="w-64 bg-slate-900 text-slate-300 flex flex-col justify-between flex-shrink-0 h-full border-r border-slate-800">
+        <div>
+            <!-- Encabezado / Logo de la Aplicación -->
+            <div class="px-6 py-5 bg-slate-950 flex items-center space-x-3 border-b border-slate-800">
+                <i class="ph-bold ph-wallet text-blue-500 text-2xl"></i>
+                <span class="font-bold text-white tracking-tight text-base">Planillas SV</span>
+            </div>
+            
+            <!-- Enlaces del Menú -->
+            <nav class="mt-6 px-4 space-y-1">
+                <a href="/dashboard" class="flex items-center px-4 py-3 rounded-lg text-sm font-medium hover:bg-slate-800 hover:text-white transition-colors">
+                    <i class="ph ph-squares-four text-lg mr-3"></i> Dashboard
+                </a>
+                <a href="/empleados" class="flex items-center px-4 py-3 rounded-lg text-sm font-medium bg-slate-800 text-white transition-colors">
+                    <i class="ph ph-users text-lg mr-3"></i> Empleados (HR)
+                </a>
+                <a href="/planillas" class="flex items-center px-4 py-3 rounded-lg text-sm font-medium hover:bg-slate-800 hover:text-white transition-colors">
+                    <i class="ph ph-calendar-blank text-lg mr-3"></i> Cálculo de Planilla
+                </a>
+                <a href="/usuarios" class="flex items-center px-4 py-3 rounded-lg text-sm font-medium hover:bg-slate-800 hover:text-white transition-colors">
+                    <i class="ph ph-shield-check text-lg mr-3"></i> Seguridad / Roles
+                </a>
+            </nav>
+        </div>
+
+        <!-- Sección de Usuario e Historial Inferior -->
+        <div class="p-4 border-t border-slate-800 bg-slate-950/50">
+            <a href="/logout" class="flex items-center px-4 py-2.5 rounded-lg text-sm font-medium text-red-400 hover:bg-red-950/30 hover:text-red-300 transition-colors">
+                <i class="ph ph-sign-out text-lg mr-3"></i> Cerrar Sesión
+            </a>
+        </div>
+    </aside>
+
+    <!-- 2. CONTENEDOR DERECHO (CONTENIDO VARIABLE + FOOTER) -->
+    <div class="flex-grow flex flex-col h-full overflow-hidden">
+        
+        <!-- Barra superior de contexto (Navbar sutil) -->
+        <header class="bg-white border-b border-gray-200 px-8 py-4 flex items-center justify-between flex-shrink-0">
+            <h1 class="text-xl font-bold text-gray-800">{% block header_title %}Panel de Control{% endblock %}</h1>
+            <div class="flex items-center space-x-2 text-sm text-gray-500">
+                <i class="ph ph-clock mr-1"></i> Entorno de Producción
+            </div>
+        </header>
+
+        <!-- Área de Trabajo Scrolleable -->
+        <main class="flex-grow p-6 md:p-8 overflow-y-auto">
+            {% block content %}
+            <!-- Aquí se renderizan los formularios y listados -->
+            {% endblock %}
+        </main>
+
+        <!-- Pie de Página Institucional Fijo -->
+        <footer class="bg-white border-t border-gray-200 py-3 px-8 text-xs text-gray-400 flex-shrink-0 flex justify-between">
+            <span>&copy; 2026 Sistema de Planillas y Gestión de Recursos Humanos - El Salvador.</span>
+            <span class="font-medium text-slate-500">Cumplimiento MINTRAB Art. 23</span>
+        </footer>
+    </div>
+
+    <!-- BURBUJA DE ERROR ELEGANTE, PROFESIONAL Y CENTRADA -->
+    {% if error %}
+    <div id="burbuja-error-modal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 transition-all">
+        <div class="bg-white rounded-xl shadow-2xl border border-red-100 max-w-md w-full overflow-hidden p-6 text-center transform scale-100 transition-transform duration-200">
+            
+            <div class="mx-auto flex items-center justify-center h-14 w-14 rounded-full bg-red-50 mb-4 border border-red-200">
+                <i class="ph-bold ph-warning-octagon text-red-600 text-3xl"></i>
+            </div>
+            
+            <h3 class="text-lg font-extrabold text-gray-900 tracking-tight mb-2">Restricción de Integridad</h3>
+            
+            <p class="text-sm text-gray-600 leading-relaxed mb-6 px-2">
+                {{ error }}
+            </p>
+            
+            <button onclick="document.getElementById('burbuja-error-modal').remove()" class="w-full inline-flex justify-center rounded-lg bg-red-600 px-4 py-2.5 text-sm font-bold text-white shadow-md hover:bg-red-700 active:bg-red-800 focus:outline-none transition-colors duration-150">
+                Aceptar
+            </button>
+        </div>
+    </div>
+    {% endif %}
+
+</body>
+</html>

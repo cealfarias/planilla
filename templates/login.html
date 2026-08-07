@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ titulo }}</title>
+    <!-- Integración de Tailwind CSS vía CDN para estilos profesionales automáticos -->
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-100 h-screen flex items-center justify-center">
+    
+    <div class="bg-white p-8 rounded-lg shadow-lg w-full max-w-md border-t-4 border-blue-700">
+        
+        <div class="text-center mb-8">
+            <h2 class="text-2xl font-bold text-gray-800">Planillas El Salvador</h2>
+            <p class="text-sm text-gray-500 mt-1">Control de Acceso HR 360</p>
+        </div>
+        
+        <form action="/" method="POST" class="space-y-5">
+            <div>
+                <label for="username" class="block text-sm font-semibold text-gray-700 mb-1">Usuario</label>
+                <input type="text" id="username" name="username" required 
+                       class="mt-1 block w-full px-4 py-2 bg-slate-50 border border-gray-300 rounded-md text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-colors">
+            </div>
+            
+            <div>
+                <label for="password" class="block text-sm font-semibold text-gray-700 mb-1">Contraseña</label>
+                <input type="password" id="password" name="password" required 
+                       class="mt-1 block w-full px-4 py-2 bg-slate-50 border border-gray-300 rounded-md text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-colors">
+            </div>
+            
+            <button type="submit" 
+                    class="w-full flex justify-center py-2.5 px-4 border border-transparent rounded-md shadow-sm text-sm font-bold text-white bg-blue-700 hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-600 transition-colors mt-2">
+                Ingresar al Sistema
+            </button>
+        </form>
+
+        <!-- Motor Jinja2 para despliegue de alertas del backend -->
+        {% if error %}
+        <div class="mt-5 bg-red-50 border-l-4 border-red-500 p-4 rounded-r-md shadow-sm">
+            <div class="flex items-center">
+                <div class="ml-3">
+                    <p class="text-sm font-medium text-red-800">
+                        {{ error }}
+                    </p>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        
+        <div class="mt-8 text-center text-xs text-gray-400 font-medium">
+            &copy; 2026 Sistema de Recursos Humanos y Planillas
+        </div>
+        
+    </div>
+
+</body>
+</html>

@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+
+{% block title %}{{ titulo }}{% endblock %}
+
+{% block header_title %}Asignación de Contrato Laboral{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+    
+    <div class="mb-6">
+        <a href="/empleados" class="text-sm font-semibold text-blue-700 hover:text-blue-900 flex items-center">
+            <i class="ph ph-arrow-left text-base mr-1"></i> Regresar al listado general
+        </a>
+    </div>
+
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+        <div class="px-6 py-4 border-b border-gray-200 bg-gray-50">
+            <h2 class="text-lg font-bold text-gray-800">Contrato para: {{ empleado.primer_nombre }} {{ empleado.primer_apellido }}</h2>
+            <p class="text-xs text-gray-500">DUI: {{ empleado.dui }} | Profesión registrada: {{ empleado.profesion_oficio }}</p>
+        </div>
+
+        <form action="/empleados/{{ empleado.id }}/contrato/nuevo" method="POST" class="p-6 space-y-6">
+            
+            <!-- SECCIÓN 1: Condiciones Salariales y Plaza -->
+            <div>
+                <h3 class="text-sm font-bold text-gray-400 uppercase tracking-wider mb-4">1. Condiciones Salariales y Plaza</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-1">Tipo de Contrato *</label>
+                        <select name="tipo_contrato" required class="w-full px-4 py-2 bg-slate-50 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-600 focus:outline-none">
+                            <option value="">Seleccione...</option>
+                            <option value="Indefinido">Tiempo Indefinido</option>
+                            <option value="Plazo Fijo">Plazo Fijo</option>
+                            <option value="Servicios Profesionales">Servicios Profesionales</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-1">Cargo / Puesto Funcional *</label>
+                        <input type="text" name="cargo" required class="w-full px-4 py-2 bg-slate-50 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-600 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-1">Salario Nominal Base ($) *</label>
+                        <input type="number" step="0.01" min="0.01" name="salario_base" placeholder="Ej. 365.00" required class="w-full px-4 py-2 bg-slate-50 border border-gray-300 rounded-lg text-sm font-mono focus:ring-2 focus:ring-blue-600 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-1">Forma y Período de Pago *</label>
+                        <input type="text" name="forma_pago" value="Depósito bancario quincenal" required class="w-full px-4 py-2 bg-slate-50 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-600 focus:outline-none">
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECCIÓN 2: Jornada y Ubicación (MINTRAB Art. 23) -->
+            <div class="border-t border-gray-100 pt-6">
+                <h3 class="text-sm font-bold text-gray-400 uppercase tracking-wider mb-4">2. Jornada Laboral y Ubicación</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-1">Horario y Jornada Semanal *</label>
+                        <input type="text" name="horario_trabajo" value="Lunes a Viernes de 8:00 AM a 5:00 PM y Sábado de 8:00 AM a 12:00 MD" required class="w-full px-4 py-2 bg-slate-50 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-600 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-1">Lugar Específico de Trabajo *</label>
+                        <input type="text" name="lugar_trabajo" placeholder="Ej. Oficinas Centrales, Sucursal Escalón" required class="w-full px-4 py-2 bg-slate-50 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-600 focus:outline-none">
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECCIÓN 3: Vigencia y Celebración -->
+            <div class="border-t border-gray-100 pt-6">
+                <h3 class="text-sm font-bold text-gray-400 uppercase tracking-wider mb-4">3. Vigencia y Otorgamiento</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-1">Fecha de Inicio de Labores *</label>
+                        <input type="date" name="fecha_inicio" required class="w-full px-4 py-2 bg-slate-50 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-600 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-1">Fecha de Finalización (Opcional)</label>
+                        <input type="date" name="fecha_fin" class="w-full px-4 py-2 bg-slate-50 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-600 focus:outline-none">
+                        <p class="text-xs text-gray-400 mt-1">Dejar vacío para contratos de tiempo indefinido.</p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-1">Municipio de Celebración (Firma) *</label>
+                        <input type="text" name="municipio_celebracion" value="San Salvador" required class="w-full px-4 py-2 bg-slate-50 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-600 focus:outline-none">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Alerta de Errores Remotos del Backend -->
+            {% if error %}
+            <div class="bg-red-50 border-l-4 border-red-500 p-4 rounded-r-lg">
+                <p class="text-xs font-mono text-red-800 whitespace-pre-wrap">{{ error }}</p>
+            </div>
+            {% endif %}
+
+            <!-- Botones de Acción -->
+            <div class="border-t border-gray-200 pt-6 flex justify-end space-x-3 bg-gray-50 -mx-6 -mb-6 p-6">
+                <a href="/empleados" class="px-5 py-2.5 rounded-lg border border-gray-300 text-gray-700 font-semibold text-sm bg-white hover:bg-gray-50 transition-colors">
+                    Cancelar
+                </a>
+                <button type="submit" class="px-5 py-2.5 rounded-lg bg-blue-700 hover:bg-blue-800 text-white font-semibold text-sm shadow transition-colors">
+                    Registrar Contrato Legal
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

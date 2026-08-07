@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ titulo }}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @media print {
+            body {
+                background-color: #ffffff;
+                color: #000000;
+                font-size: 11pt;
+                line-height: 1.4;
+            }
+            .no-print {
+                display: none !important;
+            }
+            .print-page {
+                border: none !important;
+                box-shadow: none !important;
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+        }
+        p {
+            text-align: justify;
+            margin-bottom: 0.75rem;
+        }
+        .linea-completar {
+            display: inline-block;
+            border-bottom: 1px solid #000;
+            min-width: 100px;
+        }
+    </style>
+</head>
+<body class="bg-slate-100 py-10 px-4 min-h-screen font-serif text-gray-900">
+
+    <div class="max-w-4xl mx-auto mb-6 no-print flex justify-between items-center bg-white p-4 rounded-xl shadow-sm border border-gray-200">
+        <div class="flex items-center space-x-2">
+            <a href="/empleados" class="px-4 py-2 text-sm font-semibold text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors">
+                Regresar a Empleados
+            </a>
+        </div>
+        <button onclick="window.print()" class="px-5 py-2 bg-blue-700 hover:bg-blue-800 text-white text-sm font-bold rounded-lg shadow transition-colors flex items-center">
+            Imprimir Contrato / Guardar PDF
+        </button>
+    </div>
+
+    <div class="print-page max-w-4xl mx-auto bg-white p-10 md:p-14 shadow-md border border-gray-200 rounded-sm">
+        
+        <div class="text-center mb-6">
+            <h1 class="text-lg font-bold uppercase tracking-wide border-b border-gray-900 pb-1 inline-block">
+                CONTRATO INDIVIDUAL DE TRABAJO
+            </h1>
+        </div>
+
+        <div class="text-sm leading-relaxed">
+            
+            <p>
+                NOSOTROS ____________________________________________________________________________________<br>
+                y <strong>{{ empleado.primer_nombre }} {{ empleado.segundo_nombre if empleado.segundo_nombre else '' }} {{ empleado.primer_apellido }} {{ empleado.segundo_apellido if empleado.segundo_apellido else '' }}</strong>,
+                de sexo {{ 'Masculino' if empleado.genero == 'M' else 'Femenino' }}, Estado Civil <strong>{{ empleado.estado_familiar }}</strong>, 
+                Profesión u Oficio <strong>{{ empleado.profesion_oficio }}</strong>, con Domicilio y Residencia en <strong>{{ empleado.municipio_residencia }}</strong>, 
+                Nacionalidad <strong>{{ empleado.nacionalidad }}</strong>, portador de su DUI número <strong>{{ empleado.dui }}</strong>, expedido en 
+                ____________________________ el _________ de _________________ de _________, 
+                y actuando en el carácter que aparece expresado, convenimos en celebrar el presente Contrato Individual de Trabajo sujeto a las estipulaciones siguientes:
+            </p>
+
+            <p>
+                <strong>a) CLASE DE TRABAJO O SERVICIO:</strong> <br>
+                El trabajador se obliga a prestar sus servicios al patrono como: <strong>{{ contrato.cargo }}</strong>.<br>
+                Desempeñando las funciones de: ____________________________________________________________________________
+                _____________________________________________________________________________________________________________.
+            </p>
+
+            <p>
+                <strong>b) DURACIÓN DEL CONTRATO Y TIEMPO DE SERVICIO:</strong> <br>
+                El presente Contrato se celebrará por: <strong>{{ contrato.tipo_contrato }}</strong> 
+                {% if contrato.fecha_fin %}
+                (Razón que motiva dicho plazo: ________________________________________________).
+                {% endif %}<br>
+                A partir de: <strong>{{ contrato.fecha_inicio.strftime('%d/%m/%Y') }}</strong>.<br>
+                Queda estipulado para los trabajadores de nuevo ingreso que los primeros treinta días serán de prueba y dentro de ese término cualquiera de las partes podrá dar por terminado el contrato sin expresión de causa.
+            </p>
+
+            <p>
+                <strong>c) LUGAR DE PRESTACIÓN DE SERVICIOS Y DE ALOJAMIENTO:</strong> <br>
+                El lugar de prestación de los servicios será: <strong>{{ contrato.lugar_trabajo }}</strong>.<br>
+                Y el trabajador habitará en ______________________________________________________________________.<br>
+                Dado que la empresa (___) sí o (___) no le proporciona alojamiento.
+            </p>
+
+            <p>
+                <strong>d) HORARIO DE TRABAJO:</strong> <br>
+                Del día ________________ al día _________________, de _____________, a _______________ <br>
+                Y de __________________, a ________________.<br>
+                El día _____________________ de ______________ a __________________.<br>
+                De las ___________________ a las _____________________, para la toma de alimentos.<br>
+                Cumpliendo con la semana Laboral ________________________ horas.<br>
+                (Horario general de referencia según sistema: <strong>{{ contrato.horario_trabajo }}</strong>).
+            </p>
+
+            <p>
+                <strong>e) SALARIO: FORMA, PERÍODO Y LUGAR DEL PAGO:</strong> <br>
+                El salario que recibirá el trabajador, por sus servicios, será la suma de <strong>${{ "%.2f"|format(contrato.salario_base) }}</strong>.<br>
+                Se pagará en dólares de los Estados Unidos de América de la siguiente forma: <strong>{{ contrato.forma_pago }}</strong>; El pago se efectuará por medio de: ________________________________.<br>
+                En la Dirección: _____________________________________________________________________________________________.<br>
+                Dicho pago se efectuará de la manera siguiente: ______________________________________.<br>
+                La operación del pago principiará y se continuará sin interrupción, a más tardar a la Terminación de la jornada de trabajo correspondiente a la respectiva fecha, en caso de reclamo de la persona trabajadora, se estará a lo dispuesto en el artículo 613 del Código de Trabajo.
+            </p>
+
+            <p>
+                <strong>f) HERRAMIENTAS Y MATERIALES:</strong> <br>
+                El patrono suministrará al trabajador las herramientas y materiales siguientes: __________________________________<br>
+                _____________________________________________________________________________________________________________.<br>
+                Que se entregan en ___________________________ y deben ser devueltos así por el trabajador, cuando sea requerida al efecto por sus jefes inmediatos, salvo la disminución o deterioro causados por caso fortuito o fuerza mayor, o por la acción del tiempo o por el consumo y uso normal de los mismos.
+            </p>
+
+            <p>
+                <strong>g) PERSONAS QUE DEPENDEN ECONÓMICAMENTE DEL TRABAJADOR:</strong>
+            </p>
+            <table class="w-full text-left border-collapse border border-gray-400 mt-2 mb-4 text-xs">
+                <thead>
+                    <tr>
+                        <th class="border border-gray-400 p-1">Nombre</th>
+                        <th class="border border-gray-400 p-1">Apellido</th>
+                        <th class="border border-gray-400 p-1">Edad</th>
+                        <th class="border border-gray-400 p-1">Dirección</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td class="border border-gray-400 p-3"></td><td class="border border-gray-400 p-3"></td><td class="border border-gray-400 p-3"></td><td class="border border-gray-400 p-3"></td></tr>
+                    <tr><td class="border border-gray-400 p-3"></td><td class="border border-gray-400 p-3"></td><td class="border border-gray-400 p-3"></td><td class="border border-gray-400 p-3"></td></tr>
+                    <tr><td class="border border-gray-400 p-3"></td><td class="border border-gray-400 p-3"></td><td class="border border-gray-400 p-3"></td><td class="border border-gray-400 p-3"></td></tr>
+                </tbody>
+            </table>
+
+            <p>
+                <strong>h) OTRAS ESTIPULACIONES:</strong> <br>
+                _____________________________________________________________________________________________________________
+            </p>
+
+            <p>
+                <strong>i)</strong> En el presente Contrato Individual de Trabajo se entenderán incluidos, según el caso, los derechos y deberes laborales establecidos por las Leyes y Reglamentos de Trabajo pertinentes, por el Reglamento Interno de Trabajo y por el o los Contratos Colectivos de Trabajo que celebre el patrono; los reconocidos en las sentencias que resuelvan conflictos colectivos de trabajo en la empresa, y los consagrados por la costumbre.
+            </p>
+
+            <p>
+                <strong>j)</strong> Este contrato sustituye cualquier otro Convenio Individual de Trabajo anterior, ya sea escrito o verbal, que haya estado vigente entre el patrono y el trabajador, pero no altera en manera alguna los derechos y prerrogativas del trabajador que emanen de su antigüedad en el servicio, ni se entenderá como negativa de mejores condiciones concedidas al trabajador en el Contrato anterior y que no consten el presente.
+            </p>
+
+            <p class="mt-6">
+                En fe de lo cual firmamos el presente documento por triplicado en: <strong>{{ contrato.municipio_celebracion }}</strong>, <br>
+                A los <strong>{{ fecha_actual.strftime('%d') }}</strong> días del mes <strong>{{ fecha_actual.strftime('%m') }}</strong> de <strong>{{ fecha_actual.strftime('%Y') }}</strong>.
+            </p>
+
+        </div>
+
+        <div class="mt-16 grid grid-cols-2 gap-8 text-center text-sm">
+            <div class="space-y-2">
+                <div class="border-t border-gray-950 mx-auto w-4/5 pt-2"></div>
+                <p class="text-center text-xs uppercase font-bold">Patrono o Representante</p>
+            </div>
+            <div class="space-y-2">
+                <div class="border-t border-gray-950 mx-auto w-4/5 pt-2"></div>
+                <p class="text-center text-xs uppercase font-bold">Trabajador</p>
+            </div>
+        </div>
+
+        <div class="mt-16 grid grid-cols-2 gap-8 text-center text-sm">
+            <div class="space-y-2">
+                <div class="border border-gray-400 mx-auto w-24 h-32 flex items-center justify-center">
+                    <span class="text-xs text-gray-400">Huellas digitales<br>del trabajador<br>Si no puede firmar</span>
+                </div>
+            </div>
+            <div class="space-y-2 flex flex-col justify-end">
+                <div class="border-t border-gray-950 mx-auto w-4/5 pt-2"></div>
+                <p class="text-center text-xs uppercase font-bold">A ruego del Trabajador</p>
+            </div>
+        </div>
+
+    </div>
+
+</body>
+</html>
