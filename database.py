@@ -43,7 +43,8 @@ import logging
 def auto_migrate_db():
     try:
         # Importar modelos aquí para evitar dependencias circulares
-        from models.seguridad import Usuario, Empresa
+        from models.seguridad import Usuario
+        from models.empresa import Empresa
         from models.recursos_humanos import Empleado, Contrato
         from models.planillas import PeriodoPlanilla, BoletaPago
         
