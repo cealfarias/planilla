@@ -57,7 +57,7 @@ export default function Empleados() {
           </thead>
           <tbody>
             {loading ? (
-              <tr><td colSpan="6" style={{ padding: '2rem', textAlign: 'center' }}>Cargando datos desde Render...</td></tr>
+              <tr><td colSpan="6" style={{ padding: '2rem', textAlign: 'center' }}>Cargando datos...</td></tr>
             ) : empleados.length === 0 ? (
               <tr>
                 <td colSpan="6" style={{ padding: '3rem 1rem', textAlign: 'center', color: 'var(--text-muted)' }}>
