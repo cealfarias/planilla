@@ -75,3 +75,13 @@ class TokenData(BaseModel):
     username: Optional[str] = None
     empresa_id: Optional[int] = None
     permisos: List[str] = []
+
+# --- Esquema de Registro SaaS (Onboarding) ---
+
+class RegistroSaaSRequest(BaseModel):
+    empresa_nombre: str
+    empresa_nit: str
+    admin_username: str
+    admin_email: EmailStr
+    admin_password: str
+    aceptar_publicidad: bool = False

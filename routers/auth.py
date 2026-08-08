@@ -5,6 +5,7 @@ import crud
 import schemas
 import database
 from auth.jwt import crear_token_acceso
+import models
 
 router = APIRouter(prefix="/auth", tags=["Autenticación y Sesiones"])
 
@@ -55,3 +56,58 @@ def login_para_obtener_token(
         "username": usuario.username,
         "rol": usuario.rol.nombre_rol if usuario.rol else "Sin Rol Asignado"
     }
+
+@router.post("/registro", status_code=status.HTTP_201_CREATED)
+def registrar_nueva_empresa(
+    registro: schemas.seguridad.RegistroSaaSRequest,
+    db: Session = Depends(database.get_db)
+):
+    # 1. Validar si el NIT o el usuario ya existen
+    empresa_existente = db.query(models.empresa.Empresa).filter(
+        models.empresa.Empresa.nit == registro.empresa_nit
+    ).first()
+    if empresa_existente:
+        raise HTTPException(status_code=400, detail="Ya existe una empresa con ese NIT.")
+        
+    usuario_existente = db.query(models.seguridad.Usuario).filter(
+        (models.seguridad.Usuario.username == registro.admin_username) |
+        (models.seguridad.Usuario.email == registro.admin_email)
+    ).first()
+    if usuario_existente:
+        raise HTTPException(status_code=400, detail="El nombre de usuario o correo ya está en uso.")
+
+    try:
+        # 2. Crear la Empresa
+        nueva_empresa = models.empresa.Empresa(
+            nombre=registro.empresa_nombre,
+            nit=registro.empresa_nit,
+            es_activa=True
+        )
+        db.add(nueva_empresa)
+        db.flush() # Para obtener el ID de la empresa sin hacer commit
+
+        # 3. Buscar el rol de administrador (si no existe lo creamos o usamos fallback)
+        rol_admin = db.query(models.seguridad.Rol).filter(
+            models.seguridad.Rol.nombre_rol == "Administrador de Sistemas"
+        ).first()
+        
+        # 4. Crear el Usuario Administrador
+        hash_seguro = crud.seguridad.pwd_context.hash(registro.admin_password)
+        nuevo_usuario = models.seguridad.Usuario(
+            username=registro.admin_username,
+            email=registro.admin_email,
+            password_hash=hash_seguro,
+            es_activo=True,
+            empresa_id=nueva_empresa.id,
+            rol_id=rol_admin.id if rol_admin else 1, # Fallback seguro
+            empleado_id=None
+        )
+        db.add(nuevo_usuario)
+        
+        # Opcional: Guardar el flag de publicidad (aceptar_publicidad) en una tabla futura
+        
+        db.commit()
+        return {"mensaje": "Empresa y administrador registrados con éxito. Ya puedes iniciar sesión."}
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Error al registrar: {str(e)}")
