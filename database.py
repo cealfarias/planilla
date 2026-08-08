@@ -36,3 +36,38 @@ def get_db():
         yield db
     finally:
         db.close()
+
+from sqlalchemy import text
+import logging
+
+def auto_migrate_db():
+    try:
+        # Importar modelos aquí para evitar dependencias circulares
+        from models.seguridad import Usuario, Empresa
+        from models.recursos_humanos import Empleado, Contrato
+        from models.planillas import PeriodoPlanilla, BoletaPago
+        
+        # Crear tablas nuevas si no existen
+        Base.metadata.create_all(bind=engine)
+        
+        # Migraciones para columnas añadidas
+        columns_to_add = [
+            "ALTER TABLE empleados ADD COLUMN departamento_residencia VARCHAR(50) DEFAULT '' NOT NULL",
+            "ALTER TABLE empleados ADD COLUMN municipio_residencia VARCHAR(50) DEFAULT '' NOT NULL",
+            "ALTER TABLE empleados ADD COLUMN distrito_residencia VARCHAR(50) DEFAULT '' NOT NULL",
+            "ALTER TABLE empleados ADD COLUMN dui_departamento_expedicion VARCHAR(50) DEFAULT '' NOT NULL",
+            "ALTER TABLE empleados ADD COLUMN dui_municipio_expedicion VARCHAR(50) DEFAULT '' NOT NULL",
+            "ALTER TABLE empleados ADD COLUMN dui_distrito_expedicion VARCHAR(50) DEFAULT '' NOT NULL",
+            "ALTER TABLE empleados ADD COLUMN dui_fecha_expedicion DATE DEFAULT CURRENT_DATE NOT NULL"
+        ]
+        for col in columns_to_add:
+            try:
+                with engine.begin() as conn:
+                    conn.execute(text(col))
+            except Exception as e:
+                pass
+    except Exception as e:
+        logging.error(f"Error en auto-migración: {e}")
+
+# Ejecutar migración al iniciar
+auto_migrate_db()
