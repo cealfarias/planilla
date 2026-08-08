@@ -94,12 +94,40 @@ export default function Planillas() {
               <h4 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
                 <CheckCircle size={18} /> Planilla Procesada Exitosamente
               </h4>
-              <div style={{ padding: '1rem', background: 'white', borderRadius: '8px', border: '1px solid #d9d9d9' }}>
-                <p><strong>Período:</strong> {success.periodo.codigo_periodo}</p>
-                <p><strong>Empleados Procesados:</strong> {success.estadisticas.boletas_generadas}</p>
-                <p style={{ marginTop: '1rem', fontSize: '1.2rem', fontWeight: 'bold' }}>
-                  Total a Pagar (Líquido): ${success.estadisticas.total_liquido_pagar.toFixed(2)}
-                </p>
+              <div style={{ padding: '1rem', background: 'white', borderRadius: '8px', border: '1px solid #d9d9d9', color: 'var(--text)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem' }}>
+                  <p><strong>Período:</strong> {success.periodo.codigo_periodo}</p>
+                  <p style={{ fontSize: '1.2rem', fontWeight: 'bold', color: '#2563eb' }}>
+                    Gran Total: ${success.estadisticas.total_liquido_pagar.toFixed(2)}
+                  </p>
+                </div>
+
+                <div style={{ overflowX: 'auto' }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.8rem' }}>
+                    <thead>
+                      <tr style={{ borderBottom: '2px solid var(--border)', textAlign: 'left', backgroundColor: '#f8fafc' }}>
+                        <th style={{ padding: '0.5rem' }}>Colaborador</th>
+                        <th style={{ padding: '0.5rem' }}>Salario Base</th>
+                        <th style={{ padding: '0.5rem', color: '#dc2626' }}>ISSS (3%)</th>
+                        <th style={{ padding: '0.5rem', color: '#dc2626' }}>AFP (7.25%)</th>
+                        <th style={{ padding: '0.5rem', color: '#dc2626' }}>ISR (Renta)</th>
+                        <th style={{ padding: '0.5rem', color: '#16a34a' }}>Líquido a Pagar</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {success.desglose?.map((b, index) => (
+                        <tr key={index} style={{ borderBottom: '1px solid var(--border)' }}>
+                          <td style={{ padding: '0.5rem', fontWeight: '500' }}>{b.nombre_completo}</td>
+                          <td style={{ padding: '0.5rem' }}>${b.salario_base.toFixed(2)}</td>
+                          <td style={{ padding: '0.5rem', color: '#dc2626' }}>-${b.isss.toFixed(2)}</td>
+                          <td style={{ padding: '0.5rem', color: '#dc2626' }}>-${b.afp.toFixed(2)}</td>
+                          <td style={{ padding: '0.5rem', color: '#dc2626' }}>-${b.renta.toFixed(2)}</td>
+                          <td style={{ padding: '0.5rem', fontWeight: 'bold', color: '#16a34a' }}>${b.liquido_recibir.toFixed(2)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             </div>
           )}

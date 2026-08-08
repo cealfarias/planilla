@@ -168,6 +168,8 @@ def procesar_planilla_mensual(db: Session, periodo: schemas.planillas.PeriodoPla
     boletas_creadas = 0
     total_nomina = Decimal('0.00')
     
+    desglose = []
+    
     for emp in empleados_activos:
         # Obtener contrato activo
         contrato = db.query(models.recursos_humanos.Contrato).filter(
@@ -216,6 +218,17 @@ def procesar_planilla_mensual(db: Session, periodo: schemas.planillas.PeriodoPla
         boletas_creadas += 1
         total_nomina += liquido
         
+        desglose.append({
+            "empleado_id": emp.id,
+            "nombre_completo": f"{emp.primer_nombre} {emp.primer_apellido}",
+            "salario_base": float(salario),
+            "isss": float(isss),
+            "afp": float(afp),
+            "renta": float(renta),
+            "total_descuentos": float(total_descuentos),
+            "liquido_recibir": float(liquido)
+        })
+        
     db.commit()
     db.refresh(db_periodo)
     
@@ -224,5 +237,6 @@ def procesar_planilla_mensual(db: Session, periodo: schemas.planillas.PeriodoPla
         "estadisticas": {
             "boletas_generadas": boletas_creadas,
             "total_liquido_pagar": float(total_nomina)
-        }
+        },
+        "desglose": desglose
     }
