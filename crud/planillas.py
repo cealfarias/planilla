@@ -77,6 +77,59 @@ def registrar_novedad_planilla(db: Session, novedad: schemas.planillas.NovedadPl
     return db_novedad
 
 # ==========================================
+# OPERACIONES DE PRÉSTAMOS Y DESCUENTOS RECURRENTES
+# ==========================================
+def obtener_prestamos_empleado(db: Session, empleado_id: int):
+    return db.query(models.planillas.PrestamoEmpleado).filter(
+        models.planillas.PrestamoEmpleado.empleado_id == empleado_id,
+        models.planillas.PrestamoEmpleado.estado == models.enums.EstadoPrestamoEnum.ACTIVO
+    ).all()
+
+def crear_prestamo_empleado(db: Session, prestamo: schemas.planillas.PrestamoEmpleadoCreate, empresa_id: int):
+    """
+    Registra un préstamo o embargo.
+    Valida la regla de protección al salario: La suma de cuotas no debe exceder el 20% del salario nominal.
+    """
+    # 1. Verificar empleado y contrato activo
+    contrato = db.query(models.recursos_humanos.Contrato).join(models.recursos_humanos.Empleado).filter(
+        models.recursos_humanos.Empleado.id == prestamo.empleado_id,
+        models.recursos_humanos.Empleado.empresa_id == empresa_id,
+        models.recursos_humanos.Contrato.es_activo == True
+    ).first()
+    
+    if not contrato:
+        raise ValueError("El empleado no tiene un contrato activo.")
+        
+    salario_nominal = contrato.salario_base
+    limite_descuento = Decimal(str(salario_nominal)) * Decimal('0.20')
+    
+    # 2. Sumar cuotas de préstamos actuales activos
+    prestamos_activos = obtener_prestamos_empleado(db, prestamo.empleado_id)
+    cuota_actual_total = sum((p.cuota_periodica for p in prestamos_activos), Decimal('0.00'))
+    
+    # 3. Validar el 20%
+    nueva_cuota_total = cuota_actual_total + Decimal(str(prestamo.cuota_periodica))
+    if nueva_cuota_total > limite_descuento:
+        raise ValueError(
+            f"El descuento sobrepasa el límite legal del 20%. "
+            f"Salario: ${salario_nominal}. Límite 20%: ${limite_descuento}. "
+            f"Cuotas Previas: ${cuota_actual_total}. Nueva Cuota Solicitada: ${prestamo.cuota_periodica}."
+        )
+        
+    db_prestamo = models.planillas.PrestamoEmpleado(
+        empleado_id=prestamo.empleado_id,
+        tipo_prestamo=prestamo.tipo_prestamo,
+        monto_total=prestamo.monto_total,
+        saldo_pendiente=prestamo.saldo_pendiente,
+        cuota_periodica=prestamo.cuota_periodica,
+        estado=prestamo.estado
+    )
+    db.add(db_prestamo)
+    db.commit()
+    db.refresh(db_prestamo)
+    return db_prestamo
+
+# ==========================================
 # OPERACIONES DE LIQUIDACIÓN Y RETIROS (FINIQUITOS)
 # ==========================================
 def crear_liquidacion_empleado(db: Session, liquidacion: schemas.planillas.LiquidacionEmpleadoCreate, empresa_id: int):
@@ -190,8 +243,26 @@ def procesar_planilla_mensual(db: Session, periodo: schemas.planillas.PeriodoPla
         isss = Decimal(str(resultado_calculo["deduccion_isss"]))
         afp = Decimal(str(resultado_calculo["deduccion_afp"]))
         renta = Decimal(str(resultado_calculo["deduccion_isr"]))
-        total_descuentos = Decimal(str(resultado_calculo["total_deducciones"]))
-        liquido = Decimal(str(resultado_calculo["salario_liquido"]))
+        # Deducciones adicionales: Préstamos y Embargos Activos
+        prestamos_activos = obtener_prestamos_empleado(db, emp.id)
+        descuentos_prestamos = Decimal('0.00')
+        prestamos_a_amortizar = []
+        
+        for p in prestamos_activos:
+            # Si el saldo pendiente es menor que la cuota, cobramos solo el saldo restante
+            cuota = min(p.cuota_periodica, p.saldo_pendiente)
+            descuentos_prestamos += cuota
+            prestamos_a_amortizar.append({
+                "prestamo": p,
+                "monto_amortizado": cuota
+            })
+            
+        total_descuentos = Decimal(str(resultado_calculo["total_deducciones"])) + descuentos_prestamos
+        liquido = Decimal(str(resultado_calculo["salario_liquido"])) - descuentos_prestamos
+        
+        # Validar que el líquido no sea negativo (teóricamente no debería por la validación del 20%)
+        if liquido < Decimal('0.00'):
+            liquido = Decimal('0.00')
         
         boleta = models.planillas.BoletaPago(
             empleado_id=emp.id,
@@ -203,6 +274,26 @@ def procesar_planilla_mensual(db: Session, periodo: schemas.planillas.PeriodoPla
             liquido_a_recibir=liquido
         )
         db.add(boleta)
+        db.flush() # Para obtener el ID de la boleta y usarlo en las amortizaciones
+        
+        # Registrar amortizaciones y actualizar saldo
+        for pa in prestamos_a_amortizar:
+            prestamo_obj = pa["prestamo"]
+            monto_amortizado = pa["monto_amortizado"]
+            
+            amortizacion = models.planillas.AmortizacionPrestamo(
+                prestamo_empleado_id=prestamo_obj.id,
+                boleta_pago_id=boleta.id,
+                monto_amortizado=monto_amortizado,
+                fecha_aplicacion=periodo.fecha_fin
+            )
+            db.add(amortizacion)
+            
+            # Actualizar saldo
+            prestamo_obj.saldo_pendiente -= monto_amortizado
+            if prestamo_obj.saldo_pendiente <= Decimal('0.00'):
+                prestamo_obj.estado = models.enums.EstadoPrestamoEnum.PAGADO
+                
         boletas_creadas += 1
         total_nomina += liquido
         
@@ -213,6 +304,7 @@ def procesar_planilla_mensual(db: Session, periodo: schemas.planillas.PeriodoPla
             "isss": float(isss),
             "afp": float(afp),
             "renta": float(renta),
+            "prestamos": float(descuentos_prestamos),
             "total_descuentos": float(total_descuentos),
             "liquido_recibir": float(liquido)
         })

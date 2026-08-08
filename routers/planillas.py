@@ -48,7 +48,35 @@ def ingresar_novedad_periodo(
     usuario_actual: models.seguridad.Usuario = Depends(obtener_usuario_actual)
 ):
     try:
-        return crud.planillas.registrar_novedad_planilla(db=db, novedad=novedad)
+        return crud.planillas.registrar_novedad_planilla(db=db, novedad=novedad, empresa_id=usuario_actual.empresa_id)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@router.get(
+    "/prestamos/{empleado_id}",
+    response_model=list[schemas.planillas.PrestamoEmpleadoResponse],
+    dependencies=[Depends(VerificadorPermiso("PLA_NOVEDADES_VER"))]
+)
+def listar_prestamos_empleado(
+    empleado_id: int,
+    db: Session = Depends(get_db),
+    usuario_actual: models.seguridad.Usuario = Depends(obtener_usuario_actual)
+):
+    return crud.planillas.obtener_prestamos_empleado(db=db, empleado_id=empleado_id)
+
+@router.post(
+    "/prestamos",
+    response_model=schemas.planillas.PrestamoEmpleadoResponse,
+    status_code=status.HTTP_201_CREATED,
+    dependencies=[Depends(VerificadorPermiso("PLA_NOVEDADES_EDITAR"))]
+)
+def registrar_prestamo_empleado(
+    prestamo: schemas.planillas.PrestamoEmpleadoCreate,
+    db: Session = Depends(get_db),
+    usuario_actual: models.seguridad.Usuario = Depends(obtener_usuario_actual)
+):
+    try:
+        return crud.planillas.crear_prestamo_empleado(db=db, prestamo=prestamo, empresa_id=usuario_actual.empresa_id)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
