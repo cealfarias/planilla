@@ -26,19 +26,19 @@ export default function Layout({ children }) {
         </div>
 
         <nav className="sidebar-nav">
-          <NavLink to="/dashboard" className={({isActive}) => isActive ? "nav-item active" : "nav-item"}>
+          <NavLink to="/dashboard" className={({isActive}) => isActive ? "nav-link active" : "nav-link"}>
             <LayoutDashboard size={20} />
             <span>Dashboard</span>
           </NavLink>
-          <NavLink to="/empleados" className={({isActive}) => isActive ? "nav-item active" : "nav-item"}>
+          <NavLink to="/empleados" className={({isActive}) => isActive ? "nav-link active" : "nav-link"}>
             <Users size={20} />
             <span>Colaboradores</span>
           </NavLink>
-          <NavLink to="/planillas" className={({isActive}) => isActive ? "nav-item active" : "nav-item"}>
+          <NavLink to="/planillas" className={({isActive}) => isActive ? "nav-link active" : "nav-link"}>
             <CreditCard size={20} />
             <span>Planillas</span>
           </NavLink>
-          <NavLink to="/configuracion" className={({isActive}) => isActive ? "nav-item active" : "nav-item"}>
+          <NavLink to="/configuracion" className={({isActive}) => isActive ? "nav-link active" : "nav-link"}>
             <Settings size={20} />
             <span>Configuración</span>
           </NavLink>
