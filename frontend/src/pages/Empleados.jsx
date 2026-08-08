@@ -69,8 +69,12 @@ export default function Empleados() {
                 <tr key={emp.id} style={{ borderBottom: '1px solid var(--border)' }}>
                   <td style={{ padding: '1rem 0.5rem', fontWeight: '500' }}>{emp.codigo_empleado}</td>
                   <td style={{ padding: '1rem 0.5rem' }}>{emp.primer_nombre} {emp.primer_apellido}</td>
-                  <td style={{ padding: '1rem 0.5rem' }}>{emp.cargo?.nombre_cargo || 'Sin Asignar'}</td>
-                  <td style={{ padding: '1rem 0.5rem' }}>${emp.salario_base.toFixed(2)}</td>
+                  <td style={{ padding: '1rem 0.5rem' }}>
+                    {emp.contratos?.find(c => c.es_activo)?.cargo || 'Sin Asignar'}
+                  </td>
+                  <td style={{ padding: '1rem 0.5rem' }}>
+                    ${(emp.contratos?.find(c => c.es_activo)?.salario_base || 0).toFixed(2)}
+                  </td>
                   <td style={{ padding: '1rem 0.5rem' }}>
                     <span style={{ 
                       padding: '0.25rem 0.5rem', 
