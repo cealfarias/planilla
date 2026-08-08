@@ -182,28 +182,16 @@ def procesar_planilla_mensual(db: Session, periodo: schemas.planillas.PeriodoPla
             
         salario = Decimal(str(contrato.salario_base))
         
-        # Cálculos de Ley (El Salvador)
-        # 1. ISSS (3%, tope salarial $1000)
-        isss = min(salario, Decimal('1000.00')) * Decimal('0.03')
+        # Usar el motor de cálculo original del usuario
+        from services.calculos_ley import calcular_liquidacion_boleta
         
-        # 2. AFP (7.25%)
-        afp = salario * Decimal('0.0725')
+        resultado_calculo = calcular_liquidacion_boleta(float(salario))
         
-        # 3. Renta
-        salario_neto = salario - isss - afp
-        renta = Decimal('0.00')
-        
-        if salario_neto <= Decimal('472.00'):
-            renta = Decimal('0.00')
-        elif salario_neto <= Decimal('895.24'):
-            renta = ((salario_neto - Decimal('472.00')) * Decimal('0.10')) + Decimal('17.67')
-        elif salario_neto <= Decimal('2038.10'):
-            renta = ((salario_neto - Decimal('895.24')) * Decimal('0.20')) + Decimal('60.00')
-        else:
-            renta = ((salario_neto - Decimal('2038.10')) * Decimal('0.30')) + Decimal('288.57')
-            
-        total_descuentos = isss + afp + renta
-        liquido = salario - total_descuentos
+        isss = Decimal(str(resultado_calculo["deduccion_isss"]))
+        afp = Decimal(str(resultado_calculo["deduccion_afp"]))
+        renta = Decimal(str(resultado_calculo["deduccion_isr"]))
+        total_descuentos = Decimal(str(resultado_calculo["total_deducciones"]))
+        liquido = Decimal(str(resultado_calculo["salario_liquido"]))
         
         boleta = models.planillas.BoletaPago(
             empleado_id=emp.id,
