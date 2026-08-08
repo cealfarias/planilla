@@ -1,14 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../services/api';
-import { Users, Plus } from 'lucide-react';
+import { Users, Plus, DollarSign } from 'lucide-react';
 import ContratarModal from '../components/ContratarModal';
+import FinanzasModal from '../components/FinanzasModal';
 
 export default function Empleados() {
   const [empleados, setEmpleados] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [contratarEmpleado, setContratarEmpleado] = useState(null);
+  const [finanzasEmpleado, setFinanzasEmpleado] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -91,7 +93,15 @@ export default function Empleados() {
                     </span>
                   </td>
                   <td style={{ padding: '1rem 0.5rem', textAlign: 'right' }}>
-                    {!emp.contratos?.find(c => c.es_activo) && (
+                    {emp.contratos?.find(c => c.es_activo) ? (
+                      <button 
+                        onClick={() => setFinanzasEmpleado(emp)}
+                        className="btn btn-outline" 
+                        style={{ fontSize: '0.75rem', padding: '0.25rem 0.5rem', color: '#059669', borderColor: '#059669', display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}
+                      >
+                        <DollarSign size={14} /> Finanzas
+                      </button>
+                    ) : (
                       <button 
                         onClick={() => setContratarEmpleado(emp)}
                         className="btn btn-outline" 
@@ -114,10 +124,16 @@ export default function Empleados() {
           onClose={() => setContratarEmpleado(null)}
           onSuccess={() => {
             setContratarEmpleado(null);
-            // Recargar la lista
             setLoading(true);
             api.getEmpleados().then(setEmpleados).finally(() => setLoading(false));
           }}
+        />
+      )}
+
+      {finanzasEmpleado && (
+        <FinanzasModal 
+          empleado={finanzasEmpleado} 
+          onClose={() => setFinanzasEmpleado(null)}
         />
       )}
     </div>
