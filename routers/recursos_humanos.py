@@ -57,7 +57,7 @@ def listar_todos_los_empleados(
     db: Session = Depends(get_db),
     usuario_actual: models.seguridad.Usuario = Depends(obtener_usuario_actual)
 ):
-    return crud.recursos_humanos.listar_empleados(db=db, skip=skip, limit=limit)
+    return crud.recursos_humanos.listar_empleados(db=db, empresa_id=usuario_actual.empresa_id, skip=skip, limit=limit)
 
 @router.post(
     "/estudios", 
