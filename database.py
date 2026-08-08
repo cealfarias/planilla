@@ -53,13 +53,32 @@ def auto_migrate_db():
         
         # Migraciones para columnas añadidas
         columns_to_add = [
+            # Empleados
             "ALTER TABLE empleados ADD COLUMN departamento_residencia VARCHAR(50) DEFAULT '' NOT NULL",
             "ALTER TABLE empleados ADD COLUMN municipio_residencia VARCHAR(50) DEFAULT '' NOT NULL",
             "ALTER TABLE empleados ADD COLUMN distrito_residencia VARCHAR(50) DEFAULT '' NOT NULL",
             "ALTER TABLE empleados ADD COLUMN dui_departamento_expedicion VARCHAR(50) DEFAULT '' NOT NULL",
             "ALTER TABLE empleados ADD COLUMN dui_municipio_expedicion VARCHAR(50) DEFAULT '' NOT NULL",
             "ALTER TABLE empleados ADD COLUMN dui_distrito_expedicion VARCHAR(50) DEFAULT '' NOT NULL",
-            "ALTER TABLE empleados ADD COLUMN dui_fecha_expedicion DATE DEFAULT CURRENT_DATE NOT NULL"
+            "ALTER TABLE empleados ADD COLUMN dui_fecha_expedicion DATE DEFAULT CURRENT_DATE NOT NULL",
+            # Contratos
+            "ALTER TABLE contratos ADD COLUMN proporciona_alojamiento BOOLEAN DEFAULT FALSE NOT NULL",
+            "ALTER TABLE contratos ADD COLUMN direccion_alojamiento TEXT",
+            "ALTER TABLE contratos ADD COLUMN dias_jornada VARCHAR(100) DEFAULT '' NOT NULL",
+            "ALTER TABLE contratos ADD COLUMN hora_inicio TIME DEFAULT '08:00' NOT NULL",
+            "ALTER TABLE contratos ADD COLUMN hora_fin TIME DEFAULT '17:00' NOT NULL",
+            "ALTER TABLE contratos ADD COLUMN pausa_alimenticia_inicio TIME DEFAULT '12:00' NOT NULL",
+            "ALTER TABLE contratos ADD COLUMN pausa_alimenticia_fin TIME DEFAULT '13:00' NOT NULL",
+            "ALTER TABLE contratos ADD COLUMN horas_semanales INTEGER DEFAULT 44 NOT NULL",
+            "ALTER TABLE contratos ADD COLUMN medio_pago VARCHAR(50) DEFAULT '' NOT NULL",
+            "ALTER TABLE contratos ADD COLUMN lugar_pago TEXT DEFAULT '' NOT NULL",
+            "ALTER TABLE contratos ADD COLUMN herramientas_entregadas TEXT",
+            "ALTER TABLE contratos ADD COLUMN lugar_entrega_herramientas VARCHAR(100)",
+            "ALTER TABLE contratos ADD COLUMN lugar_trabajo_direccion TEXT DEFAULT '' NOT NULL",
+            "ALTER TABLE contratos ADD COLUMN lugar_trabajo_distrito VARCHAR(50) DEFAULT '' NOT NULL",
+            "ALTER TABLE contratos ADD COLUMN lugar_trabajo_municipio VARCHAR(50) DEFAULT '' NOT NULL",
+            "ALTER TABLE contratos ADD COLUMN lugar_trabajo_departamento VARCHAR(50) DEFAULT '' NOT NULL",
+            "ALTER TABLE contratos ADD COLUMN distrito_celebracion VARCHAR(50) DEFAULT '' NOT NULL"
         ]
         for col in columns_to_add:
             try:
