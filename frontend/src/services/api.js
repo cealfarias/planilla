@@ -1,5 +1,24 @@
 const API_URL = "https://planilla-l2y7.onrender.com";
 
+const handleResponse = async (response) => {
+  if (response.status === 401) {
+    localStorage.removeItem("token");
+    window.location.href = "/login";
+    throw new Error("Sesión expirada. Redirigiendo a login...");
+  }
+  if (!response.ok) {
+    let errorMessage = "Error en la petición";
+    try {
+      const errorData = await response.json();
+      errorMessage = errorData.detail || errorMessage;
+    } catch (e) {
+      // Ignorar si no hay JSON
+    }
+    throw new Error(errorMessage);
+  }
+  return response.json();
+};
+
 export const api = {
   login: async (username, password) => {
     const formData = new URLSearchParams();
@@ -13,12 +32,7 @@ export const api = {
       },
       body: formData,
     });
-
-    if (!response.ok) {
-      throw new Error("Credenciales inválidas o error de servidor");
-    }
-
-    return response.json();
+    return handleResponse(response);
   },
 
   registro: async (datos) => {
@@ -29,13 +43,7 @@ export const api = {
       },
       body: JSON.stringify(datos),
     });
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.detail || "Error al registrar la empresa");
-    }
-
-    return response.json();
+    return handleResponse(response);
   },
 
   getEmpleados: async () => {
@@ -45,16 +53,7 @@ export const api = {
         "Authorization": `Bearer ${token}`
       }
     });
-
-    if (!response.ok) {
-      if (response.status === 401) {
-        localStorage.removeItem("token");
-        window.location.href = "/login";
-      }
-      throw new Error("Error al obtener la lista de empleados");
-    }
-
-    return response.json();
+    return handleResponse(response);
   },
 
   crearEmpleado: async (datos) => {
@@ -67,11 +66,7 @@ export const api = {
       },
       body: JSON.stringify(datos),
     });
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.detail || "Error al crear empleado");
-    }
-    return response.json();
+    return handleResponse(response);
   },
 
   crearContrato: async (empleadoId, datos) => {
@@ -84,11 +79,7 @@ export const api = {
       },
       body: JSON.stringify(datos),
     });
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.detail || "Error al crear contrato");
-    }
-    return response.json();
+    return handleResponse(response);
   },
 
   procesarPlanilla: async (datos) => {
@@ -101,11 +92,7 @@ export const api = {
       },
       body: JSON.stringify(datos),
     });
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.detail || "Error al procesar planilla");
-    }
-    return response.json();
+    return handleResponse(response);
   },
 
   getPrestamosEmpleado: async (empleadoId) => {
@@ -115,8 +102,7 @@ export const api = {
         "Authorization": `Bearer ${token}`
       }
     });
-    if (!response.ok) throw new Error("Error al obtener descuentos/préstamos");
-    return response.json();
+    return handleResponse(response);
   },
 
   crearPrestamoEmpleado: async (datos) => {
@@ -129,10 +115,6 @@ export const api = {
       },
       body: JSON.stringify(datos),
     });
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.detail || "Error al crear descuento/préstamo");
-    }
-    return response.json();
+    return handleResponse(response);
   }
 };
