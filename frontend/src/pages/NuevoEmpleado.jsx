@@ -101,6 +101,7 @@ export default function NuevoEmpleado() {
 
       // 2. Crear Contrato
       const contratoPayload = {
+        empleado_id: empleado.id,
         tipo_contrato: formData.tipo_contrato,
         cargo: formData.cargo,
         salario_base: parseFloat(formData.salario_base),

@@ -38,6 +38,7 @@ export default function ContratarModal({ empleado, onClose, onSuccess }) {
 
     try {
       const contratoPayload = {
+        empleado_id: empleado.id,
         tipo_contrato: formData.tipo_contrato,
         cargo: formData.cargo,
         salario_base: parseFloat(formData.salario_base),
