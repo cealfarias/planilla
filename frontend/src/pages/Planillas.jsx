@@ -9,7 +9,7 @@ export default function Planillas() {
 
   const [formData, setFormData] = useState({
     codigo_periodo: `MENSUAL-${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}`,
-    tipo_planilla: 'Ordinaria Mensual',
+    tipo_planilla: 'Mensual',
     fecha_inicio: `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}-01`,
     fecha_fin: `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}-30`,
   });
@@ -56,10 +56,10 @@ export default function Planillas() {
             <div className="form-group">
               <label>Tipo de Planilla *</label>
               <select name="tipo_planilla" className="form-input" value={formData.tipo_planilla} onChange={handleChange}>
-                <option value="Ordinaria Mensual">Ordinaria Mensual</option>
-                <option value="Ordinaria Quincenal">Ordinaria Quincenal</option>
+                <option value="Mensual">Ordinaria Mensual</option>
+                <option value="Quincenal">Ordinaria Quincenal</option>
                 <option value="Aguinaldo">Aguinaldo</option>
-                <option value="Indemnizacion Anual">Indemnización</option>
+                <option value="Vacaciones">Vacaciones</option>
               </select>
             </div>
             <div style={{ display: 'flex', gap: '1rem' }}>
