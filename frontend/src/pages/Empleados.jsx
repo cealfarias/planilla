@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { api } from '../services/api';
 import { Users, Plus } from 'lucide-react';
 
@@ -6,6 +7,7 @@ export default function Empleados() {
   const [empleados, setEmpleados] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchEmpleados = async () => {
@@ -32,7 +34,7 @@ export default function Empleados() {
           </h3>
           <p className="text-muted">Gestiona el personal activo de la empresa.</p>
         </div>
-        <button className="btn btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+        <button onClick={() => navigate('/empleados/nuevo')} className="btn btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
           <Plus size={16} /> Nuevo Empleado
         </button>
       </div>

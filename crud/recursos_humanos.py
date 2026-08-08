@@ -50,7 +50,13 @@ def crear_empleado(db: Session, empleado: schemas.empleado.EmpleadoCreate, empre
         estado_familiar=empleado.estado_familiar,
         profesion_oficio=empleado.profesion_oficio,
         nacionalidad=empleado.nacionalidad,
+        departamento_residencia=empleado.departamento_residencia,
         municipio_residencia=empleado.municipio_residencia,
+        distrito_residencia=empleado.distrito_residencia,
+        dui_departamento_expedicion=empleado.dui_departamento_expedicion,
+        dui_municipio_expedicion=empleado.dui_municipio_expedicion,
+        dui_distrito_expedicion=empleado.dui_distrito_expedicion,
+        dui_fecha_expedicion=empleado.dui_fecha_expedicion,
         puesto_id=empleado.puesto_id,
         estado="Activo"
     )

@@ -71,6 +71,20 @@ def poblar_datos_iniciales():
         ).first()
         
         if not usuario_existente:
+            # Primero crear la Empresa base para el administrador global (SaaS)
+            empresa_base = db.query(models.empresa.Empresa).filter(
+                models.empresa.Empresa.nit == "0000-000000-000-0"
+            ).first()
+            if not empresa_base:
+                empresa_base = models.empresa.Empresa(
+                    nit="0000-000000-000-0",
+                    nombre="Administración Central SaaS",
+                    es_activa=True
+                )
+                db.add(empresa_base)
+                db.commit()
+                db.refresh(empresa_base)
+                
             # Contraseña por defecto para el primer acceso seguro
             password_plana = "AdminPlanilla2026*"
             hash_seguro = pwd_context.hash(password_plana)
@@ -81,6 +95,7 @@ def poblar_datos_iniciales():
                 password_hash=hash_seguro,
                 es_activo=True,
                 rol_id=rol_admin_existente.id,
+                empresa_id=empresa_base.id,
                 empleado_id=None  # Usuario de TI global, no vinculado a expediente laboral
             )
             db.add(usuario_inicial)
@@ -96,7 +111,7 @@ def poblar_datos_iniciales():
             
     except Exception as e:
         db.rollback()
-        print(f"\n❌ Error catastrófico durante el proceso de Seeding: {str(e)}")
+        print(f"\nError durante el proceso de Seeding: {str(e)}")
         sys.exit(1)
     finally:
         db.close()

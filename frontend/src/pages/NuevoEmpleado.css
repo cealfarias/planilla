@@ -1,0 +1,77 @@
+.nuevo-empleado-container {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.wizard-progress {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 2rem;
+  padding: 0 2rem;
+}
+
+.wizard-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--text-muted);
+  font-weight: 500;
+  transition: all 0.3s;
+}
+
+.wizard-step.active {
+  color: var(--primary);
+}
+
+.wizard-step.active .step-icon {
+  background: var(--primary);
+  color: white;
+  border-color: var(--primary);
+}
+
+.step-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 2px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--card-bg);
+  transition: all 0.3s;
+}
+
+.wizard-line {
+  flex: 1;
+  height: 2px;
+  background: var(--border);
+  margin: 0 1rem;
+  margin-bottom: 24px;
+}
+
+.wizard-card {
+  padding: 2rem;
+}
+
+.grid-2 {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1rem;
+}
+
+.grid-3 {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+}
+
+h3 {
+  color: var(--text);
+  margin-bottom: 1.5rem;
+  font-weight: 600;
+}
+h4 {
+  color: var(--text-muted);
+}

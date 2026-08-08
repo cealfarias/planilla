@@ -51,5 +51,39 @@ export const api = {
     }
 
     return response.json();
+  },
+
+  crearEmpleado: async (datos) => {
+    const token = localStorage.getItem("token");
+    const response = await fetch(`${API_URL}/api/v1/recursos-humanos/empleados`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(datos),
+    });
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.detail || "Error al crear empleado");
+    }
+    return response.json();
+  },
+
+  crearContrato: async (empleadoId, datos) => {
+    const token = localStorage.getItem("token");
+    const response = await fetch(`${API_URL}/api/v1/recursos-humanos/empleados/${empleadoId}/contratos`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(datos),
+    });
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.detail || "Error al crear contrato");
+    }
+    return response.json();
   }
 };

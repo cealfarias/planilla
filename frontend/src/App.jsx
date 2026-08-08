@@ -3,7 +3,9 @@ import Login from './pages/Login';
 import Registro from './pages/Registro';
 import Dashboard from './pages/Dashboard';
 import Empleados from './pages/Empleados';
+import NuevoEmpleado from './pages/NuevoEmpleado';
 import ProtectedRoute from './components/ProtectedRoute';
+import Layout from './components/Layout';
 
 function App() {
   return (
@@ -13,9 +15,13 @@ function App() {
       
       {/* Rutas protegidas que usarán el Layout con Sidebar */}
       <Route element={<ProtectedRoute />}>
-        <Route path="/" element={<Dashboard />} />
-        <Route path="/empleados" element={<Empleados />} />
-        <Route path="/configuracion" element={<div className="card">Módulo de Configuración</div>} />
+        <Route element={<Layout />}>
+          <Route path="/" element={<Navigate to="/dashboard" replace />} />
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/empleados" element={<Empleados />} />
+          <Route path="/empleados/nuevo" element={<NuevoEmpleado />} />
+          <Route path="/configuracion" element={<div className="card">Módulo de Configuración</div>} />
+        </Route>
       </Route>
 
       {/* Fallback */}

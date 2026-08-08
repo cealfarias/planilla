@@ -24,7 +24,25 @@ def registrar_empleado(
     usuario_actual: models.seguridad.Usuario = Depends(obtener_usuario_actual)
 ):
     try:
-        return crud.recursos_humanos.crear_empleado(db=db, empleado=empleado)
+        return crud.recursos_humanos.crear_empleado(db=db, empleado=empleado, empresa_id=usuario_actual.empresa_id)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@router.post(
+    "/empleados/{empleado_id}/contratos", 
+    response_model=schemas.contrato.ContratoResponse, 
+    status_code=status.HTTP_201_CREATED,
+    dependencies=[Depends(VerificadorPermiso("RH_EMPLEADOS_CREAR"))]
+)
+def registrar_contrato_empleado(
+    empleado_id: int,
+    contrato: schemas.contrato.ContratoCreate, 
+    db: Session = Depends(get_db),
+    usuario_actual: models.seguridad.Usuario = Depends(obtener_usuario_actual)
+):
+    try:
+        contrato.empleado_id = empleado_id
+        return crud.recursos_humanos.crear_contrato(db=db, contrato=contrato, empresa_id=usuario_actual.empresa_id)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
