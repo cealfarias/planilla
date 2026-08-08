@@ -90,3 +90,19 @@ def asociar_experiencia_laboral(
         return crud.recursos_humanos.agregar_experiencia_laboral(db=db, experiencia=experiencia)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
+
+@router.put(
+    "/empleados/{empleado_id}/estado",
+    response_model=schemas.recursos_humanos.EmpleadoResponse,
+    dependencies=[Depends(VerificadorPermiso("RH_EMPLEADOS_CREAR"))]
+)
+def cambiar_estado_empleado(
+    empleado_id: int,
+    estado: str,
+    db: Session = Depends(get_db),
+    usuario_actual: models.seguridad.Usuario = Depends(obtener_usuario_actual)
+):
+    try:
+        return crud.recursos_humanos.cambiar_estado_empleado(db=db, empleado_id=empleado_id, empresa_id=usuario_actual.empresa_id, estado=estado)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))

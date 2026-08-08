@@ -110,3 +110,29 @@ def procesar_nomina_mensual(
         return crud.planillas.procesar_planilla_mensual(db=db, periodo=periodo, empresa_id=usuario_actual.empresa_id)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
+
+@router.get(
+    "/",
+    response_model=list[schemas.planillas.PeriodoPlanillaResponse],
+    dependencies=[Depends(VerificadorPermiso("PLA_CONFIG_VER"))]
+)
+def listar_planillas(
+    db: Session = Depends(get_db),
+    usuario_actual: models.seguridad.Usuario = Depends(obtener_usuario_actual)
+):
+    return crud.planillas.obtener_planillas(db=db, empresa_id=usuario_actual.empresa_id)
+
+@router.put(
+    "/{periodo_id}/cerrar",
+    response_model=schemas.planillas.PeriodoPlanillaResponse,
+    dependencies=[Depends(VerificadorPermiso("PLA_CONFIG_EDITAR"))]
+)
+def cerrar_periodo_planilla(
+    periodo_id: int,
+    db: Session = Depends(get_db),
+    usuario_actual: models.seguridad.Usuario = Depends(obtener_usuario_actual)
+):
+    try:
+        return crud.planillas.cerrar_planilla(db=db, periodo_id=periodo_id, empresa_id=usuario_actual.empresa_id)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))

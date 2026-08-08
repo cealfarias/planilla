@@ -28,6 +28,20 @@ export default function Empleados() {
     fetchEmpleados();
   }, []);
 
+  const handleActivarEmpleado = async (empleadoId) => {
+    if (!window.confirm("¿Deseas reactivar a este colaborador en el sistema?")) return;
+    try {
+      await api.cambiarEstadoEmpleado(empleadoId, "Activo");
+      setLoading(true);
+      const data = await api.getEmpleados();
+      setEmpleados(data);
+    } catch (err) {
+      alert(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="card" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -86,14 +100,22 @@ export default function Empleados() {
                       borderRadius: '999px', 
                       fontSize: '0.75rem',
                       fontWeight: '500',
-                      backgroundColor: emp.es_activo ? '#D1FAE5' : '#FEE2E2',
-                      color: emp.es_activo ? '#059669' : '#DC2626'
+                      backgroundColor: emp.estado === 'Activo' ? '#D1FAE5' : '#FEE2E2',
+                      color: emp.estado === 'Activo' ? '#059669' : '#DC2626'
                     }}>
-                      {emp.es_activo ? 'Activo' : 'Inactivo'}
+                      {emp.estado === 'Activo' ? 'Activo' : 'Inactivo'}
                     </span>
                   </td>
-                  <td style={{ padding: '1rem 0.5rem', textAlign: 'right' }}>
-                    {emp.contratos?.find(c => c.es_activo) ? (
+                  <td style={{ padding: '1rem 0.5rem', textAlign: 'right', display: 'flex', justifyContent: 'flex-end', gap: '0.5rem' }}>
+                    {emp.estado === 'Inactivo' ? (
+                      <button 
+                        onClick={() => handleActivarEmpleado(emp.id)}
+                        className="btn btn-outline" 
+                        style={{ fontSize: '0.75rem', padding: '0.25rem 0.5rem', color: '#16a34a', borderColor: '#16a34a' }}
+                      >
+                        Reactivar
+                      </button>
+                    ) : emp.contratos?.find(c => c.es_activo) ? (
                       <button 
                         onClick={() => setFinanzasEmpleado(emp)}
                         className="btn btn-outline" 

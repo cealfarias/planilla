@@ -191,6 +191,30 @@ def crear_liquidacion_empleado(db: Session, liquidacion: schemas.planillas.Liqui
 # ==========================================
 # MOTOR DE PLANILLA AUTOMÁTICA
 # ==========================================
+def obtener_planillas(db: Session, empresa_id: int):
+    """Devuelve el historial de planillas generadas por la empresa."""
+    return db.query(models.planillas.PeriodoPlanilla).filter(
+        models.planillas.PeriodoPlanilla.empresa_id == empresa_id
+    ).order_by(models.planillas.PeriodoPlanilla.fecha_inicio.desc()).all()
+
+def cerrar_planilla(db: Session, periodo_id: int, empresa_id: int):
+    """Cierra una planilla abierta para que no pueda ser procesada de nuevo o modificada."""
+    db_periodo = db.query(models.planillas.PeriodoPlanilla).filter(
+        models.planillas.PeriodoPlanilla.id == periodo_id,
+        models.planillas.PeriodoPlanilla.empresa_id == empresa_id
+    ).first()
+    
+    if not db_periodo:
+        raise ValueError("El período de planilla no existe.")
+        
+    if db_periodo.estado == models.enums.EstadoPlanillaEnum.CERRADA:
+        raise ValueError("La planilla ya se encuentra cerrada.")
+        
+    db_periodo.estado = models.enums.EstadoPlanillaEnum.CERRADA
+    db.commit()
+    db.refresh(db_periodo)
+    return db_periodo
+
 def procesar_planilla_mensual(db: Session, periodo: schemas.planillas.PeriodoPlanillaCreate, empresa_id: int):
     # 1. Crear el periodo
     db_periodo = db.query(models.planillas.PeriodoPlanilla).filter(

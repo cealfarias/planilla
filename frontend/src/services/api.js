@@ -116,5 +116,37 @@ export const api = {
       body: JSON.stringify(datos),
     });
     return handleResponse(response);
+  },
+
+  getPlanillas: async () => {
+    const token = localStorage.getItem("token");
+    const response = await fetch(`${API_URL}/api/v1/planillas/`, {
+      headers: {
+        "Authorization": `Bearer ${token}`
+      }
+    });
+    return handleResponse(response);
+  },
+
+  cerrarPlanilla: async (periodoId) => {
+    const token = localStorage.getItem("token");
+    const response = await fetch(`${API_URL}/api/v1/planillas/${periodoId}/cerrar`, {
+      method: "PUT",
+      headers: {
+        "Authorization": `Bearer ${token}`
+      }
+    });
+    return handleResponse(response);
+  },
+
+  cambiarEstadoEmpleado: async (empleadoId, estado) => {
+    const token = localStorage.getItem("token");
+    const response = await fetch(`${API_URL}/api/v1/recursos-humanos/empleados/${empleadoId}/estado?estado=${estado}`, {
+      method: "PUT",
+      headers: {
+        "Authorization": `Bearer ${token}`
+      }
+    });
+    return handleResponse(response);
   }
 };

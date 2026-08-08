@@ -177,3 +177,16 @@ def obtener_contrato_activo(db: Session, empleado_id: int, empresa_id: int):
         Contrato.empleado_id == empleado_id,
         Contrato.es_activo == True
     ).first()
+
+def cambiar_estado_empleado(db: Session, empleado_id: int, empresa_id: int, estado: str):
+    """Activa o inactiva a un empleado (si está inactivo)."""
+    empleado = obtener_empleado(db, empleado_id, empresa_id)
+    if not empleado:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"No se encontró el empleado con ID {empleado_id}."
+        )
+    empleado.estado = estado
+    db.commit()
+    db.refresh(empleado)
+    return empleado
