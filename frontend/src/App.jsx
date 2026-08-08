@@ -4,6 +4,7 @@ import Registro from './pages/Registro';
 import Dashboard from './pages/Dashboard';
 import Empleados from './pages/Empleados';
 import NuevoEmpleado from './pages/NuevoEmpleado';
+import Planillas from './pages/Planillas';
 import ProtectedRoute from './components/ProtectedRoute';
 import Layout from './components/Layout';
 
@@ -20,6 +21,7 @@ function App() {
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/empleados" element={<Empleados />} />
           <Route path="/empleados/nuevo" element={<NuevoEmpleado />} />
+          <Route path="/planillas" element={<Planillas />} />
           <Route path="/configuracion" element={<div className="card">Módulo de Configuración</div>} />
         </Route>
       </Route>

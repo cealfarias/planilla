@@ -67,3 +67,18 @@ def procesar_liquidacion_empleado(
         return crud.planillas.crear_liquidacion_empleado(db=db, liquidacion=liquidacion)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
+
+@router.post(
+    "/procesar", 
+    status_code=status.HTTP_201_CREATED,
+    dependencies=[Depends(VerificadorPermiso("PLA_CONFIG_EDITAR"))]
+)
+def procesar_nomina_mensual(
+    periodo: schemas.planillas.PeriodoPlanillaCreate, 
+    db: Session = Depends(get_db),
+    usuario_actual: models.seguridad.Usuario = Depends(obtener_usuario_actual)
+):
+    try:
+        return crud.planillas.procesar_planilla_mensual(db=db, periodo=periodo, empresa_id=usuario_actual.empresa_id)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))

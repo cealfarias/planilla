@@ -134,3 +134,95 @@ def crear_liquidacion_empleado(db: Session, liquidacion: schemas.planillas.Liqui
     db.commit()
     db.refresh(db_liquidacion)
     return db_liquidacion
+
+# ==========================================
+# MOTOR DE PLANILLA AUTOMÁTICA
+# ==========================================
+def procesar_planilla_mensual(db: Session, periodo: schemas.planillas.PeriodoPlanillaCreate, empresa_id: int):
+    # 1. Crear el periodo
+    db_periodo = db.query(models.planillas.PeriodoPlanilla).filter(
+        models.planillas.PeriodoPlanilla.codigo_periodo == periodo.codigo_periodo,
+        models.planillas.PeriodoPlanilla.empresa_id == empresa_id
+    ).first()
+    
+    if db_periodo:
+        raise ValueError("Este código de período ya fue procesado para esta empresa.")
+        
+    db_periodo = models.planillas.PeriodoPlanilla(
+        empresa_id=empresa_id,
+        codigo_periodo=periodo.codigo_periodo,
+        tipo_planilla=periodo.tipo_planilla,
+        fecha_inicio=periodo.fecha_inicio,
+        fecha_fin=periodo.fecha_fin,
+        estado=models.enums.EstadoPlanillaEnum.ABIERTA
+    )
+    db.add(db_periodo)
+    db.flush() # Para obtener db_periodo.id
+    
+    # 2. Obtener empleados activos
+    empleados_activos = db.query(models.recursos_humanos.Empleado).filter(
+        models.recursos_humanos.Empleado.empresa_id == empresa_id,
+        models.recursos_humanos.Empleado.estado == "Activo"
+    ).all()
+    
+    boletas_creadas = 0
+    total_nomina = Decimal('0.00')
+    
+    for emp in empleados_activos:
+        # Obtener contrato activo
+        contrato = db.query(models.recursos_humanos.Contrato).filter(
+            models.recursos_humanos.Contrato.empleado_id == emp.id,
+            models.recursos_humanos.Contrato.es_activo == True
+        ).first()
+        
+        if not contrato:
+            continue
+            
+        salario = Decimal(str(contrato.salario_base))
+        
+        # Cálculos de Ley (El Salvador)
+        # 1. ISSS (3%, tope salarial $1000)
+        isss = min(salario, Decimal('1000.00')) * Decimal('0.03')
+        
+        # 2. AFP (7.25%)
+        afp = salario * Decimal('0.0725')
+        
+        # 3. Renta
+        salario_neto = salario - isss - afp
+        renta = Decimal('0.00')
+        
+        if salario_neto <= Decimal('472.00'):
+            renta = Decimal('0.00')
+        elif salario_neto <= Decimal('895.24'):
+            renta = ((salario_neto - Decimal('472.00')) * Decimal('0.10')) + Decimal('17.67')
+        elif salario_neto <= Decimal('2038.10'):
+            renta = ((salario_neto - Decimal('895.24')) * Decimal('0.20')) + Decimal('60.00')
+        else:
+            renta = ((salario_neto - Decimal('2038.10')) * Decimal('0.30')) + Decimal('288.57')
+            
+        total_descuentos = isss + afp + renta
+        liquido = salario - total_descuentos
+        
+        boleta = models.planillas.BoletaPago(
+            empleado_id=emp.id,
+            periodo_planilla_id=db_periodo.id,
+            salario_base_aplicado=salario,
+            dias_trabajados=30, # Asumiendo mes completo para MVP
+            total_ingresos=salario,
+            total_descuentos=total_descuentos,
+            liquido_a_recibir=liquido
+        )
+        db.add(boleta)
+        boletas_creadas += 1
+        total_nomina += liquido
+        
+    db.commit()
+    db.refresh(db_periodo)
+    
+    return {
+        "periodo": db_periodo,
+        "estadisticas": {
+            "boletas_generadas": boletas_creadas,
+            "total_liquido_pagar": float(total_nomina)
+        }
+    }

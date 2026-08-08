@@ -85,5 +85,22 @@ export const api = {
       throw new Error(errorData.detail || "Error al crear contrato");
     }
     return response.json();
+  },
+
+  procesarPlanilla: async (datos) => {
+    const token = localStorage.getItem("token");
+    const response = await fetch(`${API_URL}/api/v1/planillas/procesar`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(datos),
+    });
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.detail || "Error al procesar planilla");
+    }
+    return response.json();
   }
 };

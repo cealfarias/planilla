@@ -1,6 +1,6 @@
 import React from 'react';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Users, Settings, LogOut, Building } from 'lucide-react';
+import { Link, NavLink, useNavigate, useLocation } from 'react-router-dom';
+import { LayoutDashboard, Users, Settings, LogOut, Building, CreditCard } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import './Layout.css';
 
@@ -26,18 +26,22 @@ export default function Layout({ children }) {
         </div>
 
         <nav className="sidebar-nav">
-          <Link to="/" className={`nav-link ${location.pathname === '/' ? 'active' : ''}`}>
+          <NavLink to="/dashboard" className={({isActive}) => isActive ? "nav-item active" : "nav-item"}>
             <LayoutDashboard size={20} />
             <span>Dashboard</span>
-          </Link>
-          <Link to="/empleados" className={`nav-link ${location.pathname === '/empleados' ? 'active' : ''}`}>
+          </NavLink>
+          <NavLink to="/empleados" className={({isActive}) => isActive ? "nav-item active" : "nav-item"}>
             <Users size={20} />
-            <span>Empleados</span>
-          </Link>
-          <Link to="/configuracion" className={`nav-link ${location.pathname === '/configuracion' ? 'active' : ''}`}>
+            <span>Colaboradores</span>
+          </NavLink>
+          <NavLink to="/planillas" className={({isActive}) => isActive ? "nav-item active" : "nav-item"}>
+            <CreditCard size={20} />
+            <span>Planillas</span>
+          </NavLink>
+          <NavLink to="/configuracion" className={({isActive}) => isActive ? "nav-item active" : "nav-item"}>
             <Settings size={20} />
             <span>Configuración</span>
-          </Link>
+          </NavLink>
         </nav>
 
         <div className="sidebar-footer">
