@@ -2,11 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../services/api';
 import { Users, Plus } from 'lucide-react';
+import ContratarModal from '../components/ContratarModal';
 
 export default function Empleados() {
   const [empleados, setEmpleados] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [contratarEmpleado, setContratarEmpleado] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -50,14 +52,15 @@ export default function Empleados() {
               <th style={{ padding: '1rem 0.5rem' }}>Cargo</th>
               <th style={{ padding: '1rem 0.5rem' }}>Salario Base</th>
               <th style={{ padding: '1rem 0.5rem' }}>Estado</th>
+              <th style={{ padding: '1rem 0.5rem', textAlign: 'right' }}>Acciones</th>
             </tr>
           </thead>
           <tbody>
             {loading ? (
-              <tr><td colSpan="5" style={{ padding: '2rem', textAlign: 'center' }}>Cargando datos desde Render...</td></tr>
+              <tr><td colSpan="6" style={{ padding: '2rem', textAlign: 'center' }}>Cargando datos desde Render...</td></tr>
             ) : empleados.length === 0 ? (
               <tr>
-                <td colSpan="5" style={{ padding: '3rem 1rem', textAlign: 'center', color: 'var(--text-muted)' }}>
+                <td colSpan="6" style={{ padding: '3rem 1rem', textAlign: 'center', color: 'var(--text-muted)' }}>
                   <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem' }}>
                     <Users size={32} style={{ opacity: 0.5 }} />
                     <p>No hay empleados registrados en esta empresa.</p>
@@ -87,12 +90,36 @@ export default function Empleados() {
                       {emp.es_activo ? 'Activo' : 'Inactivo'}
                     </span>
                   </td>
+                  <td style={{ padding: '1rem 0.5rem', textAlign: 'right' }}>
+                    {!emp.contratos?.find(c => c.es_activo) && (
+                      <button 
+                        onClick={() => setContratarEmpleado(emp)}
+                        className="btn btn-outline" 
+                        style={{ fontSize: '0.75rem', padding: '0.25rem 0.5rem', color: '#2563eb', borderColor: '#2563eb' }}
+                      >
+                        + Contrato
+                      </button>
+                    )}
+                  </td>
                 </tr>
               ))
             )}
           </tbody>
         </table>
       </div>
+
+      {contratarEmpleado && (
+        <ContratarModal 
+          empleado={contratarEmpleado} 
+          onClose={() => setContratarEmpleado(null)}
+          onSuccess={() => {
+            setContratarEmpleado(null);
+            // Recargar la lista
+            setLoading(true);
+            api.getEmpleados().then(setEmpleados).finally(() => setLoading(false));
+          }}
+        />
+      )}
     </div>
   );
 }
