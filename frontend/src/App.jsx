@@ -16,14 +16,12 @@ function App() {
       
       {/* Rutas protegidas que usarán el Layout con Sidebar */}
       <Route element={<ProtectedRoute />}>
-        <Route element={<Layout />}>
-          <Route path="/" element={<Navigate to="/dashboard" replace />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/empleados" element={<Empleados />} />
-          <Route path="/empleados/nuevo" element={<NuevoEmpleado />} />
-          <Route path="/planillas" element={<Planillas />} />
-          <Route path="/configuracion" element={<div className="card">Módulo de Configuración</div>} />
-        </Route>
+        <Route path="/" element={<Navigate to="/dashboard" replace />} />
+        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/empleados" element={<Empleados />} />
+        <Route path="/empleados/nuevo" element={<NuevoEmpleado />} />
+        <Route path="/planillas" element={<Planillas />} />
+        <Route path="/configuracion" element={<div className="card">Módulo de Configuración</div>} />
       </Route>
 
       {/* Fallback */}

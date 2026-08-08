@@ -62,8 +62,9 @@ export default function Layout({ children }) {
       <main className="main-content">
         <header className="topbar">
           <h2 className="page-title">
-            {location.pathname === '/' ? 'Dashboard' : 
-             location.pathname === '/empleados' ? 'Gestión de Empleados' : 'Configuración'}
+            {location.pathname === '/dashboard' || location.pathname === '/' ? 'Dashboard' : 
+             location.pathname.startsWith('/empleados') ? 'Gestión de Colaboradores' : 
+             location.pathname.startsWith('/planillas') ? 'Planillas' : 'Configuración'}
           </h2>
         </header>
         <div className="content-area">
