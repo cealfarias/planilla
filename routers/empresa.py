@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from database import get_db
 import schemas
 import models
-from routers.auth import VerificadorPermiso
+from auth.dependencies import obtener_usuario_actual
 
 router = APIRouter(
     prefix="/empresa",
@@ -13,9 +13,9 @@ router = APIRouter(
 @router.get("/me", response_model=schemas.empresa.EmpresaResponse)
 def obtener_mi_empresa(
     db: Session = Depends(get_db),
-    token_data: dict = Depends(VerificadorPermiso())
+    usuario_actual: models.seguridad.Usuario = Depends(obtener_usuario_actual)
 ):
-    empresa_id = token_data.get("empresa_id")
+    empresa_id = usuario_actual.empresa_id
     empresa = db.query(models.empresa.Empresa).filter(models.empresa.Empresa.id == empresa_id).first()
     if not empresa:
         raise HTTPException(status_code=404, detail="Empresa no encontrada")
@@ -25,9 +25,9 @@ def obtener_mi_empresa(
 def actualizar_mi_empresa(
     empresa_update: schemas.empresa.EmpresaUpdate,
     db: Session = Depends(get_db),
-    token_data: dict = Depends(VerificadorPermiso())
+    usuario_actual: models.seguridad.Usuario = Depends(obtener_usuario_actual)
 ):
-    empresa_id = token_data.get("empresa_id")
+    empresa_id = usuario_actual.empresa_id
     empresa = db.query(models.empresa.Empresa).filter(models.empresa.Empresa.id == empresa_id).first()
     
     if not empresa:
