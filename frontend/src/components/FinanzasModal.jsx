@@ -36,6 +36,25 @@ export default function FinanzasModal({ empleado, onClose }) {
   const [submittingNovedad, setSubmittingNovedad] = useState(false);
   const [errorNovedad, setErrorNovedad] = useState(null);
   const [successNovedad, setSuccessNovedad] = useState(null);
+  const [periodoActivo, setPeriodoActivo] = useState(null);
+
+  useEffect(() => {
+    fetchPrestamos();
+    verificarPeriodo();
+  }, []);
+
+  const verificarPeriodo = async () => {
+    try {
+      const res = await api.getPeriodoActivo();
+      if (res && res.activo) {
+        setPeriodoActivo(res);
+      } else {
+        setPeriodoActivo(false);
+      }
+    } catch (err) {
+      setPeriodoActivo(false);
+    }
+  };
 
   // Salario info
   const contratoActivo = empleado.contratos?.find(c => c.es_activo);
@@ -357,6 +376,15 @@ export default function FinanzasModal({ empleado, onClose }) {
 
         {activeTab === 'novedades' && (
           <div>
+            {periodoActivo === false && (
+              <div style={{ background: '#fffbebfb', border: '1px solid #fef3c7', padding: '1rem', borderRadius: '8px', marginBottom: '1.25rem', display: 'flex', alignItems: 'center', gap: '0.75rem', color: '#92400e' }}>
+                <AlertCircle size={24} style={{ color: '#d97706', flexShrink: 0 }} />
+                <div style={{ fontSize: '0.875rem' }}>
+                  <strong>⚠️ No hay ninguna planilla abierta:</strong> Para poder registrar novedades u horas extras, primero debes aperturar un nuevo período de planilla en el módulo de <strong>Planillas</strong>.
+                </div>
+              </div>
+            )}
+
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', background: '#f8fafc', padding: '0.75rem 1rem', borderRadius: '8px' }}>
               <button 
                 type="button" 

@@ -115,6 +115,14 @@ export const api = {
     return handleResponse(response);
   },
 
+  getPeriodoActivo: async () => {
+    const token = localStorage.getItem("token");
+    const response = await fetch(`${API_URL}/api/v1/planillas/periodo-activo`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    return handleResponse(response);
+  },
+
   getEmpleados: async () => {
     const token = localStorage.getItem("token");
     const response = await fetch(`${API_URL}/api/v1/recursos-humanos/empleados`, {

@@ -56,26 +56,22 @@ def obtener_o_crear_concepto(db: Session, codigo: str):
         db.refresh(concepto)
     return concepto
 
-def obtener_o_crear_periodo(db: Session, empresa_id: int):
+def obtener_periodo_activo(db: Session, empresa_id: int):
     periodo = db.query(models.planillas.PeriodoPlanilla).filter(
         models.planillas.PeriodoPlanilla.empresa_id == empresa_id,
         models.planillas.PeriodoPlanilla.estado == models.enums.EstadoPlanillaEnum.ABIERTA
     ).first()
-    if not periodo:
-        from datetime import date
-        today = date.today()
-        periodo = models.planillas.PeriodoPlanilla(
-            empresa_id=empresa_id,
-            codigo_periodo=f"PER-{today.year}-{today.month:02d}",
-            tipo_planilla=models.enums.TipoPlanillaEnum.ORDINARIA,
-            fecha_inicio=date(today.year, today.month, 1),
-            fecha_fin=date(today.year, today.month, 28),
-            estado=models.enums.EstadoPlanillaEnum.ABIERTA
-        )
-        db.add(periodo)
-        db.commit()
-        db.refresh(periodo)
     return periodo
+
+@router.get("/periodo-activo")
+def verificar_periodo_activo(
+    db: Session = Depends(get_db),
+    usuario_actual: models.seguridad.Usuario = Depends(obtener_usuario_actual)
+):
+    periodo = obtener_periodo_activo(db, usuario_actual.empresa_id)
+    if not periodo:
+        return {"activo": False, "mensaje": "No hay ningún período de planilla abierto."}
+    return {"activo": True, "periodo_id": periodo.id, "codigo": periodo.codigo_periodo}
 
 @router.post(
     "/novedades", 
@@ -86,8 +82,14 @@ def ingresar_novedad_directa(
     db: Session = Depends(get_db),
     usuario_actual: models.seguridad.Usuario = Depends(obtener_usuario_actual)
 ):
+    periodo = obtener_periodo_activo(db, usuario_actual.empresa_id)
+    if not periodo:
+        raise HTTPException(
+            status_code=400, 
+            detail="No existe ningún período de planilla activo (Abierto). Debe aperturar un nuevo período en el módulo de Planillas antes de guardar novedades."
+        )
+
     try:
-        periodo = obtener_o_crear_periodo(db, usuario_actual.empresa_id)
         concepto = obtener_o_crear_concepto(db, novedad.tipo_novedad)
 
         db_novedad = models.planillas.NovedadPlanilla(
@@ -111,9 +113,14 @@ def ingresar_novedades_lote(
     db: Session = Depends(get_db),
     usuario_actual: models.seguridad.Usuario = Depends(obtener_usuario_actual)
 ):
-    try:
-        periodo = obtener_o_crear_periodo(db, usuario_actual.empresa_id)
+    periodo = obtener_periodo_activo(db, usuario_actual.empresa_id)
+    if not periodo:
+        raise HTTPException(
+            status_code=400, 
+            detail="No existe ningún período de planilla activo (Abierto). Debe aperturar un nuevo período en el módulo de Planillas antes de guardar novedades."
+        )
 
+    try:
         registrados = 0
         for item in req.novedades:
             emp = db.query(models.recursos_humanos.Empleado).filter(
