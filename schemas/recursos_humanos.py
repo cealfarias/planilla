@@ -19,6 +19,8 @@ class EmpleadoBase(BaseModel):
     correo_personal: Optional[str] = None
     correo_corporativo: Optional[str] = None
     direccion_residencia: Optional[str] = None
+    banco_nombre: Optional[str] = None
+    numero_cuenta_bancaria: Optional[str] = None
     estado: EstadoEmpleadoEnum = EstadoEmpleadoEnum.ACTIVO
 
 class EmpleadoCreate(EmpleadoBase):

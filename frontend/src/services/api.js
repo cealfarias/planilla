@@ -123,6 +123,27 @@ export const api = {
     return handleResponse(response);
   },
 
+  getProgramacionVacaciones: async (anio) => {
+    const token = localStorage.getItem("token");
+    const response = await fetch(`${API_URL}/api/v1/vacaciones/programacion?anio=${anio}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    return handleResponse(response);
+  },
+
+  guardarProgramacionVacaciones: async (datos) => {
+    const token = localStorage.getItem("token");
+    const response = await fetch(`${API_URL}/api/v1/vacaciones/programacion`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(datos),
+    });
+    return handleResponse(response);
+  },
+
   getEmpleados: async () => {
     const token = localStorage.getItem("token");
     const response = await fetch(`${API_URL}/api/v1/recursos-humanos/empleados`, {

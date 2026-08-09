@@ -35,6 +35,11 @@ class Empleado(Base):
     
     email_institucional = Column(String(100), unique=True, index=True, nullable=True)
     telefono = Column(String(20), nullable=True)
+    
+    # DATOS BANCARIOS PARA TRANSFERENCIAS
+    banco_nombre = Column(String(100), nullable=True)
+    numero_cuenta_bancaria = Column(String(50), nullable=True)
+
     estado = Column(String(20), default="Activo", nullable=False)
     fecha_creacion = Column(Date, server_default=func.current_date())
 
@@ -132,4 +137,3 @@ class CatalogoIdioma(Base):
     __tablename__ = "rh_catalogo_idioma"
     id = Column(Integer, primary_key=True, index=True)
     nombre = Column(String)
-

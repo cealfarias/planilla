@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { api } from '../services/api';
-import { CreditCard, CheckCircle, AlertTriangle, Calculator, FileText, Download } from 'lucide-react';
+import ProgramacionVacacionesModal from '../components/ProgramacionVacacionesModal';
+import { notificarBoletaWhatsApp, notificarBoletaEmail } from '../utils/notificaciones';
+import { CreditCard, CheckCircle, AlertTriangle, Calculator, FileText, Download, Calendar, Send, Mail } from 'lucide-react';
 
 export default function Planillas() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
+  const [showVacacionesModal, setShowVacacionesModal] = useState(false);
 
   const [formData, setFormData] = useState({
     codigo_periodo: `MENSUAL-${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}`,
@@ -135,10 +138,26 @@ export default function Planillas() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-      <div>
-        <h2 style={{ marginBottom: '0.5rem' }}>Motor de Planillas</h2>
-        <p className="text-muted">Procesa la nómina de todos los colaboradores activos y genera boletas de pago.</p>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div>
+          <h2 style={{ marginBottom: '0.5rem' }}>Motor de Planillas</h2>
+          <p className="text-muted">Procesa la nómina de todos los colaboradores activos y genera boletas de pago.</p>
+        </div>
+
+        <button 
+          type="button" 
+          onClick={() => setShowVacacionesModal(true)} 
+          className="btn btn-outline" 
+          style={{ borderColor: '#2563eb', color: '#2563eb', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+        >
+          <Calendar size={18} /> 📅 Programar Vacaciones del Año (Art. 182)
+        </button>
       </div>
+
+      <ProgramacionVacacionesModal 
+        isOpen={showVacacionesModal} 
+        onClose={() => setShowVacacionesModal(false)} 
+      />
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '1.5rem' }}>
         <div className="card">
@@ -246,6 +265,7 @@ export default function Planillas() {
                       <th style={{ padding: '0.5rem' }}>Préstamos</th>
                       <th style={{ padding: '0.5rem' }}>Total Desc.</th>
                       <th style={{ padding: '0.5rem' }}>Líquido</th>
+                      <th style={{ padding: '0.5rem', textAlign: 'center' }}>Notificar Recibo</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -259,6 +279,28 @@ export default function Planillas() {
                         <td style={{ padding: '0.5rem', color: '#dc2626' }}>${item.prestamos?.toFixed(2) || '0.00'}</td>
                         <td style={{ padding: '0.5rem', color: '#dc2626' }}>${item.total_descuentos.toFixed(2)}</td>
                         <td style={{ padding: '0.5rem', fontWeight: 'bold', color: '#16a34a' }}>${item.liquido_recibir.toFixed(2)}</td>
+                        <td style={{ padding: '0.5rem', textAlign: 'center' }}>
+                          <div style={{ display: 'flex', justifyContent: 'center', gap: '0.25rem' }}>
+                            <button 
+                              type="button" 
+                              onClick={() => notificarBoletaWhatsApp(item, formData.codigo_periodo, item.liquido_recibir)}
+                              className="btn btn-outline"
+                              style={{ padding: '0.2rem 0.4rem', fontSize: '0.7rem', color: '#25d366', borderColor: '#25d366' }}
+                              title="Notificar Recibo por WhatsApp"
+                            >
+                              <Send size={12} /> WhatsApp
+                            </button>
+                            <button 
+                              type="button" 
+                              onClick={() => notificarBoletaEmail(item, formData.codigo_periodo, item.liquido_recibir)}
+                              className="btn btn-outline"
+                              style={{ padding: '0.2rem 0.4rem', fontSize: '0.7rem', color: '#2563eb', borderColor: '#2563eb' }}
+                              title="Notificar Recibo por Correo"
+                            >
+                              <Mail size={12} /> Correo
+                            </button>
+                          </div>
+                        </td>
                       </tr>
                     ))}
                   </tbody>

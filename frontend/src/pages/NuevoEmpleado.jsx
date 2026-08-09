@@ -110,6 +110,8 @@ export default function NuevoEmpleado() {
         nacionalidad: formData.nacionalidad,
         email_institucional: formData.email_institucional || null,
         telefono: formData.telefono || null,
+        banco_nombre: formData.banco_nombre || null,
+        numero_cuenta_bancaria: formData.numero_cuenta_bancaria || null,
         departamento_residencia: formData.departamento_residencia,
         municipio_residencia: formData.municipio_residencia,
         distrito_residencia: formData.distrito_residencia,
@@ -397,6 +399,37 @@ export default function NuevoEmpleado() {
                     <option value="Plazo Fijo">Plazo Fijo</option>
                     <option value="Servicios Profesionales">Servicios Profesionales</option>
                   </select>
+                </div>
+              </div>
+
+              <h4 style={{ marginTop: '1.5rem', marginBottom: '1rem', color: '#1e293b', borderBottom: '1px solid var(--border)', paddingBottom: '0.5rem' }}>
+                🏦 Información Bancaria para Pago / Transferencias
+              </h4>
+              <div className="grid-2">
+                <div className="form-group">
+                  <label>Banco Depositante</label>
+                  <select name="banco_nombre" value={formData.banco_nombre || ''} onChange={handleChange} className="form-input">
+                    <option value="Banco Agrícola">Banco Agrícola</option>
+                    <option value="BAC Credomatic">BAC Credomatic</option>
+                    <option value="Banco Cuscatlán">Banco Cuscatlán</option>
+                    <option value="Banco Davivienda">Banco Davivienda</option>
+                    <option value="Banco Promerica">Banco Promerica</option>
+                    <option value="Banco Azul">Banco Azul</option>
+                    <option value="Banco CITI">Banco CITI</option>
+                    <option value="Chivo Wallet">Chivo Wallet</option>
+                    <option value="Pago en Efectivo / Cheque">Pago en Efectivo / Cheque</option>
+                  </select>
+                </div>
+                <div className="form-group">
+                  <label>Número de Cuenta Bancaria</label>
+                  <input 
+                    type="text" 
+                    name="numero_cuenta_bancaria" 
+                    placeholder="Ej. 003001234567" 
+                    value={formData.numero_cuenta_bancaria || ''} 
+                    onChange={handleChange} 
+                    className="form-input" 
+                  />
                 </div>
               </div>
             </div>

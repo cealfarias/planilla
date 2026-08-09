@@ -5,6 +5,7 @@ from routers.organizacion import router as organizacion_router
 from routers.recursos_humanos import router as rh_router
 from routers.planillas import router as planillas_router
 from routers.empresa import router as empresa_router
+from routers.vacaciones import router as vacaciones_router
 
 # Enrutador maestro para la API de datos puros
 api_router = APIRouter(prefix="/api/v1")
@@ -16,3 +17,4 @@ api_router.include_router(organizacion_router)
 api_router.include_router(rh_router)
 api_router.include_router(planillas_router)
 api_router.include_router(empresa_router)
+api_router.include_router(vacaciones_router)

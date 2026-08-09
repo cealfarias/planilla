@@ -47,6 +47,7 @@ def auto_migrate_db():
         from models.empresa import Empresa
         from models.recursos_humanos import Empleado, Contrato
         from models.planillas import PeriodoPlanilla, BoletaPago
+        from models.vacaciones import ProgramacionVacacion
         
         # Crear tablas nuevas si no existen
         Base.metadata.create_all(bind=engine)
@@ -80,7 +81,10 @@ def auto_migrate_db():
             "ALTER TABLE contratos ADD COLUMN lugar_trabajo_departamento VARCHAR(50) DEFAULT '' NOT NULL",
             "ALTER TABLE contratos ADD COLUMN distrito_celebracion VARCHAR(50) DEFAULT '' NOT NULL",
             # Empresas
-            "ALTER TABLE empresas ADD COLUMN logo_base64 TEXT"
+            "ALTER TABLE empresas ADD COLUMN logo_base64 TEXT",
+            # Datos Bancarios Empleados
+            "ALTER TABLE empleados ADD COLUMN banco_nombre VARCHAR(100)",
+            "ALTER TABLE empleados ADD COLUMN numero_cuenta_bancaria VARCHAR(50)"
         ]
         for col in columns_to_add:
             try:
