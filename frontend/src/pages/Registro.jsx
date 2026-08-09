@@ -12,6 +12,7 @@ export default function Registro() {
     admin_username: '',
     admin_email: '',
     admin_password: '',
+    aceptar_terminos: false,
     aceptar_publicidad: false
   });
   const [error, setError] = useState(null);
@@ -50,26 +51,28 @@ export default function Registro() {
   if (success) {
     return (
       <div className="login-container">
-        <div className="login-card card" style={{ textAlign: 'center' }}>
-          <div className="logo-placeholder" style={{ color: 'var(--accent)' }}>✅</div>
-          <h2>¡Empresa Registrada!</h2>
-          <p className="text-muted" style={{ marginBottom: '2rem' }}>
-            Tu espacio de trabajo ha sido creado con éxito. Redirigiendo al inicio de sesión...
-          </p>
-          
-          <div style={{ padding: '1.5rem', background: 'var(--bg-color)', borderRadius: '8px', marginBottom: '1rem' }}>
-            <p style={{ fontWeight: '600', marginBottom: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
-              <Share2 size={18} /> ¡Invita a otros empresarios!
+        <div className="login-wrapper" style={{ maxWidth: '600px', margin: '0 auto' }}>
+          <div className="login-right" style={{ padding: '4rem 2rem', textAlign: 'center' }}>
+            <div className="logo-placeholder" style={{ color: 'var(--accent)', fontSize: '4rem', marginBottom: '1rem' }}>✅</div>
+            <h2 style={{ fontSize: '2rem', marginBottom: '1rem' }}>¡Empresa Registrada!</h2>
+            <p className="text-muted" style={{ marginBottom: '2rem', fontSize: '1.125rem' }}>
+              Tu espacio de trabajo ha sido creado con éxito. <br/>Serás redirigido al inicio de sesión en unos segundos...
             </p>
-            <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
-              <a href={whatsappUrl} target="_blank" rel="noopener noreferrer" 
-                 style={{ padding: '0.5rem 1rem', background: '#25D366', color: 'white', borderRadius: '4px', textDecoration: 'none', fontWeight: '500' }}>
-                WhatsApp
-              </a>
-              <a href={telegramUrl} target="_blank" rel="noopener noreferrer" 
-                 style={{ padding: '0.5rem 1rem', background: '#0088cc', color: 'white', borderRadius: '4px', textDecoration: 'none', fontWeight: '500' }}>
-                Telegram
-              </a>
+            
+            <div style={{ padding: '2rem', background: '#f8fafc', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+              <p style={{ fontWeight: '600', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', fontSize: '1.125rem', color: '#0f172a' }}>
+                <Share2 size={24} className="text-blue-600" /> ¡Comparte con otros empresarios!
+              </p>
+              <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
+                <a href={whatsappUrl} target="_blank" rel="noopener noreferrer" 
+                   style={{ padding: '0.75rem 1.5rem', background: '#25D366', color: 'white', borderRadius: '8px', textDecoration: 'none', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '0.5rem', boxShadow: '0 4px 6px rgba(37, 211, 102, 0.2)' }}>
+                  WhatsApp
+                </a>
+                <a href={telegramUrl} target="_blank" rel="noopener noreferrer" 
+                   style={{ padding: '0.75rem 1.5rem', background: '#0088cc', color: 'white', borderRadius: '8px', textDecoration: 'none', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '0.5rem', boxShadow: '0 4px 6px rgba(0, 136, 204, 0.2)' }}>
+                  Telegram
+                </a>
+              </div>
             </div>
           </div>
         </div>
@@ -79,60 +82,94 @@ export default function Registro() {
 
   return (
     <div className="login-container">
-      <div className="login-card card" style={{ maxWidth: '500px' }}>
-        <div className="login-header">
-          <div className="logo-placeholder">🚀</div>
-          <h2>Crear nueva Empresa</h2>
-          <p className="text-muted">Ingresa los datos para crear tu espacio de trabajo</p>
+      <div className="login-wrapper">
+        {/* Lado izquierdo */}
+        <div className="login-left">
+          <div className="login-left-content">
+            <h1>Únete a nosotros</h1>
+            <p style={{ fontSize: '1.25rem', opacity: 0.9, lineHeight: 1.5 }}>
+              Crea tu espacio de trabajo y transforma la gestión de tus recursos humanos en minutos.
+            </p>
+            <ul className="login-benefits" style={{ marginTop: '3rem' }}>
+              <li className="benefit-item">
+                <div className="benefit-icon">✨</div>
+                <span>Configuración instantánea de planillas</span>
+              </li>
+              <li className="benefit-item">
+                <div className="benefit-icon">🔒</div>
+                <span>Tus datos seguros y cifrados en la nube</span>
+              </li>
+              <li className="benefit-item">
+                <div className="benefit-icon">📈</div>
+                <span>Escalable sin importar el tamaño de tu empresa</span>
+              </li>
+            </ul>
+          </div>
         </div>
 
-        <form onSubmit={handleSubmit}>
-          {error && <div className="login-error">{error}</div>}
-          
-          <div style={{ display: 'flex', gap: '1rem', marginBottom: '1rem' }}>
-            <div className="form-group" style={{ flex: 1, marginBottom: 0 }}>
-              <label className="form-label">Nombre Empresa</label>
-              <input type="text" name="empresa_nombre" className="form-input" required value={formData.empresa_nombre} onChange={handleChange} />
+        {/* Lado derecho */}
+        <div className="login-right">
+          <div className="login-card" style={{ maxWidth: '420px' }}>
+            <div className="login-header">
+              <h2>Crear nueva Empresa</h2>
+              <p className="text-muted">Ingresa los datos para crear tu espacio de trabajo</p>
             </div>
-            <div className="form-group" style={{ flex: 1, marginBottom: 0 }}>
-              <label className="form-label">NIT</label>
-              <input type="text" name="empresa_nit" className="form-input" required placeholder="0614-..." value={formData.empresa_nit} onChange={handleChange} />
+
+            <form onSubmit={handleSubmit}>
+              {error && <div className="login-error">{error}</div>}
+              
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+                <div className="form-group" style={{ marginBottom: 0 }}>
+                  <label className="form-label">Nombre Empresa</label>
+                  <input type="text" name="empresa_nombre" className="form-input" required value={formData.empresa_nombre} onChange={handleChange} />
+                </div>
+                <div className="form-group" style={{ marginBottom: 0 }}>
+                  <label className="form-label">NIT</label>
+                  <input type="text" name="empresa_nit" className="form-input" required placeholder="0614-..." value={formData.empresa_nit} onChange={handleChange} />
+                </div>
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Usuario Administrador</label>
+                <input type="text" name="admin_username" className="form-input" required value={formData.admin_username} onChange={handleChange} />
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Correo Electrónico</label>
+                <input type="email" name="admin_email" className="form-input" required value={formData.admin_email} onChange={handleChange} />
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Contraseña</label>
+                <input type="password" name="admin_password" className="form-input" required minLength={6} value={formData.admin_password} onChange={handleChange} />
+              </div>
+
+              <div style={{ background: '#f8fafc', padding: '1rem', borderRadius: '8px', border: '1px solid #e2e8f0', marginTop: '1.5rem', marginBottom: '1.5rem' }}>
+                <div className="form-group" style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem', marginBottom: '0.75rem' }}>
+                  <input type="checkbox" name="aceptar_terminos" id="terminos" required checked={formData.aceptar_terminos} onChange={handleChange} style={{ marginTop: '0.25rem' }} />
+                  <label htmlFor="terminos" style={{ fontSize: '0.85rem', cursor: 'pointer', color: '#334155', lineHeight: 1.4 }}>
+                    He leído y acepto los <strong>Términos de Referencia</strong> y el <strong>Contrato de Servicio</strong> de Administración Planilla de Sueldos SaaS.
+                  </label>
+                </div>
+                <div className="form-group" style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem', marginBottom: 0 }}>
+                  <input type="checkbox" name="aceptar_publicidad" id="marketing" checked={formData.aceptar_publicidad} onChange={handleChange} style={{ marginTop: '0.25rem' }} />
+                  <label htmlFor="marketing" className="text-muted" style={{ fontSize: '0.85rem', cursor: 'pointer', lineHeight: 1.4 }}>
+                    Acepto recibir correos con ofertas y novedades de la plataforma.
+                  </label>
+                </div>
+              </div>
+
+              <button type="submit" className="btn btn-primary btn-block" disabled={loading} style={{ padding: '0.75rem', fontSize: '1rem' }}>
+                {loading ? 'Creando espacio...' : 'Registrar Empresa'}
+              </button>
+            </form>
+
+            <div style={{ textAlign: 'center', marginTop: '1.5rem', paddingTop: '1.5rem', borderTop: '1px solid #e2e8f0' }}>
+              <Link to="/login" className="text-muted" style={{ textDecoration: 'none' }}>
+                ¿Ya tienes una cuenta? <strong style={{ color: 'var(--primary)' }}>Inicia Sesión aquí</strong>
+              </Link>
             </div>
           </div>
-
-          <hr style={{ border: 0, borderTop: '1px solid var(--border)', margin: '1.5rem 0' }} />
-
-          <div className="form-group">
-            <label className="form-label">Usuario Administrador</label>
-            <input type="text" name="admin_username" className="form-input" required value={formData.admin_username} onChange={handleChange} />
-          </div>
-
-          <div className="form-group">
-            <label className="form-label">Correo Electrónico</label>
-            <input type="email" name="admin_email" className="form-input" required value={formData.admin_email} onChange={handleChange} />
-          </div>
-
-          <div className="form-group">
-            <label className="form-label">Contraseña</label>
-            <input type="password" name="admin_password" className="form-input" required minLength={6} value={formData.admin_password} onChange={handleChange} />
-          </div>
-
-          <div className="form-group" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '1rem', marginBottom: '1.5rem' }}>
-            <input type="checkbox" name="aceptar_publicidad" id="marketing" checked={formData.aceptar_publicidad} onChange={handleChange} />
-            <label htmlFor="marketing" className="text-muted" style={{ fontSize: '0.8rem', cursor: 'pointer' }}>
-              Acepto recibir correos con ofertas y novedades de la plataforma.
-            </label>
-          </div>
-
-          <button type="submit" className="btn btn-primary btn-block" disabled={loading}>
-            {loading ? 'Creando espacio de trabajo...' : 'Registrar Empresa'}
-          </button>
-        </form>
-
-        <div style={{ textAlign: 'center', marginTop: '1.5rem' }}>
-          <Link to="/login" className="text-muted" style={{ textDecoration: 'none' }}>
-            ¿Ya tienes una cuenta? <strong>Inicia Sesión</strong>
-          </Link>
         </div>
       </div>
     </div>
