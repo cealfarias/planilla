@@ -216,6 +216,43 @@ def cerrar_planilla(db: Session, periodo_id: int, empresa_id: int):
     db.refresh(db_periodo)
     return db_periodo
 
+def limpiar_boletas_y_relaciones_de_periodo(db: Session, periodo_id: int):
+    """Elimina boletas, amortizaciones y detalles asociados a un período respetando las llaves foráneas."""
+    boletas = db.query(models.planillas.BoletaPago).filter(
+        models.planillas.BoletaPago.periodo_planilla_id == periodo_id
+    ).all()
+    
+    boleta_ids = [b.id for b in boletas]
+    
+    if boleta_ids:
+        # 1. Revertir y borrar amortizaciones de préstamos
+        amortizaciones = db.query(models.planillas.AmortizacionPrestamo).filter(
+            models.planillas.AmortizacionPrestamo.boleta_pago_id.in_(boleta_ids)
+        ).all()
+        
+        for amort in amortizaciones:
+            prestamo = db.query(models.planillas.PrestamoEmpleado).filter(
+                models.planillas.PrestamoEmpleado.id == amort.prestamo_empleado_id
+            ).first()
+            if prestamo:
+                prestamo.saldo_pendiente += amort.monto_amortizado
+                if prestamo.saldo_pendiente > 0:
+                    prestamo.estado = models.enums.EstadoPrestamoEnum.ACTIVO
+            db.delete(amort)
+        db.flush()
+
+        # 2. Borrar detalles de boletas
+        db.query(models.planillas.BoletaPagoDetalle).filter(
+            models.planillas.BoletaPagoDetalle.boleta_pago_id.in_(boleta_ids)
+        ).delete(synchronize_session=False)
+        db.flush()
+
+        # 3. Borrar las boletas de pago
+        db.query(models.planillas.BoletaPago).filter(
+            models.planillas.BoletaPago.periodo_planilla_id == periodo_id
+        ).delete(synchronize_session=False)
+        db.flush()
+
 def eliminar_planilla(db: Session, periodo_id: int, empresa_id: int):
     db_periodo = db.query(models.planillas.PeriodoPlanilla).filter(
         models.planillas.PeriodoPlanilla.id == periodo_id,
@@ -226,31 +263,7 @@ def eliminar_planilla(db: Session, periodo_id: int, empresa_id: int):
     if db_periodo.estado == models.enums.EstadoPlanillaEnum.CERRADA:
         raise ValueError("No se puede eliminar una planilla que ya ha sido CERRADA.")
         
-    boleta_ids = [b.id for b in db.query(models.planillas.BoletaPago.id).filter(
-        models.planillas.BoletaPago.periodo_planilla_id == db_periodo.id
-    ).all()]
-    
-    if boleta_ids:
-        # Revertir amortizaciones
-        for amort in db.query(models.planillas.AmortizacionPrestamo).filter(
-            models.planillas.AmortizacionPrestamo.boleta_pago_id.in_(boleta_ids)
-        ).all():
-            prestamo = db.query(models.planillas.PrestamoEmpleado).filter(
-                models.planillas.PrestamoEmpleado.id == amort.prestamo_empleado_id
-            ).first()
-            if prestamo:
-                prestamo.saldo_pendiente += amort.monto_amortizado
-                if prestamo.saldo_pendiente > 0:
-                    prestamo.estado = models.enums.EstadoPrestamoEnum.ACTIVO
-            db.delete(amort)
-
-        db.query(models.planillas.BoletaPagoDetalle).filter(
-            models.planillas.BoletaPagoDetalle.boleta_pago_id.in_(boleta_ids)
-        ).delete(synchronize_session=False)
-
-        db.query(models.planillas.BoletaPago).filter(
-            models.planillas.BoletaPago.periodo_planilla_id == db_periodo.id
-        ).delete(synchronize_session=False)
+    limpiar_boletas_y_relaciones_de_periodo(db, db_periodo.id)
 
     db.delete(db_periodo)
     db.commit()
@@ -306,30 +319,7 @@ def procesar_planilla_mensual(db: Session, periodo: schemas.planillas.PeriodoPla
             raise ValueError("Este período de planilla ya fue procesado y CERRADO. No puede ser recalculado.")
             
         # Si la planilla existe y está ABIERTA -> Limpiar boletas previas en orden para recalcular limpia
-        boleta_ids = [b.id for b in db.query(models.planillas.BoletaPago.id).filter(
-            models.planillas.BoletaPago.periodo_planilla_id == db_periodo.id
-        ).all()]
-        
-        if boleta_ids:
-            for amort in db.query(models.planillas.AmortizacionPrestamo).filter(
-                models.planillas.AmortizacionPrestamo.boleta_pago_id.in_(boleta_ids)
-            ).all():
-                prestamo = db.query(models.planillas.PrestamoEmpleado).filter(
-                    models.planillas.PrestamoEmpleado.id == amort.prestamo_empleado_id
-                ).first()
-                if prestamo:
-                    prestamo.saldo_pendiente += amort.monto_amortizado
-                    if prestamo.saldo_pendiente > 0:
-                        prestamo.estado = models.enums.EstadoPrestamoEnum.ACTIVO
-                db.delete(amort)
-
-            db.query(models.planillas.BoletaPagoDetalle).filter(
-                models.planillas.BoletaPagoDetalle.boleta_pago_id.in_(boleta_ids)
-            ).delete(synchronize_session=False)
-
-            db.query(models.planillas.BoletaPago).filter(
-                models.planillas.BoletaPago.periodo_planilla_id == db_periodo.id
-            ).delete(synchronize_session=False)
+        limpiar_boletas_y_relaciones_de_periodo(db, db_periodo.id)
 
         db_periodo.fecha_inicio = periodo.fecha_inicio
         db_periodo.fecha_fin = periodo.fecha_fin
