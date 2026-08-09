@@ -4,6 +4,8 @@ import { api } from '../services/api';
 import { ArrowLeft, ArrowRight, Save, User, MapPin, Briefcase } from 'lucide-react';
 import './NuevoEmpleado.css'; // O usar estilos inline/globales
 
+import { LISTA_DEPARTAMENTOS, obtenerDistritosPorDepartamento, obtenerMunicipioOficial } from '../utils/el_salvador_territorio';
+
 export default function NuevoEmpleado() {
   const navigate = useNavigate();
   const [step, setStep] = useState(1);
@@ -11,7 +13,7 @@ export default function NuevoEmpleado() {
   const [error, setError] = useState(null);
 
   const [formData, setFormData] = useState({
-    // Paso 1: Datos Personales
+    // Paso 1: Datos Personales & Contacto
     primer_nombre: '',
     segundo_nombre: '',
     primer_apellido: '',
@@ -30,11 +32,11 @@ export default function NuevoEmpleado() {
 
     // Paso 2: Ubicación
     departamento_residencia: '',
-    municipio_residencia: '',
     distrito_residencia: '',
+    municipio_residencia: '',
     dui_departamento_expedicion: '',
-    dui_municipio_expedicion: '',
     dui_distrito_expedicion: '',
+    dui_municipio_expedicion: '',
     dui_fecha_expedicion: '',
 
     // Paso 3: Contrato
@@ -52,14 +54,34 @@ export default function NuevoEmpleado() {
     lugar_pago: 'Oficina Central',
     lugar_trabajo_direccion: 'Oficina Central',
     lugar_trabajo_distrito: 'San Salvador',
-    lugar_trabajo_municipio: 'San Salvador',
+    lugar_trabajo_municipio: 'San Salvador Centro',
     lugar_trabajo_departamento: 'San Salvador',
     distrito_celebracion: 'San Salvador'
   });
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData(prev => {
+      const updated = { ...prev, [name]: value };
+
+      // Lógica para Residencia
+      if (name === 'departamento_residencia') {
+        updated.distrito_residencia = '';
+        updated.municipio_residencia = '';
+      } else if (name === 'distrito_residencia') {
+        updated.municipio_residencia = obtenerMunicipioOficial(updated.departamento_residencia, value);
+      }
+
+      // Lógica para Expedición de DUI
+      if (name === 'dui_departamento_expedicion') {
+        updated.dui_distrito_expedicion = '';
+        updated.dui_municipio_expedicion = '';
+      } else if (name === 'dui_distrito_expedicion') {
+        updated.dui_municipio_expedicion = obtenerMunicipioOficial(updated.dui_departamento_expedicion, value);
+      }
+
+      return updated;
+    });
   };
 
   const nextStep = () => setStep(prev => prev + 1);
@@ -165,7 +187,7 @@ export default function NuevoEmpleado() {
           
           {step === 1 && (
             <div className="step-content">
-              <h3>Datos Personales</h3>
+              <h3>Datos Personales y Contacto</h3>
               <div className="grid-2">
                 <div className="form-group">
                   <label>Primer Nombre *</label>
@@ -190,6 +212,14 @@ export default function NuevoEmpleado() {
                 <div className="form-group">
                   <label>NIT (0000-000000-000-0) *</label>
                   <input type="text" name="nit" required value={formData.nit} onChange={handleChange} className="form-input" placeholder="0000-000000-000-0" />
+                </div>
+                <div className="form-group">
+                  <label>Teléfono de Contacto *</label>
+                  <input type="text" name="telefono" required value={formData.telefono} onChange={handleChange} className="form-input" placeholder="7000-0000" />
+                </div>
+                <div className="form-group">
+                  <label>Correo Electrónico (Opcional)</label>
+                  <input type="email" name="email_institucional" value={formData.email_institucional} onChange={handleChange} className="form-input" placeholder="correo@ejemplo.com" />
                 </div>
                 <div className="form-group">
                   <label>ISSS</label>
@@ -235,34 +265,109 @@ export default function NuevoEmpleado() {
               <div className="grid-3">
                 <div className="form-group">
                   <label>Departamento *</label>
-                  <input type="text" name="departamento_residencia" required value={formData.departamento_residencia} onChange={handleChange} className="form-input" />
+                  <select 
+                    name="departamento_residencia" 
+                    required 
+                    value={formData.departamento_residencia} 
+                    onChange={handleChange} 
+                    className="form-input"
+                  >
+                    <option value="">-- Seleccionar --</option>
+                    {LISTA_DEPARTAMENTOS.map(dep => (
+                      <option key={dep} value={dep}>{dep}</option>
+                    ))}
+                  </select>
                 </div>
-                <div className="form-group">
-                  <label>Municipio *</label>
-                  <input type="text" name="municipio_residencia" required value={formData.municipio_residencia} onChange={handleChange} className="form-input" />
-                </div>
+                
                 <div className="form-group">
                   <label>Distrito *</label>
-                  <input type="text" name="distrito_residencia" required value={formData.distrito_residencia} onChange={handleChange} className="form-input" />
+                  <select 
+                    name="distrito_residencia" 
+                    required 
+                    disabled={!formData.departamento_residencia} 
+                    value={formData.distrito_residencia} 
+                    onChange={handleChange} 
+                    className="form-input"
+                  >
+                    <option value="">-- Seleccionar --</option>
+                    {obtenerDistritosPorDepartamento(formData.departamento_residencia).map(dis => (
+                      <option key={dis} value={dis}>{dis}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="form-group">
+                  <label style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <span>Municipio *</span>
+                    <span style={{ fontSize: '0.75rem', color: '#10b981', fontWeight: 'bold' }}>✓ Auto (Ley 762)</span>
+                  </label>
+                  <input 
+                    type="text" 
+                    name="municipio_residencia" 
+                    readOnly 
+                    required 
+                    placeholder="Auto-calculado..." 
+                    value={formData.municipio_residencia} 
+                    className="form-input" 
+                    style={{ background: '#f1f5f9', cursor: 'not-allowed', fontWeight: '600', color: '#0f172a' }} 
+                  />
                 </div>
               </div>
 
-              <h4 style={{ margin: '1rem 0 0.5rem' }}>Expedición de DUI</h4>
+              <h4 style={{ margin: '1.5rem 0 0.5rem' }}>Expedición de DUI</h4>
               <div className="grid-3">
                 <div className="form-group">
                   <label>Departamento *</label>
-                  <input type="text" name="dui_departamento_expedicion" required value={formData.dui_departamento_expedicion} onChange={handleChange} className="form-input" />
+                  <select 
+                    name="dui_departamento_expedicion" 
+                    required 
+                    value={formData.dui_departamento_expedicion} 
+                    onChange={handleChange} 
+                    className="form-input"
+                  >
+                    <option value="">-- Seleccionar --</option>
+                    {LISTA_DEPARTAMENTOS.map(dep => (
+                      <option key={dep} value={dep}>{dep}</option>
+                    ))}
+                  </select>
                 </div>
-                <div className="form-group">
-                  <label>Municipio *</label>
-                  <input type="text" name="dui_municipio_expedicion" required value={formData.dui_municipio_expedicion} onChange={handleChange} className="form-input" />
-                </div>
+
                 <div className="form-group">
                   <label>Distrito *</label>
-                  <input type="text" name="dui_distrito_expedicion" required value={formData.dui_distrito_expedicion} onChange={handleChange} className="form-input" />
+                  <select 
+                    name="dui_distrito_expedicion" 
+                    required 
+                    disabled={!formData.dui_departamento_expedicion} 
+                    value={formData.dui_distrito_expedicion} 
+                    onChange={handleChange} 
+                    className="form-input"
+                  >
+                    <option value="">-- Seleccionar --</option>
+                    {obtenerDistritosPorDepartamento(formData.dui_departamento_expedicion).map(dis => (
+                      <option key={dis} value={dis}>{dis}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="form-group">
+                  <label style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <span>Municipio *</span>
+                    <span style={{ fontSize: '0.75rem', color: '#10b981', fontWeight: 'bold' }}>✓ Auto (Ley 762)</span>
+                  </label>
+                  <input 
+                    type="text" 
+                    name="dui_municipio_expedicion" 
+                    readOnly 
+                    required 
+                    placeholder="Auto-calculado..." 
+                    value={formData.dui_municipio_expedicion} 
+                    className="form-input" 
+                    style={{ background: '#f1f5f9', cursor: 'not-allowed', fontWeight: '600', color: '#0f172a' }} 
+                  />
                 </div>
               </div>
-              <div className="form-group" style={{ maxWidth: '300px' }}>
+
+              <div className="form-group" style={{ maxWidth: '300px', marginTop: '1rem' }}>
                 <label>Fecha Expedición DUI *</label>
                 <input type="date" name="dui_fecha_expedicion" required value={formData.dui_fecha_expedicion} onChange={handleChange} className="form-input" />
               </div>
