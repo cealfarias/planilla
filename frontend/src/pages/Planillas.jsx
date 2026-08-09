@@ -1,14 +1,30 @@
 import React, { useState, useEffect } from 'react';
 import { api } from '../services/api';
 import ProgramacionVacacionesModal from '../components/ProgramacionVacacionesModal';
+import HistorialPlanillasModal from '../components/HistorialPlanillasModal';
+import ToastContainer from '../components/ToastContainer';
 import { notificarBoletaWhatsApp, notificarBoletaEmail } from '../utils/notificaciones';
-import { CreditCard, CheckCircle, AlertTriangle, Calculator, FileText, Download, Calendar, Send, Mail } from 'lucide-react';
+import { CreditCard, CheckCircle, AlertTriangle, Calculator, FileText, Download, Calendar, Send, Mail, History, RefreshCw } from 'lucide-react';
 
 export default function Planillas() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [success, setSuccess] = useState(null);
   const [showVacacionesModal, setShowVacacionesModal] = useState(false);
+  const [showHistoryModal, setShowHistoryModal] = useState(false);
+
+  const [toasts, setToasts] = useState([]);
+
+  const addToast = (message, type = 'success') => {
+    const id = Date.now();
+    setToasts(prev => [...prev, { id, message, type }]);
+    setTimeout(() => {
+      removeToast(id);
+    }, 4500);
+  };
+
+  const removeToast = (id) => {
+    setToasts(prev => prev.filter(t => t.id !== id));
+  };
 
   const [formData, setFormData] = useState({
     codigo_periodo: `MENSUAL-${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}`,
@@ -16,9 +32,11 @@ export default function Planillas() {
     fecha_inicio: `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}-01`,
     fecha_fin: `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}-30`,
   });
+
   const [successData, setSuccessData] = useState(null);
   const [planillas, setPlanillas] = useState([]);
   const [loadingPlanillas, setLoadingPlanillas] = useState(true);
+  const [activePlanillaInfo, setActivePlanillaInfo] = useState(null);
 
   useEffect(() => {
     fetchPlanillas();
@@ -36,13 +54,48 @@ export default function Planillas() {
     }
   };
 
+  const handleTipoChange = (e) => {
+    const tipo = e.target.value;
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    
+    let prefix = 'MENSUAL';
+    let fInicio = `${year}-${month}-01`;
+    let fFin = `${year}-${month}-30`;
+
+    if (tipo === 'Quincenal') {
+      prefix = 'Q1';
+      fFin = `${year}-${month}-15`;
+    } else if (tipo === 'Aguinaldo') {
+      prefix = 'AGUINALDO';
+      fInicio = `${year}-12-01`;
+      fFin = `${year}-12-20`;
+    } else if (tipo === 'Vacaciones') {
+      prefix = 'VAC';
+      const fIn = new Date();
+      const fOut = new Date();
+      fOut.setDate(fIn.getDate() + 15);
+      fInicio = fIn.toISOString().split('T')[0];
+      fFin = fOut.toISOString().split('T')[0];
+    }
+
+    setFormData({
+      codigo_periodo: `${prefix}-${year}-${month}`,
+      tipo_planilla: tipo,
+      fecha_inicio: fInicio,
+      fecha_fin: fFin,
+    });
+  };
+
   const handleCerrarPlanilla = async (periodoId) => {
     if (!window.confirm("¿Estás seguro de cerrar esta planilla? Una vez cerrada, no se podrán realizar más deducciones ni modificaciones.")) return;
     try {
       await api.cerrarPlanilla(periodoId);
+      addToast("🔒 La planilla ha sido CERRADA definitivamente.", "info");
       fetchPlanillas();
     } catch (err) {
-      alert(err.message);
+      addToast(err.message, "error");
     }
   };
 
@@ -50,28 +103,18 @@ export default function Planillas() {
     if (!window.confirm("¿Estás seguro de eliminar esta planilla abierta? Podrás volver a generarla desde cero.")) return;
     try {
       await api.eliminarPlanilla(periodoId);
+      addToast("🗑️ Planilla eliminada exitosamente.", "info");
+      if (successData && successData.periodo?.id === periodoId) {
+        setSuccessData(null);
+        setActivePlanillaInfo(null);
+      }
       fetchPlanillas();
     } catch (err) {
-      alert(err.message);
+      addToast(err.message, "error");
     }
   };
 
-  const [editInfo, setEditInfo] = useState(null);
-
-  const handleRecalcularPlanilla = async (p) => {
-    if (p.estado === 'Cerrada') {
-      alert(`🔒 La planilla "${p.codigo_periodo}" ya está CERRADA y no se puede modificar.`);
-      return;
-    }
-
-    const confirmar = window.confirm(
-      `⚠️ ¿Deseas Recalcular la planilla "${p.codigo_periodo}"?\n\n` +
-      `Se actualizarán los cálculos, deducciones de ley (ISSS, AFP, Renta) y préstamos de todos los colaboradores con los datos vigentes.\n\n` +
-      `¿Confirmas ejecutar el recálculo?`
-    );
-
-    if (!confirmar) return;
-
+  const handleSelectPlanillaDeHistorial = async (p) => {
     const datosPlanilla = {
       codigo_periodo: p.codigo_periodo,
       tipo_planilla: p.tipo_planilla,
@@ -80,23 +123,18 @@ export default function Planillas() {
     };
 
     setFormData(datosPlanilla);
-    setLoading(true);
-    setError(null);
-    setSuccessData(null);
-    setEditInfo(`🔄 Recalculando la planilla "${p.codigo_periodo}"...`);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    setActivePlanillaInfo(p);
+    addToast(`✏️ Planilla "${p.codigo_periodo}" cargada para edición / recálculo.`, "info");
 
+    // Ejecutar recálculo / consulta limpia
     try {
+      setLoading(true);
+      setError(null);
       const result = await api.procesarPlanilla(datosPlanilla);
       setSuccessData(result);
-      setEditInfo(`✨ ¡La planilla "${p.codigo_periodo}" ha sido recalculada exitosamente!`);
-      fetchPlanillas();
+      addToast(`✨ Planilla "${p.codigo_periodo}" actualizada en pantalla.`, "success");
     } catch (err) {
-      if (err.message && err.message.includes('fetch')) {
-        setError("El servidor en la nube se está reactivando. Por favor, reintenta en unos segundos.");
-      } else {
-        setError(err.message);
-      }
+      addToast(err.message, "error");
     } finally {
       setLoading(false);
     }
@@ -105,17 +143,16 @@ export default function Planillas() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Verificar si la planilla ya existe registrada
     const planillaExistente = planillas.find(p => p.codigo_periodo.trim().toUpperCase() === formData.codigo_periodo.trim().toUpperCase());
 
     if (planillaExistente) {
       if (planillaExistente.estado === 'Cerrada') {
-        alert(`🔒 La planilla con el código "${formData.codigo_periodo}" ya se encuentra CERRADA y no puede ser recalculada ni modificada.`);
+        addToast(`🔒 La planilla "${formData.codigo_periodo}" ya está CERRADA y no puede ser modificada.`, "error");
         return;
       }
 
       const confirmar = window.confirm(
-        `⚠️ ¡ADVERTENCIA DE SOBREESCRITURA DE NÓMINA!\n\nLa planilla con código "${formData.codigo_periodo}" ya fue generada previamente y está ABIERTA.\n\nSi continúas, los cálculos anteriores se eliminarán y se recalcularán salarios, retenciones de ley y amortizaciones desde cero. No hay manera de deshacer esta acción.\n\n¿Deseas sobreescribir y recalcular la planilla "${formData.codigo_periodo}"?`
+        `⚠️ ¡ADVERTENCIA DE SOBREESCRITURA DE NÓMINA!\n\nLa planilla "${formData.codigo_periodo}" ya existe y está ABIERTA.\n\nSi continúas, se recalcularán los salarios, retenciones de ley y préstamos desde cero.\n\n¿Deseas sobreescribir y recalcular la planilla "${formData.codigo_periodo}"?`
       );
       if (!confirmar) return;
     }
@@ -123,17 +160,24 @@ export default function Planillas() {
     setLoading(true);
     setError(null);
     setSuccessData(null);
-    setEditInfo(null);
     
     try {
       const result = await api.procesarPlanilla(formData);
       setSuccessData(result);
+      setActivePlanillaInfo({
+        codigo_periodo: formData.codigo_periodo,
+        tipo_planilla: formData.tipo_planilla
+      });
+      addToast(`✨ ¡Planilla "${formData.codigo_periodo}" procesada exitosamente!`, "success");
       fetchPlanillas();
     } catch (err) {
       if (err.message && err.message.includes('fetch')) {
-        setError("El servidor en la nube se está reactivando. Por favor, reintenta dar clic en 'Generar Planilla' en unos segundos.");
+        const errorMsg = "El servidor en la nube se está reactivando. Por favor, reintenta en 5 segundos.";
+        setError(errorMsg);
+        addToast(errorMsg, "error");
       } else {
         setError(err.message);
+        addToast(err.message, "error");
       }
     } finally {
       setLoading(false);
@@ -142,6 +186,7 @@ export default function Planillas() {
 
   const handleDownloadPDF = async (periodoId, type) => {
     try {
+      addToast("📄 Generando archivo PDF...", "info");
       const blob = await api.downloadPDF(periodoId, type);
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -151,358 +196,257 @@ export default function Planillas() {
       a.click();
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
+      addToast("📥 Descarga de PDF completada.", "success");
     } catch (err) {
-      alert(err.message);
+      addToast(err.message, "error");
     }
-  };
-
-  const calcularPeriodoPorTipo = (tipo) => {
-    const today = new Date();
-    const year = today.getFullYear();
-    const month = String(today.getMonth() + 1).padStart(2, '0');
-    const lastDayOfMonth = new Date(year, today.getMonth() + 1, 0).getDate();
-
-    if (tipo === 'Quincenal') {
-      const day = today.getDate();
-      if (day <= 15) {
-        return {
-          codigo_periodo: `Q1-${year}-${month}`,
-          fecha_inicio: `${year}-${month}-01`,
-          fecha_fin: `${year}-${month}-15`
-        };
-      } else {
-        return {
-          codigo_periodo: `Q2-${year}-${month}`,
-          fecha_inicio: `${year}-${month}-16`,
-          fecha_fin: `${year}-${month}-${String(lastDayOfMonth).padStart(2, '0')}`
-        };
-      }
-    } else if (tipo === 'Aguinaldo') {
-      return {
-        codigo_periodo: `AGUINALDO-${year}`,
-        fecha_inicio: `${year}-12-12`,
-        fecha_fin: `${year}-12-20`
-      };
-    } else if (tipo === 'Vacaciones') {
-      const fechaFinVac = new Date(today);
-      fechaFinVac.setDate(today.getDate() + 15);
-      const finMonth = String(fechaFinVac.getMonth() + 1).padStart(2, '0');
-      const finDay = String(fechaFinVac.getDate()).padStart(2, '0');
-      return {
-        codigo_periodo: `VAC-${year}-${month}`,
-        fecha_inicio: `${year}-${month}-${String(today.getDate()).padStart(2, '0')}`,
-        fecha_fin: `${fechaFinVac.getFullYear()}-${finMonth}-${finDay}`
-      };
-    } else {
-      // Mensual
-      return {
-        codigo_periodo: `MENSUAL-${year}-${month}`,
-        fecha_inicio: `${year}-${month}-01`,
-        fecha_fin: `${year}-${month}-${String(lastDayOfMonth).padStart(2, '0')}`
-      };
-    }
-  };
-
-  const handleTipoPlanillaChange = (e) => {
-    const nuevoTipo = e.target.value;
-    const datosPeriodo = calcularPeriodoPorTipo(nuevoTipo);
-    setFormData({
-      ...formData,
-      tipo_planilla: nuevoTipo,
-      ...datosPeriodo
-    });
   };
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <div>
-          <h2 style={{ marginBottom: '0.5rem' }}>Motor de Planillas</h2>
-          <p className="text-muted">Procesa la nómina de todos los colaboradores activos y genera boletas de pago.</p>
+      {/* Toast Notification Floating Banner Container */}
+      <ToastContainer toasts={toasts} removeToast={removeToast} />
+
+      {/* HEADER COMPACT FORM CARD (1-2 ROWS MAX) */}
+      <div className="card" style={{ padding: '1.25rem 1.5rem', background: 'var(--surface)' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', flexWrap: 'wrap', gap: '1rem' }}>
+          <div>
+            <h2 style={{ margin: 0, fontSize: '1.35rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <Calculator size={22} className="text-blue-600" />
+              Motor de Planillas
+              {activePlanillaInfo && (
+                <span style={{ fontSize: '0.85rem', background: '#DBEAFE', color: '#1D4ED8', padding: '0.2rem 0.6rem', borderRadius: '999px', fontWeight: '600' }}>
+                  Visualizando: {activePlanillaInfo.codigo_periodo}
+                </span>
+              )}
+            </h2>
+            <p className="text-muted" style={{ margin: 0, fontSize: '0.85rem' }}>Procesa la nómina de todos los colaboradores activos y genera boletas de pago.</p>
+          </div>
+
+          <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+            <button 
+              type="button" 
+              onClick={() => setShowHistoryModal(true)} 
+              className="btn btn-outline" 
+              style={{ borderColor: '#1e3a8a', color: '#1e3a8a', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.85rem' }}
+            >
+              <History size={16} /> 📜 Historial de Planillas ({planillas.length})
+            </button>
+
+            <button 
+              type="button" 
+              onClick={() => setShowVacacionesModal(true)} 
+              className="btn btn-outline" 
+              style={{ borderColor: '#2563eb', color: '#2563eb', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.85rem' }}
+            >
+              <Calendar size={16} /> 📅 Programar Vacaciones (Art. 182)
+            </button>
+          </div>
         </div>
 
-        <button 
-          type="button" 
-          onClick={() => setShowVacacionesModal(true)} 
-          className="btn btn-outline" 
-          style={{ borderColor: '#2563eb', color: '#2563eb', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '0.5rem' }}
-        >
-          <Calendar size={18} /> 📅 Programar Vacaciones del Año (Art. 182)
-        </button>
+        {/* COMPACT FORM (1 FLEX ROW) */}
+        <form onSubmit={handleSubmit} style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', alignItems: 'flex-end', paddingTop: '0.5rem', borderTop: '1px solid var(--border)' }}>
+          <div style={{ flex: '1 1 180px' }}>
+            <label style={{ fontSize: '0.8rem', fontWeight: '600', display: 'block', marginBottom: '0.25rem', color: 'var(--text-muted)' }}>
+              Código Período *
+            </label>
+            <input 
+              type="text" 
+              value={formData.codigo_periodo} 
+              onChange={e => setFormData({ ...formData, codigo_periodo: e.target.value })} 
+              required 
+              className="form-input" 
+              style={{ width: '100%' }} 
+            />
+          </div>
+
+          <div style={{ flex: '1 1 180px' }}>
+            <label style={{ fontSize: '0.8rem', fontWeight: '600', display: 'block', marginBottom: '0.25rem', color: 'var(--text-muted)' }}>
+              Tipo de Planilla *
+            </label>
+            <select 
+              value={formData.tipo_planilla} 
+              onChange={handleTipoChange} 
+              className="form-input" 
+              style={{ width: '100%' }}
+            >
+              <option value="Mensual">Ordinaria Mensual</option>
+              <option value="Quincenal">Quincenal</option>
+              <option value="Aguinaldo">Aguinaldo</option>
+              <option value="Vacaciones">Vacaciones</option>
+            </select>
+          </div>
+
+          <div style={{ flex: '1 1 150px' }}>
+            <label style={{ fontSize: '0.8rem', fontWeight: '600', display: 'block', marginBottom: '0.25rem', color: 'var(--text-muted)' }}>
+              Fecha Inicio *
+            </label>
+            <input 
+              type="date" 
+              value={formData.fecha_inicio} 
+              onChange={e => setFormData({ ...formData, fecha_inicio: e.target.value })} 
+              required 
+              className="form-input" 
+              style={{ width: '100%' }} 
+            />
+          </div>
+
+          <div style={{ flex: '1 1 150px' }}>
+            <label style={{ fontSize: '0.8rem', fontWeight: '600', display: 'block', marginBottom: '0.25rem', color: 'var(--text-muted)' }}>
+              Fecha Fin *
+            </label>
+            <input 
+              type="date" 
+              value={formData.fecha_fin} 
+              onChange={e => setFormData({ ...formData, fecha_fin: e.target.value })} 
+              required 
+              className="form-input" 
+              style={{ width: '100%' }} 
+            />
+          </div>
+
+          <div style={{ flex: '0 0 auto' }}>
+            <button 
+              type="submit" 
+              disabled={loading} 
+              className="btn btn-primary" 
+              style={{ padding: '0.65rem 1.5rem', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '0.5rem', whiteSpace: 'nowrap' }}
+            >
+              {loading ? <RefreshCw size={16} className="animate-spin" /> : <Calculator size={16} />}
+              {loading ? 'Procesando...' : '⚡ Generar / Recalcular Planilla'}
+            </button>
+          </div>
+        </form>
       </div>
 
+      {/* ERROR BANNER IF ANY */}
+      {error && (
+        <div style={{ backgroundColor: '#FEE2E2', border: '1px solid #FCA5A5', color: '#991B1B', padding: '1rem 1.25rem', borderRadius: '8px' }}>
+          <h4 style={{ margin: 0, marginBottom: '0.25rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <AlertTriangle size={18} /> Error al Procesar
+          </h4>
+          <p style={{ margin: 0, fontSize: '0.9rem' }}>{error}</p>
+        </div>
+      )}
+
+      {/* MODALS */}
       <ProgramacionVacacionesModal 
         isOpen={showVacacionesModal} 
         onClose={() => setShowVacacionesModal(false)} 
       />
 
-      {editInfo && (
-        <div style={{ background: '#eff6ff', border: '1px solid #bfdbfe', color: '#1d4ed8', padding: '1rem', borderRadius: '8px', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          <CheckCircle size={20} />
-          {editInfo}
-        </div>
-      )}
+      <HistorialPlanillasModal
+        isOpen={showHistoryModal}
+        onClose={() => setShowHistoryModal(false)}
+        planillas={planillas}
+        onSelectPlanilla={handleSelectPlanillaDeHistorial}
+        onCerrarPlanilla={handleCerrarPlanilla}
+        onEliminarPlanilla={handleEliminarPlanilla}
+        onDownloadPDF={handleDownloadPDF}
+      />
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '1.5rem' }}>
-        <div className="card">
-          <h3 style={{ marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <Calculator size={20} className="text-blue-600" />
-            Nuevo Período de Pago
-          </h3>
-          
-          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-            <div className="form-group">
-              <label>Código de Período *</label>
-              <input 
-                type="text" 
-                className="form-control" 
-                placeholder="Ej. MENSUAL-2026-08" 
-                required
-                value={formData.codigo_periodo}
-                onChange={e => setFormData({...formData, codigo_periodo: e.target.value})}
-              />
-            </div>
-            
-            <div className="form-group">
-              <label>Tipo de Planilla *</label>
-              <select 
-                className="form-control"
-                value={formData.tipo_planilla}
-                onChange={handleTipoPlanillaChange}
-              >
-                <option value="Mensual">Ordinaria Mensual</option>
-                <option value="Quincenal">Quincenal</option>
-                <option value="Aguinaldo">Aguinaldo</option>
-                <option value="Vacaciones">Vacaciones</option>
-              </select>
-            </div>
-            
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-              <div className="form-group">
-                <label>Fecha Inicio *</label>
-                <input 
-                  type="date" 
-                  className="form-control" 
-                  required
-                  value={formData.fecha_inicio}
-                  onChange={e => setFormData({...formData, fecha_inicio: e.target.value})}
-                />
-              </div>
-              <div className="form-group">
-                <label>Fecha Fin *</label>
-                <input 
-                  type="date" 
-                  className="form-control" 
-                  required
-                  value={formData.fecha_fin}
-                  onChange={e => setFormData({...formData, fecha_fin: e.target.value})}
-                />
+      {/* MAIN VIEW: TABLA DE PLANILLA PROCESADA / DETALLES DE BOLETAS */}
+      {successData ? (
+        <div className="card" style={{ padding: '1.5rem', border: '2px solid #86EFAC', background: '#F0FDF4' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem', flexWrap: 'wrap', gap: '1rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+              <CheckCircle size={28} style={{ color: '#16A34A' }} />
+              <div>
+                <h3 style={{ margin: 0, color: '#15803D', fontSize: '1.2rem' }}>
+                  ¡Planilla Procesada Exitosamente! ({formData.codigo_periodo})
+                </h3>
+                <span style={{ fontSize: '0.85rem', color: '#166534' }}>
+                  Período del {formData.fecha_inicio} al {formData.fecha_fin}
+                </span>
               </div>
             </div>
-            
-            <button type="submit" className="btn btn-primary" style={{ marginTop: '1rem' }} disabled={loading}>
-              {loading ? 'Procesando Planilla...' : 'Generar Planilla'}
-            </button>
-          </form>
-        </div>
 
-        <div>
-          {error && (
-            <div style={{ background: '#fef2f2', border: '1px solid #fecaca', padding: '1.5rem', borderRadius: '8px', color: '#dc2626' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem', fontWeight: 'bold' }}>
-                <AlertTriangle size={20} />
-                Error al Procesar
+            <div style={{ display: 'flex', gap: '2rem', textAlign: 'right' }}>
+              <div>
+                <span style={{ fontSize: '0.75rem', textTransform: 'uppercase', color: '#166534', fontWeight: 'bold' }}>Boletas Generadas</span>
+                <p style={{ fontSize: '1.5rem', fontWeight: 'bold', margin: 0, color: '#15803D' }}>
+                  {successData.estadisticas?.boletas_generadas || successData.desglose?.length || 0}
+                </p>
               </div>
-              <p>{error}</p>
-            </div>
-          )}
-
-          {successData && (
-            <div className="card" style={{ background: '#f0fdf4', border: '1px solid #bbf7d0' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem', color: '#16a34a', fontWeight: 'bold' }}>
-                <CheckCircle size={24} />
-                ¡Planilla Procesada Exitosamente!
-              </div>
-              
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem' }}>
-                <div>
-                  <p className="text-muted" style={{ fontSize: '0.875rem' }}>Boletas Generadas</p>
-                  <p style={{ fontSize: '1.5rem', fontWeight: 'bold' }}>{successData.estadisticas.boletas_generadas}</p>
-                </div>
-                <div style={{ textAlign: 'right' }}>
-                  <p className="text-muted" style={{ fontSize: '0.875rem' }}>Total Líquido a Pagar</p>
-                  <p style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#0f172a' }}>
-                    ${successData.estadisticas.total_liquido_pagar.toFixed(2)}
-                  </p>
-                </div>
-              </div>
-
-              <div style={{ maxHeight: '250px', overflowY: 'auto', background: 'white', borderRadius: '4px', border: '1px solid var(--border)' }}>
-                <table style={{ width: '100%', fontSize: '0.75rem', borderCollapse: 'collapse' }}>
-                  <thead>
-                    <tr style={{ background: '#f8fafc', borderBottom: '1px solid var(--border)', textAlign: 'left' }}>
-                      <th style={{ padding: '0.5rem' }}>Empleado</th>
-                      <th style={{ padding: '0.5rem' }}>Nominal</th>
-                      <th style={{ padding: '0.5rem' }}>Renta</th>
-                      <th style={{ padding: '0.5rem' }}>ISSS</th>
-                      <th style={{ padding: '0.5rem' }}>AFP</th>
-                      <th style={{ padding: '0.5rem' }}>Préstamos</th>
-                      <th style={{ padding: '0.5rem' }}>Total Desc.</th>
-                      <th style={{ padding: '0.5rem' }}>Líquido</th>
-                      <th style={{ padding: '0.5rem', textAlign: 'center' }}>Notificar Recibo</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {successData.desglose.map((item, idx) => (
-                      <tr key={idx} style={{ borderBottom: '1px solid var(--border)' }}>
-                        <td style={{ padding: '0.5rem', fontWeight: '500' }}>{item.nombre_completo}</td>
-                        <td style={{ padding: '0.5rem' }}>${item.salario_base.toFixed(2)}</td>
-                        <td style={{ padding: '0.5rem', color: '#dc2626' }}>${item.renta.toFixed(2)}</td>
-                        <td style={{ padding: '0.5rem', color: '#dc2626' }}>${item.isss.toFixed(2)}</td>
-                        <td style={{ padding: '0.5rem', color: '#dc2626' }}>${item.afp.toFixed(2)}</td>
-                        <td style={{ padding: '0.5rem', color: '#dc2626' }}>${item.prestamos?.toFixed(2) || '0.00'}</td>
-                        <td style={{ padding: '0.5rem', color: '#dc2626' }}>${item.total_descuentos.toFixed(2)}</td>
-                        <td style={{ padding: '0.5rem', fontWeight: 'bold', color: '#16a34a' }}>${item.liquido_recibir.toFixed(2)}</td>
-                        <td style={{ padding: '0.5rem', textAlign: 'center' }}>
-                          <div style={{ display: 'flex', justifyContent: 'center', gap: '0.25rem' }}>
-                            <button 
-                              type="button" 
-                              onClick={() => notificarBoletaWhatsApp(item, formData.codigo_periodo, item.liquido_recibir)}
-                              className="btn btn-outline"
-                              style={{ padding: '0.2rem 0.4rem', fontSize: '0.7rem', color: '#25d366', borderColor: '#25d366' }}
-                              title="Notificar Recibo por WhatsApp"
-                            >
-                              <Send size={12} /> WhatsApp
-                            </button>
-                            <button 
-                              type="button" 
-                              onClick={() => notificarBoletaEmail(item, formData.codigo_periodo, item.liquido_recibir)}
-                              className="btn btn-outline"
-                              style={{ padding: '0.2rem 0.4rem', fontSize: '0.7rem', color: '#2563eb', borderColor: '#2563eb' }}
-                              title="Notificar Recibo por Correo"
-                            >
-                              <Mail size={12} /> Correo
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+              <div>
+                <span style={{ fontSize: '0.75rem', textTransform: 'uppercase', color: '#166534', fontWeight: 'bold' }}>Total Líquido a Pagar</span>
+                <p style={{ fontSize: '1.5rem', fontWeight: 'bold', margin: 0, color: '#15803D' }}>
+                  ${(successData.estadisticas?.total_liquido_pagar || 0).toFixed(2)}
+                </p>
               </div>
             </div>
-          )}
+          </div>
 
-          {!successData && !error && (
-             <div className="card" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '200px', color: 'var(--text-muted)' }}>
-               <CreditCard size={48} style={{ opacity: 0.2, marginBottom: '1rem' }} />
-               <p>El resumen del procesamiento aparecerá aquí.</p>
-             </div>
-          )}
-        </div>
-      </div>
-
-      <div className="card">
-        <h3 style={{ marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          <CheckCircle size={20} className="text-blue-600" />
-          Historial de Planillas
-        </h3>
-
-        {loadingPlanillas ? (
-          <p>Cargando historial...</p>
-        ) : planillas.length === 0 ? (
-          <p className="text-muted">Aún no se ha generado ninguna planilla en el sistema.</p>
-        ) : (
-          <div style={{ overflowX: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.875rem' }}>
+          {/* TABLA DE BOLETAS GENERADAS */}
+          <div style={{ overflowX: 'auto', backgroundColor: 'white', borderRadius: '8px', border: '1px solid #BBF7D0', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
               <thead>
-                <tr style={{ borderBottom: '2px solid var(--border)', textAlign: 'left', color: 'var(--text-muted)' }}>
-                  <th style={{ padding: '1rem 0.5rem' }}>Código Período</th>
-                  <th style={{ padding: '1rem 0.5rem' }}>Tipo</th>
-                  <th style={{ padding: '1rem 0.5rem' }}>Fechas</th>
-                  <th style={{ padding: '1rem 0.5rem' }}>Estado</th>
-                  <th style={{ padding: '1rem 0.5rem', textAlign: 'right' }}>Acciones</th>
+                <tr style={{ backgroundColor: '#DCFCE7', borderBottom: '1px solid #BBF7D0', textAlign: 'left', color: '#14532D' }}>
+                  <th style={{ padding: '0.75rem 0.5rem' }}>Empleado</th>
+                  <th style={{ padding: '0.75rem 0.5rem' }}>Nominal</th>
+                  <th style={{ padding: '0.75rem 0.5rem' }}>Renta</th>
+                  <th style={{ padding: '0.75rem 0.5rem' }}>ISSS</th>
+                  <th style={{ padding: '0.75rem 0.5rem' }}>AFP</th>
+                  <th style={{ padding: '0.75rem 0.5rem' }}>Préstamos</th>
+                  <th style={{ padding: '0.75rem 0.5rem' }}>Total Desc.</th>
+                  <th style={{ padding: '0.75rem 0.5rem' }}>Líquido</th>
+                  <th style={{ padding: '0.75rem 0.5rem', textAlign: 'center' }}>Notificar Recibo</th>
                 </tr>
               </thead>
               <tbody>
-                {planillas.map(p => (
-                  <tr key={p.id} style={{ borderBottom: '1px solid var(--border)' }}>
-                    <td style={{ padding: '1rem 0.5rem', fontWeight: 'bold' }}>{p.codigo_periodo}</td>
-                    <td style={{ padding: '1rem 0.5rem' }}>{p.tipo_planilla}</td>
-                    <td style={{ padding: '1rem 0.5rem' }}>{p.fecha_inicio} al {p.fecha_fin}</td>
-                    <td style={{ padding: '1rem 0.5rem' }}>
-                      <span style={{ 
-                        padding: '0.25rem 0.5rem', 
-                        borderRadius: '999px', 
-                        fontSize: '0.75rem',
-                        fontWeight: '500',
-                        backgroundColor: p.estado === 'Abierta' ? '#DBEAFE' : '#F1F5F9',
-                        color: p.estado === 'Abierta' ? '#1D4ED8' : '#475569'
-                      }}>
-                        {p.estado}
-                      </span>
-                    </td>
-                    <td style={{ padding: '1rem 0.5rem', textAlign: 'right', display: 'flex', justifyContent: 'flex-end', gap: '0.5rem' }}>
-                      <button 
-                        className="btn btn-outline"
-                        title="Descargar Planilla General (PDF)"
-                        style={{ fontSize: '0.75rem', padding: '0.25rem 0.5rem', color: '#1e3a8a', borderColor: '#1e3a8a', display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}
-                        onClick={() => handleDownloadPDF(p.id, 'reporte')}
-                      >
-                        <FileText size={14} /> Planilla
-                      </button>
-                      
-                      <button 
-                        className="btn btn-outline"
-                        title="Descargar Boletas de Pago (PDF)"
-                        style={{ fontSize: '0.75rem', padding: '0.25rem 0.5rem', color: '#4c1d95', borderColor: '#4c1d95', display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}
-                        onClick={() => handleDownloadPDF(p.id, 'boletas')}
-                      >
-                        <Download size={14} /> Boletas
-                      </button>
-
-                      {p.estado === 'Abierta' ? (
-                        <>
-                          <button 
-                            className="btn btn-outline" 
-                            style={{ fontSize: '0.75rem', padding: '0.25rem 0.5rem', color: '#2563eb', borderColor: '#2563eb', display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}
-                            onClick={() => handleRecalcularPlanilla(p)}
-                            title="Cargar datos para Recalcular / Re-procesar"
-                          >
-                            🔄 Editar / Recalcular
-                          </button>
-
-                          <button 
-                            className="btn btn-outline" 
-                            style={{ fontSize: '0.75rem', padding: '0.25rem 0.5rem', color: '#dc2626', borderColor: '#dc2626', display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}
-                            onClick={() => handleEliminarPlanilla(p.id)}
-                            title="Eliminar este período de planilla"
-                          >
-                            🗑️ Eliminar
-                          </button>
-
-                          <button 
-                            className="btn btn-outline" 
-                            style={{ fontSize: '0.75rem', padding: '0.25rem 0.5rem', color: '#16a34a', borderColor: '#16a34a', display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}
-                            onClick={() => handleCerrarPlanilla(p.id)}
-                            title="Cerrar planilla definitivamente"
-                          >
-                            🔒 Cerrar
-                          </button>
-                        </>
-                      ) : (
-                        <button className="btn btn-outline" disabled style={{ fontSize: '0.75rem', padding: '0.25rem 0.5rem', opacity: 0.5 }}>
-                          🔒 Cerrada
+                {successData.desglose?.map((item, idx) => (
+                  <tr key={idx} style={{ borderBottom: '1px solid #F0FDF4' }}>
+                    <td style={{ padding: '0.65rem 0.5rem', fontWeight: 'bold', color: '#1e293b' }}>{item.nombre_completo}</td>
+                    <td style={{ padding: '0.65rem 0.5rem' }}>${item.salario_base.toFixed(2)}</td>
+                    <td style={{ padding: '0.65rem 0.5rem', color: '#dc2626' }}>${item.renta.toFixed(2)}</td>
+                    <td style={{ padding: '0.65rem 0.5rem', color: '#dc2626' }}>${item.isss.toFixed(2)}</td>
+                    <td style={{ padding: '0.65rem 0.5rem', color: '#dc2626' }}>${item.afp.toFixed(2)}</td>
+                    <td style={{ padding: '0.65rem 0.5rem', color: '#dc2626' }}>${item.prestamos.toFixed(2)}</td>
+                    <td style={{ padding: '0.65rem 0.5rem', color: '#dc2626', fontWeight: '500' }}>${item.total_descuentos.toFixed(2)}</td>
+                    <td style={{ padding: '0.65rem 0.5rem', fontWeight: 'bold', color: '#16a34a' }}>${item.liquido_recibir.toFixed(2)}</td>
+                    <td style={{ padding: '0.65rem 0.5rem', textAlign: 'center' }}>
+                      <div style={{ display: 'flex', justifyContent: 'center', gap: '0.35rem' }}>
+                        <button 
+                          type="button" 
+                          onClick={() => {
+                            notificarBoletaWhatsApp(item, formData.codigo_periodo, item.liquido_recibir);
+                            addToast(`📱 WhatsApp abierto para ${item.nombre_completo}`, "info");
+                          }}
+                          className="btn btn-outline"
+                          style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem', color: '#25d366', borderColor: '#25d366', display: 'inline-flex', alignItems: 'center', gap: '0.2rem' }}
+                          title="Enviar Boleta por WhatsApp"
+                        >
+                          <Send size={12} /> WhatsApp
                         </button>
-                      )}
+                        <button 
+                          type="button" 
+                          onClick={() => {
+                            notificarBoletaEmail(item, formData.codigo_periodo, item.liquido_recibir);
+                            addToast(`✉️ Correo configurado para ${item.nombre_completo}`, "info");
+                          }}
+                          className="btn btn-outline"
+                          style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem', color: '#2563eb', borderColor: '#2563eb', display: 'inline-flex', alignItems: 'center', gap: '0.2rem' }}
+                          title="Enviar Boleta por Correo"
+                        >
+                          <Mail size={12} /> Correo
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
-        )}
-      </div>
+        </div>
+      ) : (
+        <div className="card" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '260px', color: 'var(--text-muted)', textAlign: 'center' }}>
+          <CreditCard size={56} style={{ opacity: 0.2, marginBottom: '1rem' }} />
+          <h3 style={{ margin: '0 0 0.5rem 0', color: 'var(--text-main)' }}>Sin Planilla en Pantalla</h3>
+          <p style={{ margin: 0, maxWidth: '480px', fontSize: '0.9rem' }}>
+            Ingresa las fechas arriba y presiona <strong>⚡ Generar Planilla</strong> o abre el <strong>📜 Historial de Planillas</strong> para cargar una nómina existente.
+          </p>
+        </div>
+      )}
     </div>
   );
 }

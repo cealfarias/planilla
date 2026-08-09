@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, NavLink, useNavigate, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Users, Settings, LogOut, Building, CreditCard } from 'lucide-react';
+import { LayoutDashboard, Users, Settings, LogOut, Building, CreditCard, ChevronLeft, ChevronRight, Menu } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../services/api';
 import './Layout.css';
@@ -10,10 +10,21 @@ export default function Layout({ children }) {
   const navigate = useNavigate();
   const location = useLocation();
   const [empresa, setEmpresa] = useState(null);
+  const [collapsed, setCollapsed] = useState(() => {
+    return localStorage.getItem('sidebar_collapsed') === 'true';
+  });
 
   useEffect(() => {
     fetchEmpresa();
   }, []);
+
+  const toggleSidebar = () => {
+    setCollapsed(prev => {
+      const next = !prev;
+      localStorage.setItem('sidebar_collapsed', String(next));
+      return next;
+    });
+  };
 
   const fetchEmpresa = async () => {
     try {
@@ -62,11 +73,11 @@ export default function Layout({ children }) {
 
       <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
         {/* Sidebar */}
-      <aside className="sidebar">
-        <div className="sidebar-header">
+      <aside className={`sidebar ${collapsed ? 'collapsed' : ''}`}>
+        <div className="sidebar-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div className="sidebar-logo">
             <Building size={24} className="logo-icon" />
-            <div style={{ display: 'flex', flexDirection: 'column' }}>
+            <div className="hide-on-collapse" style={{ display: 'flex', flexDirection: 'column' }}>
               <span>SaaS Planilla</span>
               {empresa && (
                 <span style={{ fontSize: '0.75rem', color: '#94a3b8', fontWeight: '500' }}>
@@ -75,36 +86,45 @@ export default function Layout({ children }) {
               )}
             </div>
           </div>
+          
+          <button 
+            type="button" 
+            onClick={toggleSidebar} 
+            className="btn-toggle-sidebar"
+            title={collapsed ? "Expandir Menú" : "Minimizar Menú"}
+          >
+            {collapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
+          </button>
         </div>
 
         <nav className="sidebar-nav">
-          <NavLink to="/dashboard" className={({isActive}) => isActive ? "nav-link active" : "nav-link"}>
+          <NavLink to="/dashboard" title="Dashboard" className={({isActive}) => isActive ? "nav-link active" : "nav-link"}>
             <LayoutDashboard size={20} />
-            <span>Dashboard</span>
+            <span className="hide-on-collapse">Dashboard</span>
           </NavLink>
-          <NavLink to="/empleados" className={({isActive}) => isActive ? "nav-link active" : "nav-link"}>
+          <NavLink to="/empleados" title="Colaboradores" className={({isActive}) => isActive ? "nav-link active" : "nav-link"}>
             <Users size={20} />
-            <span>Colaboradores</span>
+            <span className="hide-on-collapse">Colaboradores</span>
           </NavLink>
-          <NavLink to="/planillas" className={({isActive}) => isActive ? "nav-link active" : "nav-link"}>
+          <NavLink to="/planillas" title="Planillas" className={({isActive}) => isActive ? "nav-link active" : "nav-link"}>
             <CreditCard size={20} />
-            <span>Planillas</span>
+            <span className="hide-on-collapse">Planillas</span>
           </NavLink>
-          <NavLink to="/configuracion" className={({isActive}) => isActive ? "nav-link active" : "nav-link"}>
+          <NavLink to="/configuracion" title="Configuración" className={({isActive}) => isActive ? "nav-link active" : "nav-link"}>
             <Settings size={20} />
-            <span>Configuración</span>
+            <span className="hide-on-collapse">Configuración</span>
           </NavLink>
         </nav>
 
         <div className="sidebar-footer">
           <div className="user-info">
             <div className="avatar">{user?.username?.charAt(0).toUpperCase()}</div>
-            <div className="user-details">
+            <div className="user-details hide-on-collapse">
               <span className="user-name">{user?.username}</span>
               <span className="user-role">Administrador</span>
             </div>
           </div>
-          <button className="btn-logout" onClick={handleLogout}>
+          <button className="btn-logout hide-on-collapse" onClick={handleLogout} title="Cerrar Sesión">
             <LogOut size={20} />
           </button>
         </div>
@@ -114,6 +134,15 @@ export default function Layout({ children }) {
       <main className="main-content">
         <header className="topbar" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+            <button 
+              type="button"
+              onClick={toggleSidebar}
+              style={{ background: 'transparent', border: '1px solid var(--border)', borderRadius: '6px', padding: '0.4rem', cursor: 'pointer', color: 'var(--text-main)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+              title={collapsed ? "Expandir Menú Lateral" : "Minimizar Menú Lateral"}
+            >
+              <Menu size={18} />
+            </button>
+
             <h2 className="page-title" style={{ margin: 0 }}>
               {location.pathname === '/dashboard' || location.pathname === '/' ? 'Dashboard' : 
                location.pathname.startsWith('/empleados') ? 'Gestión de Colaboradores' : 
