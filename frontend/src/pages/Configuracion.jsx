@@ -32,7 +32,8 @@ export default function Configuracion() {
         nrc: data.nrc || '',
         direccion: data.direccion || '',
         telefono: data.telefono || '',
-        logo_base64: data.logo_base64 || ''
+        logo_base64: data.logo_base64 || '',
+        politica_indemnizacion: data.politica_indemnizacion || 'Acumulada'
       });
     } catch (err) {
       setError('Error al cargar la información de la empresa');
@@ -121,7 +122,29 @@ export default function Configuracion() {
 
           <div className="form-group">
             <label className="form-label">Dirección (Opcional)</label>
-            <textarea name="direccion" className="form-input" rows="3" value={formData.direccion} onChange={handleChange} />
+            <textarea name="direccion" className="form-input" rows="2" value={formData.direccion} onChange={handleChange} />
+          </div>
+
+          <div className="form-group" style={{ marginTop: '1rem', background: '#eff6ff', padding: '1rem', borderRadius: '8px', border: '1px solid #bfdbfe' }}>
+            <label className="form-label" style={{ fontWeight: 'bold', color: '#1e40af', marginBottom: '0.35rem', display: 'block' }}>
+              ⚖️ Política de Indemnización Legal de la Empresa (Art. 58 y Ley de Renuncia)
+            </label>
+            <select 
+              name="politica_indemnizacion" 
+              className="form-input" 
+              value={formData.politica_indemnizacion} 
+              onChange={handleChange}
+              style={{ fontWeight: '600', color: '#1e3a8a' }}
+            >
+              <option value="Acumulada">Acumulada (Calculada por antigüedad total acumulada desde la contratación)</option>
+              <option value="Anual">Anual (Indemnización abonada/cancelada cada fin de año fiscal)</option>
+            </select>
+            <small style={{ display: 'block', color: '#1e40af', marginTop: '0.4rem', fontSize: '0.8rem' }}>
+              {formData.politica_indemnizacion === 'Anual' 
+                ? "📌 En política ANUAL, al liquidar un colaborador se indemnizan únicamente los meses y días laborados en el año fiscal en curso (desde el 1 de enero)."
+                : "📌 En política ACUMULADA, la indemnización se calcula acumulando la totalidad de los años y días servidos desde la fecha inicial de su contrato."
+              }
+            </small>
           </div>
 
           <button type="submit" className="btn btn-primary" disabled={saving} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', marginTop: '1rem' }}>

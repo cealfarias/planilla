@@ -12,3 +12,4 @@ class Empresa(Base):
     telefono = Column(String(20), nullable=True)
     es_activa = Column(Boolean, default=True, nullable=False)
     logo_base64 = Column(Text, nullable=True)
+    politica_indemnizacion = Column(String(20), default="Acumulada", nullable=False)

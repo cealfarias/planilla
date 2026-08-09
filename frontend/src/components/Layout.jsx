@@ -29,7 +29,10 @@ export default function Layout({ children }) {
   const fetchEmpresa = async () => {
     try {
       const data = await api.getEmpresa();
-      if (data) setEmpresa(data);
+      if (data) {
+        setEmpresa(data);
+        document.title = `${data.nombre} | SaaS Planilla El Salvador`;
+      }
     } catch (err) {
       console.error("Error cargando empresa:", err);
     }

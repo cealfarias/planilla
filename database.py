@@ -82,6 +82,7 @@ def auto_migrate_db():
             "ALTER TABLE contratos ADD COLUMN distrito_celebracion VARCHAR(50) DEFAULT '' NOT NULL",
             # Empresas
             "ALTER TABLE empresas ADD COLUMN logo_base64 TEXT",
+            "ALTER TABLE empresas ADD COLUMN politica_indemnizacion VARCHAR(20) DEFAULT 'Acumulada'",
             # Datos Bancarios y Fotografia Empleados
             "ALTER TABLE empleados ADD COLUMN banco_nombre VARCHAR(100)",
             "ALTER TABLE empleados ADD COLUMN numero_cuenta_bancaria VARCHAR(50)",
