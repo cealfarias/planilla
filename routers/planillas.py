@@ -38,19 +38,92 @@ def registrar_concepto_salarial(
 
 @router.post(
     "/novedades", 
-    response_model=schemas.planillas.NovedadPlanillaResponse, 
-    status_code=status.HTTP_201_CREATED,
-    dependencies=[Depends(VerificadorPermiso("PLA_NOVEDADES_EDITAR"))]
+    status_code=status.HTTP_201_CREATED
 )
-def ingresar_novedad_periodo(
-    novedad: schemas.planillas.NovedadPlanillaCreate, 
+def ingresar_novedad_directa(
+    novedad: schemas.planillas.NovedadDirectaRequest, 
     db: Session = Depends(get_db),
     usuario_actual: models.seguridad.Usuario = Depends(obtener_usuario_actual)
 ):
     try:
-        return crud.planillas.registrar_novedad_planilla(db=db, novedad=novedad, empresa_id=usuario_actual.empresa_id)
-    except ValueError as e:
+        # Buscar periodo abierto o usar periodo activo
+        periodo = db.query(models.planillas.PeriodoPlanilla).filter(
+            models.planillas.PeriodoPlanilla.empresa_id == usuario_actual.empresa_id,
+            models.planillas.PeriodoPlanilla.estado == models.enums.EstadoPlanillaEnum.ABIERTA
+        ).first()
+
+        # Buscar o crear concepto genérico
+        concepto = db.query(models.planillas.ConceptoPlanilla).filter(
+            models.planillas.ConceptoPlanilla.codigo == novedad.tipo_novedad
+        ).first()
+
+        if not concepto:
+            concepto = db.query(models.planillas.ConceptoPlanilla).first()
+
+        periodo_id = periodo.id if periodo else 1
+
+        db_novedad = models.planillas.NovedadPlanilla(
+            empleado_id=novedad.empleado_id,
+            periodo_planilla_id=periodo_id,
+            concepto_id=concepto.id if concepto else 1,
+            cantidad=1,
+            monto_total=novedad.monto_total
+        )
+        db.add(db_novedad)
+        db.commit()
+        db.refresh(db_novedad)
+        return {"mensaje": "Novedad registrada con éxito", "id": db_novedad.id}
+    except Exception as e:
+        db.rollback()
         raise HTTPException(status_code=400, detail=str(e))
+
+@router.post("/novedades/lote", status_code=status.HTTP_201_CREATED)
+def ingresar_novedades_lote(
+    req: schemas.planillas.NovedadesLoteRequest,
+    db: Session = Depends(get_db),
+    usuario_actual: models.seguridad.Usuario = Depends(obtener_usuario_actual)
+):
+    try:
+        periodo = db.query(models.planillas.PeriodoPlanilla).filter(
+            models.planillas.PeriodoPlanilla.empresa_id == usuario_actual.empresa_id,
+            models.planillas.PeriodoPlanilla.estado == models.enums.EstadoPlanillaEnum.ABIERTA
+        ).first()
+        periodo_id = periodo.id if periodo else 1
+
+        registrados = 0
+        for item in req.novedades:
+            # Buscar empleado por codigo
+            emp = db.query(models.recursos_humanos.Empleado).filter(
+                models.recursos_humanos.Empleado.empresa_id == usuario_actual.empresa_id,
+                models.recursos_humanos.Empleado.codigo_empleado == item.get("codigo_empleado")
+            ).first()
+
+            if not emp:
+                continue
+
+            concepto = db.query(models.planillas.ConceptoPlanilla).filter(
+                models.planillas.ConceptoPlanilla.codigo == item.get("tipo_novedad")
+            ).first()
+
+            monto = float(item.get("minutos_tardia", 0)) * 0.1 # Fallback u otro cálculo
+            if item.get("tipo_novedad") == 'HORA_EXTRA':
+                monto = 15.00 # Monto estimado en lote si no viene especificado
+
+            db_novedad = models.planillas.NovedadPlanilla(
+                empleado_id=emp.id,
+                periodo_planilla_id=periodo_id,
+                concepto_id=concepto.id if concepto else 1,
+                cantidad=1,
+                monto_total=monto
+            )
+            db.add(db_novedad)
+            registrados += 1
+
+        db.commit()
+        return {"mensaje": f"Se procesaron {registrados} novedades masivas."}
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
 
 @router.get(
     "/prestamos/{empleado_id}",

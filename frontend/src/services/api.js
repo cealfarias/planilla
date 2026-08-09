@@ -89,6 +89,32 @@ export const api = {
     return handleResponse(response);
   },
 
+  crearNovedadEmpleado: async (datos) => {
+    const token = localStorage.getItem("token");
+    const response = await fetch(`${API_URL}/api/v1/planillas/novedades`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(datos),
+    });
+    return handleResponse(response);
+  },
+
+  crearNovedadesMasivas: async (novedades) => {
+    const token = localStorage.getItem("token");
+    const response = await fetch(`${API_URL}/api/v1/planillas/novedades/lote`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ novedades }),
+    });
+    return handleResponse(response);
+  },
+
   getEmpleados: async () => {
     const token = localStorage.getItem("token");
     const response = await fetch(`${API_URL}/api/v1/recursos-humanos/empleados`, {

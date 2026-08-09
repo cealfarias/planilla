@@ -67,6 +67,16 @@ class NovedadPlanillaResponse(NovedadPlanillaBase):
     id: int
     model_config = ConfigDict(from_attributes=True)
 
+class NovedadDirectaRequest(BaseModel):
+    empleado_id: int
+    tipo_novedad: str
+    fecha: Optional[str] = None
+    monto_total: Decimal
+    observaciones: Optional[str] = None
+
+class NovedadesLoteRequest(BaseModel):
+    novedades: List[dict]
+
 # --- BOLETAS DE PAGO ---
 class BoletaPagoBase(BaseModel):
     empleado_id: int
