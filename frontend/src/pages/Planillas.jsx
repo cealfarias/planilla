@@ -13,8 +13,6 @@ export default function Planillas() {
     fecha_inicio: `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}-01`,
     fecha_fin: `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}-30`,
   });
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
   const [successData, setSuccessData] = useState(null);
   const [planillas, setPlanillas] = useState([]);
   const [loadingPlanillas, setLoadingPlanillas] = useState(true);
