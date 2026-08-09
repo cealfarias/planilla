@@ -148,5 +148,18 @@ export const api = {
       }
     });
     return handleResponse(response);
+  },
+
+  liquidarEmpleado: async (datos) => {
+    const token = localStorage.getItem("token");
+    const response = await fetch(`${API_URL}/api/v1/planillas/liquidaciones`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(datos),
+    });
+    return handleResponse(response);
   }
 };

@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../services/api';
-import { Users, Plus, DollarSign } from 'lucide-react';
+import { Users, Plus, DollarSign, FileWarning } from 'lucide-react';
 import ContratarModal from '../components/ContratarModal';
 import FinanzasModal from '../components/FinanzasModal';
+import LiquidarModal from '../components/LiquidarModal';
 
 export default function Empleados() {
   const [empleados, setEmpleados] = useState([]);
@@ -11,6 +12,7 @@ export default function Empleados() {
   const [error, setError] = useState(null);
   const [contratarEmpleado, setContratarEmpleado] = useState(null);
   const [finanzasEmpleado, setFinanzasEmpleado] = useState(null);
+  const [liquidarEmpleado, setLiquidarEmpleado] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -116,13 +118,22 @@ export default function Empleados() {
                         Reactivar
                       </button>
                     ) : emp.contratos?.find(c => c.es_activo) ? (
-                      <button 
-                        onClick={() => setFinanzasEmpleado(emp)}
-                        className="btn btn-outline" 
-                        style={{ fontSize: '0.75rem', padding: '0.25rem 0.5rem', color: '#059669', borderColor: '#059669', display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}
-                      >
-                        <DollarSign size={14} /> Finanzas
-                      </button>
+                      <>
+                        <button 
+                          onClick={() => setFinanzasEmpleado(emp)}
+                          className="btn btn-outline" 
+                          style={{ fontSize: '0.75rem', padding: '0.25rem 0.5rem', color: '#059669', borderColor: '#059669', display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}
+                        >
+                          <DollarSign size={14} /> Finanzas
+                        </button>
+                        <button 
+                          onClick={() => setLiquidarEmpleado(emp)}
+                          className="btn btn-outline" 
+                          style={{ fontSize: '0.75rem', padding: '0.25rem 0.5rem', color: '#dc2626', borderColor: '#dc2626', display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}
+                        >
+                          <FileWarning size={14} /> Liquidar
+                        </button>
+                      </>
                     ) : (
                       <button 
                         onClick={() => setContratarEmpleado(emp)}
@@ -156,6 +167,18 @@ export default function Empleados() {
         <FinanzasModal 
           empleado={finanzasEmpleado} 
           onClose={() => setFinanzasEmpleado(null)}
+        />
+      )}
+
+      {liquidarEmpleado && (
+        <LiquidarModal 
+          empleado={liquidarEmpleado} 
+          onClose={() => setLiquidarEmpleado(null)}
+          onSuccess={() => {
+            setLiquidarEmpleado(null);
+            setLoading(true);
+            api.getEmpleados().then(setEmpleados).finally(() => setLoading(false));
+          }}
         />
       )}
     </div>
