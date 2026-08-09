@@ -36,6 +36,47 @@ def registrar_concepto_salarial(
 ):
     return crud.planillas.crear_concepto_planilla(db=db, concepto=concepto)
 
+def obtener_o_crear_concepto(db: Session, codigo: str):
+    concepto = db.query(models.planillas.ConceptoPlanilla).filter(
+        models.planillas.ConceptoPlanilla.codigo == codigo
+    ).first()
+    if not concepto:
+        tipo = models.enums.TipoConceptoEnum.DESCUENTO if codigo in ['LLEGADA_TARDIA', 'FALTA_INJUSTIFICADA'] else models.enums.TipoConceptoEnum.INGRESO
+        concepto = models.planillas.ConceptoPlanilla(
+            codigo=codigo,
+            descripcion=codigo.replace('_', ' ').title(),
+            tipo_concepto=tipo,
+            afecta_isss=True,
+            afecta_afp=True,
+            afecta_renta=True,
+            es_sistema=True
+        )
+        db.add(concepto)
+        db.commit()
+        db.refresh(concepto)
+    return concepto
+
+def obtener_o_crear_periodo(db: Session, empresa_id: int):
+    periodo = db.query(models.planillas.PeriodoPlanilla).filter(
+        models.planillas.PeriodoPlanilla.empresa_id == empresa_id,
+        models.planillas.PeriodoPlanilla.estado == models.enums.EstadoPlanillaEnum.ABIERTA
+    ).first()
+    if not periodo:
+        from datetime import date
+        today = date.today()
+        periodo = models.planillas.PeriodoPlanilla(
+            empresa_id=empresa_id,
+            codigo_periodo=f"PER-{today.year}-{today.month:02d}",
+            tipo_planilla=models.enums.TipoPlanillaEnum.ORDINARIA,
+            fecha_inicio=date(today.year, today.month, 1),
+            fecha_fin=date(today.year, today.month, 28),
+            estado=models.enums.EstadoPlanillaEnum.ABIERTA
+        )
+        db.add(periodo)
+        db.commit()
+        db.refresh(periodo)
+    return periodo
+
 @router.post(
     "/novedades", 
     status_code=status.HTTP_201_CREATED
@@ -46,26 +87,13 @@ def ingresar_novedad_directa(
     usuario_actual: models.seguridad.Usuario = Depends(obtener_usuario_actual)
 ):
     try:
-        # Buscar periodo abierto o usar periodo activo
-        periodo = db.query(models.planillas.PeriodoPlanilla).filter(
-            models.planillas.PeriodoPlanilla.empresa_id == usuario_actual.empresa_id,
-            models.planillas.PeriodoPlanilla.estado == models.enums.EstadoPlanillaEnum.ABIERTA
-        ).first()
-
-        # Buscar o crear concepto genérico
-        concepto = db.query(models.planillas.ConceptoPlanilla).filter(
-            models.planillas.ConceptoPlanilla.codigo == novedad.tipo_novedad
-        ).first()
-
-        if not concepto:
-            concepto = db.query(models.planillas.ConceptoPlanilla).first()
-
-        periodo_id = periodo.id if periodo else 1
+        periodo = obtener_o_crear_periodo(db, usuario_actual.empresa_id)
+        concepto = obtener_o_crear_concepto(db, novedad.tipo_novedad)
 
         db_novedad = models.planillas.NovedadPlanilla(
             empleado_id=novedad.empleado_id,
-            periodo_planilla_id=periodo_id,
-            concepto_id=concepto.id if concepto else 1,
+            periodo_planilla_id=periodo.id,
+            concepto_id=concepto.id,
             cantidad=1,
             monto_total=novedad.monto_total
         )
@@ -84,15 +112,10 @@ def ingresar_novedades_lote(
     usuario_actual: models.seguridad.Usuario = Depends(obtener_usuario_actual)
 ):
     try:
-        periodo = db.query(models.planillas.PeriodoPlanilla).filter(
-            models.planillas.PeriodoPlanilla.empresa_id == usuario_actual.empresa_id,
-            models.planillas.PeriodoPlanilla.estado == models.enums.EstadoPlanillaEnum.ABIERTA
-        ).first()
-        periodo_id = periodo.id if periodo else 1
+        periodo = obtener_o_crear_periodo(db, usuario_actual.empresa_id)
 
         registrados = 0
         for item in req.novedades:
-            # Buscar empleado por codigo
             emp = db.query(models.recursos_humanos.Empleado).filter(
                 models.recursos_humanos.Empleado.empresa_id == usuario_actual.empresa_id,
                 models.recursos_humanos.Empleado.codigo_empleado == item.get("codigo_empleado")
@@ -101,18 +124,17 @@ def ingresar_novedades_lote(
             if not emp:
                 continue
 
-            concepto = db.query(models.planillas.ConceptoPlanilla).filter(
-                models.planillas.ConceptoPlanilla.codigo == item.get("tipo_novedad")
-            ).first()
+            tipo = item.get("tipo_novedad", "HORA_EXTRA")
+            concepto = obtener_o_crear_concepto(db, tipo)
 
-            monto = float(item.get("minutos_tardia", 0)) * 0.1 # Fallback u otro cálculo
-            if item.get("tipo_novedad") == 'HORA_EXTRA':
-                monto = 15.00 # Monto estimado en lote si no viene especificado
+            monto = float(item.get("minutos_tardia", 0)) * 0.1
+            if tipo == 'HORA_EXTRA':
+                monto = 15.00
 
             db_novedad = models.planillas.NovedadPlanilla(
                 empleado_id=emp.id,
-                periodo_planilla_id=periodo_id,
-                concepto_id=concepto.id if concepto else 1,
+                periodo_planilla_id=periodo.id,
+                concepto_id=concepto.id,
                 cantidad=1,
                 monto_total=monto
             )
