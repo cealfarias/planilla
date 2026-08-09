@@ -46,6 +46,28 @@ export const api = {
     return handleResponse(response);
   },
 
+  loginWithGoogle: async (token) => {
+    const response = await fetch(`${API_URL}/api/v1/auth/google/login`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ token }),
+    });
+    return handleResponse(response);
+  },
+
+  registroWithGoogle: async (datos) => {
+    const response = await fetch(`${API_URL}/api/v1/auth/google/registro`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(datos),
+    });
+    return handleResponse(response);
+  },
+
   getEmpleados: async () => {
     const token = localStorage.getItem("token");
     const response = await fetch(`${API_URL}/api/v1/recursos-humanos/empleados`, {

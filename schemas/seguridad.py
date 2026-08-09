@@ -85,3 +85,14 @@ class RegistroSaaSRequest(BaseModel):
     admin_email: EmailStr
     admin_password: str
     aceptar_publicidad: bool = False
+
+# --- Esquemas Google SSO ---
+
+class GoogleLoginRequest(BaseModel):
+    token: str
+
+class GoogleRegistroRequest(BaseModel):
+    token: str
+    empresa_nombre: str
+    empresa_nit: str
+    aceptar_publicidad: bool = False

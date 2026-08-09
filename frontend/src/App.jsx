@@ -10,9 +10,13 @@ import Layout from './components/Layout';
 
 import CookieBanner from './components/CookieBanner';
 
+import { GoogleOAuthProvider } from '@react-oauth/google';
+
 function App() {
+  const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || "1234567890-mockclientid.apps.googleusercontent.com";
+  
   return (
-    <>
+    <GoogleOAuthProvider clientId={clientId}>
       <CookieBanner />
       <Routes>
         <Route path="/login" element={<Login />} />
@@ -31,7 +35,7 @@ function App() {
       {/* Fallback */}
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
-    </>
+    </GoogleOAuthProvider>
   );
 }
 
