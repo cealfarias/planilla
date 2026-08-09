@@ -71,6 +71,22 @@ export default function Planillas() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // Verificar si la planilla ya existe registrada
+    const planillaExistente = planillas.find(p => p.codigo_periodo.trim().toUpperCase() === formData.codigo_periodo.trim().toUpperCase());
+
+    if (planillaExistente) {
+      if (planillaExistente.estado === 'Cerrada') {
+        alert(`🔒 La planilla con el código "${formData.codigo_periodo}" ya se encuentra CERRADA y no puede ser recalculada ni modificada.`);
+        return;
+      }
+
+      const confirmar = window.confirm(
+        `⚠️ ¡ADVERTENCIA DE SOBREESCRITURA DE NÓMINA!\n\nLa planilla con código "${formData.codigo_periodo}" ya fue generada previamente y está ABIERTA.\n\nSi continúas, los cálculos anteriores se eliminarán y se recalcularán salarios, retenciones de ley y amortizaciones desde cero. No hay manera de deshacer esta acción.\n\n¿Deseas sobreescribir y recalcular la planilla "${formData.codigo_periodo}"?`
+      );
+      if (!confirmar) return;
+    }
+
     setLoading(true);
     setError(null);
     setSuccessData(null);
