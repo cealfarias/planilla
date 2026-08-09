@@ -261,7 +261,10 @@ def descargar_reporte_planilla(
     db: Session = Depends(get_db),
     usuario_actual: models.seguridad.Usuario = Depends(obtener_usuario_actual)
 ):
-    empresa = db.query(models.organizacion.Empresa).filter(models.organizacion.Empresa.id == usuario_actual.empresa_id).first()
+    empresa = db.query(models.empresa.Empresa).filter(models.empresa.Empresa.id == usuario_actual.empresa_id).first()
+    if not empresa:
+        raise HTTPException(status_code=404, detail="Empresa no encontrada.")
+
     periodo = db.query(models.planillas.PeriodoPlanilla).filter(
         models.planillas.PeriodoPlanilla.id == periodo_id,
         models.planillas.PeriodoPlanilla.empresa_id == empresa.id
@@ -290,7 +293,10 @@ def descargar_boletas_pago(
     db: Session = Depends(get_db),
     usuario_actual: models.seguridad.Usuario = Depends(obtener_usuario_actual)
 ):
-    empresa = db.query(models.organizacion.Empresa).filter(models.organizacion.Empresa.id == usuario_actual.empresa_id).first()
+    empresa = db.query(models.empresa.Empresa).filter(models.empresa.Empresa.id == usuario_actual.empresa_id).first()
+    if not empresa:
+        raise HTTPException(status_code=404, detail="Empresa no encontrada.")
+
     periodo = db.query(models.planillas.PeriodoPlanilla).filter(
         models.planillas.PeriodoPlanilla.id == periodo_id,
         models.planillas.PeriodoPlanilla.empresa_id == empresa.id
