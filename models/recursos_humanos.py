@@ -39,6 +39,7 @@ class Empleado(Base):
     # DATOS BANCARIOS PARA TRANSFERENCIAS
     banco_nombre = Column(String(100), nullable=True)
     numero_cuenta_bancaria = Column(String(50), nullable=True)
+    foto_url_base64 = Column(Text, nullable=True)
 
     estado = Column(String(20), default="Activo", nullable=False)
     fecha_creacion = Column(Date, server_default=func.current_date())

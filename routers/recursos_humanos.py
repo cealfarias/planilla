@@ -93,8 +93,7 @@ def asociar_experiencia_laboral(
 
 @router.put(
     "/empleados/{empleado_id}/estado",
-    response_model=schemas.recursos_humanos.EmpleadoResponse,
-    dependencies=[Depends(VerificadorPermiso("RH_EMPLEADOS_CREAR"))]
+    response_model=schemas.recursos_humanos.EmpleadoResponse
 )
 def cambiar_estado_empleado(
     empleado_id: int,
@@ -104,5 +103,20 @@ def cambiar_estado_empleado(
 ):
     try:
         return crud.recursos_humanos.cambiar_estado_empleado(db=db, empleado_id=empleado_id, empresa_id=usuario_actual.empresa_id, estado=estado)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@router.put(
+    "/empleados/{empleado_id}",
+    response_model=schemas.empleado.EmpleadoResponse
+)
+def actualizar_empleado(
+    empleado_id: int,
+    datos: schemas.empleado.EmpleadoUpdate,
+    db: Session = Depends(get_db),
+    usuario_actual: models.seguridad.Usuario = Depends(obtener_usuario_actual)
+):
+    try:
+        return crud.recursos_humanos.actualizar_empleado(db=db, empleado_id=empleado_id, empresa_id=usuario_actual.empresa_id, datos=datos)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))

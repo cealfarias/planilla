@@ -82,6 +82,10 @@ class EmpleadoBase(BaseModel):
     profesion_oficio: str = Field(..., max_length=100)
     nacionalidad: str = Field(..., max_length=50)
     
+    banco_nombre: Optional[str] = Field(None, max_length=100)
+    numero_cuenta_bancaria: Optional[str] = Field(None, max_length=50)
+    foto_url_base64: Optional[str] = None
+    
     departamento_residencia: str = Field(..., max_length=50)
     municipio_residencia: str = Field(..., max_length=50)
     distrito_residencia: str = Field(..., max_length=50)
@@ -99,10 +103,13 @@ class EmpleadoUpdate(BaseModel):
     segundo_nombre: Optional[str] = Field(None, max_length=50)
     primer_apellido: Optional[str] = Field(None, max_length=50)
     segundo_apellido: Optional[str] = Field(None, max_length=50)
-    email_institucional: Optional[EmailStr] = None
+    email_institucional: Optional[str] = None
     telefono: Optional[str] = Field(None, max_length=20)
     puesto_id: Optional[int] = None
     estado: Optional[str] = Field(None, max_length=20)
+    banco_nombre: Optional[str] = Field(None, max_length=100)
+    numero_cuenta_bancaria: Optional[str] = Field(None, max_length=50)
+    foto_url_base64: Optional[str] = None
     
     departamento_residencia: Optional[str] = Field(None, max_length=50)
     municipio_residencia: Optional[str] = Field(None, max_length=50)

@@ -190,3 +190,20 @@ def cambiar_estado_empleado(db: Session, empleado_id: int, empresa_id: int, esta
     db.commit()
     db.refresh(empleado)
     return empleado
+
+def actualizar_empleado(db: Session, empleado_id: int, empresa_id: int, datos: schemas.empleado.EmpleadoUpdate):
+    empleado = obtener_empleado(db, empleado_id, empresa_id)
+    if not empleado:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"No se encontró el empleado con ID {empleado_id}."
+        )
+    
+    update_data = datos.model_dump(exclude_unset=True)
+    for key, value in update_data.items():
+        if hasattr(empleado, key):
+            setattr(empleado, key, value)
+            
+    db.commit()
+    db.refresh(empleado)
+    return empleado

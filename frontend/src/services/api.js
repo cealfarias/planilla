@@ -167,6 +167,19 @@ export const api = {
     return handleResponse(response);
   },
 
+  actualizarEmpleado: async (empleadoId, datos) => {
+    const token = localStorage.getItem("token");
+    const response = await fetch(`${API_URL}/api/v1/recursos-humanos/empleados/${empleadoId}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(datos),
+    });
+    return handleResponse(response);
+  },
+
   crearContrato: async (empleadoId, datos) => {
     const token = localStorage.getItem("token");
     const response = await fetch(`${API_URL}/api/v1/recursos-humanos/empleados/${empleadoId}/contratos`, {

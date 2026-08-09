@@ -82,9 +82,10 @@ def auto_migrate_db():
             "ALTER TABLE contratos ADD COLUMN distrito_celebracion VARCHAR(50) DEFAULT '' NOT NULL",
             # Empresas
             "ALTER TABLE empresas ADD COLUMN logo_base64 TEXT",
-            # Datos Bancarios Empleados
+            # Datos Bancarios y Fotografia Empleados
             "ALTER TABLE empleados ADD COLUMN banco_nombre VARCHAR(100)",
-            "ALTER TABLE empleados ADD COLUMN numero_cuenta_bancaria VARCHAR(50)"
+            "ALTER TABLE empleados ADD COLUMN numero_cuenta_bancaria VARCHAR(50)",
+            "ALTER TABLE empleados ADD COLUMN foto_url_base64 TEXT"
         ]
         for col in columns_to_add:
             try:
