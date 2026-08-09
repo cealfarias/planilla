@@ -58,15 +58,48 @@ export default function Planillas() {
 
   const [editInfo, setEditInfo] = useState(null);
 
-  const handleRecalcularPlanilla = (p) => {
-    setFormData({
+  const handleRecalcularPlanilla = async (p) => {
+    if (p.estado === 'Cerrada') {
+      alert(`🔒 La planilla "${p.codigo_periodo}" ya está CERRADA y no se puede modificar.`);
+      return;
+    }
+
+    const confirmar = window.confirm(
+      `⚠️ ¿Deseas Recalcular la planilla "${p.codigo_periodo}"?\n\n` +
+      `Se actualizarán los cálculos, deducciones de ley (ISSS, AFP, Renta) y préstamos de todos los colaboradores con los datos vigentes.\n\n` +
+      `¿Confirmas ejecutar el recálculo?`
+    );
+
+    if (!confirmar) return;
+
+    const datosPlanilla = {
       codigo_periodo: p.codigo_periodo,
       tipo_planilla: p.tipo_planilla,
       fecha_inicio: p.fecha_inicio,
       fecha_fin: p.fecha_fin,
-    });
-    setEditInfo(`Período ${p.codigo_periodo} (${p.tipo_planilla}) cargado en el formulario. Modifica si lo deseas y haz clic en 'Generar Planilla' para recalcular.`);
+    };
+
+    setFormData(datosPlanilla);
+    setLoading(true);
+    setError(null);
+    setSuccessData(null);
+    setEditInfo(`🔄 Recalculando la planilla "${p.codigo_periodo}"...`);
     window.scrollTo({ top: 0, behavior: 'smooth' });
+
+    try {
+      const result = await api.procesarPlanilla(datosPlanilla);
+      setSuccessData(result);
+      setEditInfo(`✨ ¡La planilla "${p.codigo_periodo}" ha sido recalculada exitosamente!`);
+      fetchPlanillas();
+    } catch (err) {
+      if (err.message && err.message.includes('fetch')) {
+        setError("El servidor en la nube se está reactivando. Por favor, reintenta en unos segundos.");
+      } else {
+        setError(err.message);
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleSubmit = async (e) => {
