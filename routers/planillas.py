@@ -136,3 +136,67 @@ def cerrar_periodo_planilla(
         return crud.planillas.cerrar_planilla(db=db, periodo_id=periodo_id, empresa_id=usuario_actual.empresa_id)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
+
+from fastapi.responses import StreamingResponse
+import io
+from utils.pdf_generator import generar_planilla_general_pdf, generar_boletas_pago_pdf
+
+@router.get(
+    "/{periodo_id}/reporte",
+    dependencies=[Depends(VerificadorPermiso("PLA_CONFIG_VER"))]
+)
+def descargar_reporte_planilla(
+    periodo_id: int,
+    db: Session = Depends(get_db),
+    usuario_actual: models.seguridad.Usuario = Depends(obtener_usuario_actual)
+):
+    empresa = db.query(models.organizacion.Empresa).filter(models.organizacion.Empresa.id == usuario_actual.empresa_id).first()
+    periodo = db.query(models.planillas.PeriodoPlanilla).filter(
+        models.planillas.PeriodoPlanilla.id == periodo_id,
+        models.planillas.PeriodoPlanilla.empresa_id == empresa.id
+    ).first()
+    
+    if not periodo:
+        raise HTTPException(status_code=404, detail="Período no encontrado.")
+        
+    boletas = db.query(models.planillas.BoletaPago).filter(
+        models.planillas.BoletaPago.periodo_planilla_id == periodo.id
+    ).all()
+    
+    pdf_bytes = generar_planilla_general_pdf(empresa, periodo, boletas, db)
+    
+    return StreamingResponse(
+        io.BytesIO(pdf_bytes), 
+        media_type="application/pdf",
+        headers={"Content-Disposition": f"attachment; filename=Planilla_General_{periodo.codigo_periodo}.pdf"}
+    )
+
+@router.get(
+    "/{periodo_id}/boletas",
+    dependencies=[Depends(VerificadorPermiso("PLA_CONFIG_VER"))]
+)
+def descargar_boletas_pago(
+    periodo_id: int,
+    db: Session = Depends(get_db),
+    usuario_actual: models.seguridad.Usuario = Depends(obtener_usuario_actual)
+):
+    empresa = db.query(models.organizacion.Empresa).filter(models.organizacion.Empresa.id == usuario_actual.empresa_id).first()
+    periodo = db.query(models.planillas.PeriodoPlanilla).filter(
+        models.planillas.PeriodoPlanilla.id == periodo_id,
+        models.planillas.PeriodoPlanilla.empresa_id == empresa.id
+    ).first()
+    
+    if not periodo:
+        raise HTTPException(status_code=404, detail="Período no encontrado.")
+        
+    boletas = db.query(models.planillas.BoletaPago).filter(
+        models.planillas.BoletaPago.periodo_planilla_id == periodo.id
+    ).all()
+    
+    pdf_bytes = generar_boletas_pago_pdf(empresa, periodo, boletas, db)
+    
+    return StreamingResponse(
+        io.BytesIO(pdf_bytes), 
+        media_type="application/pdf",
+        headers={"Content-Disposition": f"attachment; filename=Boletas_Pago_{periodo.codigo_periodo}.pdf"}
+    )

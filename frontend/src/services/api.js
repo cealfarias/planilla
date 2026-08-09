@@ -161,5 +161,25 @@ export const api = {
       body: JSON.stringify(datos),
     });
     return handleResponse(response);
+  },
+
+  downloadPDF: async (periodoId, type) => {
+    const token = localStorage.getItem("token");
+    const response = await fetch(`${API_URL}/api/v1/planillas/${periodoId}/${type}`, {
+      headers: {
+        "Authorization": `Bearer ${token}`
+      }
+    });
+    
+    if (!response.ok) {
+      let errorMessage = "Error al descargar el PDF";
+      try {
+        const errorData = await response.json();
+        errorMessage = errorData.detail || errorMessage;
+      } catch (e) {}
+      throw new Error(errorMessage);
+    }
+    
+    return await response.blob();
   }
 };

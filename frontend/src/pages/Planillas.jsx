@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { api } from '../services/api';
-import { CreditCard, CheckCircle, AlertTriangle } from 'lucide-react';
+import { CreditCard, CheckCircle, AlertTriangle, Calculator, FileText, Download } from 'lucide-react';
 
 export default function Planillas() {
   const [loading, setLoading] = useState(false);
@@ -57,6 +57,22 @@ export default function Planillas() {
       setError(err.message);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleDownloadPDF = async (periodoId, type) => {
+    try {
+      const blob = await api.downloadPDF(periodoId, type);
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${type}_${periodoId}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (err) {
+      alert(err.message);
     }
   };
 
@@ -242,7 +258,25 @@ export default function Planillas() {
                         {p.estado}
                       </span>
                     </td>
-                    <td style={{ padding: '1rem 0.5rem', textAlign: 'right' }}>
+                    <td style={{ padding: '1rem 0.5rem', textAlign: 'right', display: 'flex', justifyContent: 'flex-end', gap: '0.5rem' }}>
+                      <button 
+                        className="btn btn-outline"
+                        title="Descargar Planilla General (PDF)"
+                        style={{ fontSize: '0.75rem', padding: '0.25rem 0.5rem', color: '#1e3a8a', borderColor: '#1e3a8a', display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}
+                        onClick={() => handleDownloadPDF(p.id, 'reporte')}
+                      >
+                        <FileText size={14} /> Planilla
+                      </button>
+                      
+                      <button 
+                        className="btn btn-outline"
+                        title="Descargar Boletas de Pago (PDF)"
+                        style={{ fontSize: '0.75rem', padding: '0.25rem 0.5rem', color: '#4c1d95', borderColor: '#4c1d95', display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}
+                        onClick={() => handleDownloadPDF(p.id, 'boletas')}
+                      >
+                        <Download size={14} /> Boletas
+                      </button>
+
                       {p.estado === 'Abierta' ? (
                         <button 
                           className="btn btn-outline" 

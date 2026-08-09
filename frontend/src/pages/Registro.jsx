@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { api } from '../services/api';
 import { Share2 } from 'lucide-react';
+import TerminosModal from '../components/TerminosModal';
 import './Login.css';
 
 export default function Registro() {
@@ -18,6 +19,7 @@ export default function Registro() {
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [showTerminos, setShowTerminos] = useState(false);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -148,7 +150,7 @@ export default function Registro() {
                 <div className="form-group" style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem', marginBottom: '0.75rem' }}>
                   <input type="checkbox" name="aceptar_terminos" id="terminos" required checked={formData.aceptar_terminos} onChange={handleChange} style={{ marginTop: '0.25rem' }} />
                   <label htmlFor="terminos" style={{ fontSize: '0.85rem', cursor: 'pointer', color: '#334155', lineHeight: 1.4 }}>
-                    He leído y acepto los <strong>Términos de Referencia</strong> y el <strong>Contrato de Servicio</strong> de Administración Planilla de Sueldos SaaS.
+                    He leído y acepto los <strong onClick={(e) => { e.preventDefault(); setShowTerminos(true); }} style={{ color: 'var(--primary)', cursor: 'pointer', textDecoration: 'underline' }}>Términos de Referencia y el Contrato de Servicio</strong> de Administración Planilla de Sueldos SaaS.
                   </label>
                 </div>
                 <div className="form-group" style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem', marginBottom: 0 }}>
@@ -193,6 +195,8 @@ export default function Registro() {
           </div>
         </div>
       </div>
+      
+      {showTerminos && <TerminosModal onClose={() => setShowTerminos(false)} />}
     </div>
   );
 }
