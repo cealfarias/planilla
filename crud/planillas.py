@@ -1,4 +1,5 @@
 from sqlalchemy.orm import Session
+from sqlalchemy import extract
 from decimal import Decimal
 import models
 import schemas
@@ -263,6 +264,36 @@ def procesar_planilla_mensual(db: Session, periodo: schemas.planillas.PeriodoPla
             if member.value.lower() == tipo_enum.lower() or member.name.lower() == tipo_enum.lower():
                 tipo_enum = member
                 break
+
+    # Validar incompabilidad Quincenal / Mensual para evitar duplicación de saldos y retenciones de ley
+    mes_inicio = periodo.fecha_inicio.month
+    ano_inicio = periodo.fecha_inicio.year
+
+    if tipo_enum == models.enums.TipoPlanillaEnum.MENSUAL:
+        quincenal_existente = db.query(models.planillas.PeriodoPlanilla).filter(
+            models.planillas.PeriodoPlanilla.empresa_id == empresa_id,
+            models.planillas.PeriodoPlanilla.tipo_planilla == models.enums.TipoPlanillaEnum.QUINCENAL,
+            models.planillas.PeriodoPlanilla.codigo_periodo != periodo.codigo_periodo,
+            extract('month', models.planillas.PeriodoPlanilla.fecha_inicio) == mes_inicio,
+            extract('year', models.planillas.PeriodoPlanilla.fecha_inicio) == ano_inicio
+        ).first()
+        if quincenal_existente:
+            raise ValueError(
+                f"No es posible generar una Planilla Mensual para el mes {mes_inicio}/{ano_inicio} porque ya se encuentra registrada la planilla quincenal '{quincenal_existente.codigo_periodo}'. Procesar ambas generaría duplicidad de sueldos y deducciones de ley (ISSS, AFP, Renta)."
+            )
+
+    if tipo_enum == models.enums.TipoPlanillaEnum.QUINCENAL:
+        mensual_existente = db.query(models.planillas.PeriodoPlanilla).filter(
+            models.planillas.PeriodoPlanilla.empresa_id == empresa_id,
+            models.planillas.PeriodoPlanilla.tipo_planilla == models.enums.TipoPlanillaEnum.MENSUAL,
+            models.planillas.PeriodoPlanilla.codigo_periodo != periodo.codigo_periodo,
+            extract('month', models.planillas.PeriodoPlanilla.fecha_inicio) == mes_inicio,
+            extract('year', models.planillas.PeriodoPlanilla.fecha_inicio) == ano_inicio
+        ).first()
+        if mensual_existente:
+            raise ValueError(
+                f"No es posible generar una Planilla Quincenal para el mes {mes_inicio}/{ano_inicio} porque ya se encuentra registrada la planilla mensual '{mensual_existente.codigo_periodo}'."
+            )
 
     # 2. Buscar si el periodo ya existe en la base de datos
     db_periodo = db.query(models.planillas.PeriodoPlanilla).filter(
