@@ -224,9 +224,33 @@ def eliminar_planilla(db: Session, periodo_id: int, empresa_id: int):
         raise ValueError("El período de planilla no existe.")
     if db_periodo.estado == models.enums.EstadoPlanillaEnum.CERRADA:
         raise ValueError("No se puede eliminar una planilla que ya ha sido CERRADA.")
-    db.query(models.planillas.BoletaPago).filter(
-        models.planillas.BoletaPago.periodo_planilla_id == periodo_id
-    ).delete()
+        
+    boleta_ids = [b.id for b in db.query(models.planillas.BoletaPago.id).filter(
+        models.planillas.BoletaPago.periodo_planilla_id == db_periodo.id
+    ).all()]
+    
+    if boleta_ids:
+        # Revertir amortizaciones
+        for amort in db.query(models.planillas.AmortizacionPrestamo).filter(
+            models.planillas.AmortizacionPrestamo.boleta_pago_id.in_(boleta_ids)
+        ).all():
+            prestamo = db.query(models.planillas.PrestamoEmpleado).filter(
+                models.planillas.PrestamoEmpleado.id == amort.prestamo_empleado_id
+            ).first()
+            if prestamo:
+                prestamo.saldo_pendiente += amort.monto_amortizado
+                if prestamo.saldo_pendiente > 0:
+                    prestamo.estado = models.enums.EstadoPrestamoEnum.ACTIVO
+            db.delete(amort)
+
+        db.query(models.planillas.BoletaPagoDetalle).filter(
+            models.planillas.BoletaPagoDetalle.boleta_pago_id.in_(boleta_ids)
+        ).delete(synchronize_session=False)
+
+        db.query(models.planillas.BoletaPago).filter(
+            models.planillas.BoletaPago.periodo_planilla_id == db_periodo.id
+        ).delete(synchronize_session=False)
+
     db.delete(db_periodo)
     db.commit()
     return {"mensaje": "Planilla eliminada con éxito"}
@@ -240,7 +264,7 @@ def procesar_planilla_mensual(db: Session, periodo: schemas.planillas.PeriodoPla
                 tipo_enum = member
                 break
 
-    # 2. Crear o recalcular el periodo
+    # 2. Buscar si el periodo ya existe en la base de datos
     db_periodo = db.query(models.planillas.PeriodoPlanilla).filter(
         models.planillas.PeriodoPlanilla.codigo_periodo == periodo.codigo_periodo,
         models.planillas.PeriodoPlanilla.empresa_id == empresa_id
@@ -248,15 +272,38 @@ def procesar_planilla_mensual(db: Session, periodo: schemas.planillas.PeriodoPla
     
     if db_periodo:
         if db_periodo.estado == models.enums.EstadoPlanillaEnum.CERRADA:
-            raise ValueError("Este código de período ya fue procesado y cerrado para esta empresa.")
-        # Limpiar boletas previas para recalcular
-        db.query(models.planillas.BoletaPago).filter(
+            raise ValueError("Este período de planilla ya fue procesado y CERRADO. No puede ser recalculado.")
+            
+        # Si la planilla existe y está ABIERTA -> Limpiar boletas previas en orden para recalcular limpia
+        boleta_ids = [b.id for b in db.query(models.planillas.BoletaPago.id).filter(
             models.planillas.BoletaPago.periodo_planilla_id == db_periodo.id
-        ).delete()
+        ).all()]
+        
+        if boleta_ids:
+            for amort in db.query(models.planillas.AmortizacionPrestamo).filter(
+                models.planillas.AmortizacionPrestamo.boleta_pago_id.in_(boleta_ids)
+            ).all():
+                prestamo = db.query(models.planillas.PrestamoEmpleado).filter(
+                    models.planillas.PrestamoEmpleado.id == amort.prestamo_empleado_id
+                ).first()
+                if prestamo:
+                    prestamo.saldo_pendiente += amort.monto_amortizado
+                    if prestamo.saldo_pendiente > 0:
+                        prestamo.estado = models.enums.EstadoPrestamoEnum.ACTIVO
+                db.delete(amort)
+
+            db.query(models.planillas.BoletaPagoDetalle).filter(
+                models.planillas.BoletaPagoDetalle.boleta_pago_id.in_(boleta_ids)
+            ).delete(synchronize_session=False)
+
+            db.query(models.planillas.BoletaPago).filter(
+                models.planillas.BoletaPago.periodo_planilla_id == db_periodo.id
+            ).delete(synchronize_session=False)
+
         db_periodo.fecha_inicio = periodo.fecha_inicio
         db_periodo.fecha_fin = periodo.fecha_fin
         db_periodo.tipo_planilla = tipo_enum
-        db.commit()
+        db.flush()
     else:
         db_periodo = models.planillas.PeriodoPlanilla(
             empresa_id=empresa_id,
