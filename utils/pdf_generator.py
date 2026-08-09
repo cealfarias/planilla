@@ -35,7 +35,16 @@ class ReportePlanilla(FPDF):
 
     def footer(self):
         self.set_y(-15)
+        # Nota de licencia (Watermark)
+        self.set_font("helvetica", "B", 8)
+        self.set_text_color(150, 150, 150)
+        self.cell(0, 5, "Generado por Administración Planilla de Sueldos SaaS (Licencia Freeware).", align="C", new_x="LMARGIN", new_y="NEXT")
+        self.set_font("helvetica", "I", 7)
+        self.cell(0, 5, "Para remover esta marca de agua y obtener soporte prioritario, por favor actualice su licencia a Premium.", align="C", new_x="LMARGIN", new_y="NEXT")
+        
+        # Paginación
         self.set_font("helvetica", "I", 8)
+        self.set_text_color(0, 0, 0)
         self.cell(0, 10, f"Página {self.page_no()}/{{nb}} - Generado el {datetime.now().strftime('%Y-%m-%d %H:%M')}", align="C")
 
 
@@ -47,7 +56,15 @@ class BoletaPagoPDF(FPDF):
 
     def footer(self):
         self.set_y(-15)
+        # Nota de licencia (Watermark)
+        self.set_font("helvetica", "B", 8)
+        self.set_text_color(150, 150, 150)
+        self.cell(0, 5, "Generado por Administración Planilla de Sueldos SaaS (Licencia Freeware).", align="C", new_x="LMARGIN", new_y="NEXT")
+        self.set_font("helvetica", "I", 7)
+        self.cell(0, 5, "Para remover esta marca de agua, actualice a Premium.", align="C", new_x="LMARGIN", new_y="NEXT")
+        
         self.set_font("helvetica", "I", 8)
+        self.set_text_color(0, 0, 0)
         self.cell(0, 10, f"Generado el {datetime.now().strftime('%Y-%m-%d %H:%M')}", align="C")
 
 
