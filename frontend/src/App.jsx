@@ -13,7 +13,7 @@ import CookieBanner from './components/CookieBanner';
 import { GoogleOAuthProvider } from '@react-oauth/google';
 
 function App() {
-  const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || "1234567890-mockclientid.apps.googleusercontent.com";
+  const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || "564147336188-a3jci35rfq609v8d7sbopsd3aeuec93c.apps.googleusercontent.com";
   
   return (
     <GoogleOAuthProvider clientId={clientId}>

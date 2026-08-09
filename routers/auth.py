@@ -118,7 +118,7 @@ from google.oauth2 import id_token
 from google.auth.transport import requests
 
 # Constante Cliente de Google, debe configurarse en Vercel/Render
-GOOGLE_CLIENT_ID = os.environ.get("GOOGLE_CLIENT_ID", "tu-client-id-google.apps.googleusercontent.com")
+GOOGLE_CLIENT_ID = os.environ.get("GOOGLE_CLIENT_ID", "564147336188-a3jci35rfq609v8d7sbopsd3aeuec93c.apps.googleusercontent.com")
 
 def verify_google_token(token: str):
     try:
