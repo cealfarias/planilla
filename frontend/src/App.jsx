@@ -5,6 +5,7 @@ import Dashboard from './pages/Dashboard';
 import Empleados from './pages/Empleados';
 import NuevoEmpleado from './pages/NuevoEmpleado';
 import Planillas from './pages/Planillas';
+import Configuracion from './pages/Configuracion';
 import ProtectedRoute from './components/ProtectedRoute';
 import Layout from './components/Layout';
 
@@ -29,7 +30,7 @@ function App() {
         <Route path="/empleados" element={<Empleados />} />
         <Route path="/empleados/nuevo" element={<NuevoEmpleado />} />
         <Route path="/planillas" element={<Planillas />} />
-        <Route path="/configuracion" element={<div className="card">Módulo de Configuración</div>} />
+        <Route path="/configuracion" element={<Configuracion />} />
       </Route>
 
       {/* Fallback */}

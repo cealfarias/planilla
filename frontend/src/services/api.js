@@ -68,6 +68,27 @@ export const api = {
     return handleResponse(response);
   },
 
+  getEmpresa: async () => {
+    const token = localStorage.getItem("token");
+    const response = await fetch(`${API_URL}/api/v1/empresa/me`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    return handleResponse(response);
+  },
+
+  updateEmpresa: async (datos) => {
+    const token = localStorage.getItem("token");
+    const response = await fetch(`${API_URL}/api/v1/empresa/me`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(datos),
+    });
+    return handleResponse(response);
+  },
+
   getEmpleados: async () => {
     const token = localStorage.getItem("token");
     const response = await fetch(`${API_URL}/api/v1/recursos-humanos/empleados`, {

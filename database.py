@@ -78,7 +78,9 @@ def auto_migrate_db():
             "ALTER TABLE contratos ADD COLUMN lugar_trabajo_distrito VARCHAR(50) DEFAULT '' NOT NULL",
             "ALTER TABLE contratos ADD COLUMN lugar_trabajo_municipio VARCHAR(50) DEFAULT '' NOT NULL",
             "ALTER TABLE contratos ADD COLUMN lugar_trabajo_departamento VARCHAR(50) DEFAULT '' NOT NULL",
-            "ALTER TABLE contratos ADD COLUMN distrito_celebracion VARCHAR(50) DEFAULT '' NOT NULL"
+            "ALTER TABLE contratos ADD COLUMN distrito_celebracion VARCHAR(50) DEFAULT '' NOT NULL",
+            # Empresas
+            "ALTER TABLE empresas ADD COLUMN logo_base64 TEXT"
         ]
         for col in columns_to_add:
             try:

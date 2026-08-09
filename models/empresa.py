@@ -11,3 +11,4 @@ class Empresa(Base):
     direccion = Column(Text, nullable=True)
     telefono = Column(String(20), nullable=True)
     es_activa = Column(Boolean, default=True, nullable=False)
+    logo_base64 = Column(Text, nullable=True)
