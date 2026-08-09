@@ -232,7 +232,15 @@ def eliminar_planilla(db: Session, periodo_id: int, empresa_id: int):
     return {"mensaje": "Planilla eliminada con éxito"}
 
 def procesar_planilla_mensual(db: Session, periodo: schemas.planillas.PeriodoPlanillaCreate, empresa_id: int):
-    # 1. Crear o recalcular el periodo
+    # 1. Normalizar tipo_planilla
+    tipo_enum = periodo.tipo_planilla
+    if isinstance(tipo_enum, str):
+        for member in models.enums.TipoPlanillaEnum:
+            if member.value.lower() == tipo_enum.lower() or member.name.lower() == tipo_enum.lower():
+                tipo_enum = member
+                break
+
+    # 2. Crear o recalcular el periodo
     db_periodo = db.query(models.planillas.PeriodoPlanilla).filter(
         models.planillas.PeriodoPlanilla.codigo_periodo == periodo.codigo_periodo,
         models.planillas.PeriodoPlanilla.empresa_id == empresa_id
@@ -247,13 +255,13 @@ def procesar_planilla_mensual(db: Session, periodo: schemas.planillas.PeriodoPla
         ).delete()
         db_periodo.fecha_inicio = periodo.fecha_inicio
         db_periodo.fecha_fin = periodo.fecha_fin
-        db_periodo.tipo_planilla = periodo.tipo_planilla
+        db_periodo.tipo_planilla = tipo_enum
         db.commit()
     else:
         db_periodo = models.planillas.PeriodoPlanilla(
             empresa_id=empresa_id,
             codigo_periodo=periodo.codigo_periodo,
-            tipo_planilla=periodo.tipo_planilla,
+            tipo_planilla=tipo_enum,
             fecha_inicio=periodo.fecha_inicio,
             fecha_fin=periodo.fecha_fin,
             estado=models.enums.EstadoPlanillaEnum.ABIERTA

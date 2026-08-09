@@ -209,7 +209,8 @@ def procesar_nomina_mensual(
 ):
     try:
         return crud.planillas.procesar_planilla_mensual(db=db, periodo=periodo, empresa_id=usuario_actual.empresa_id)
-    except ValueError as e:
+    except Exception as e:
+        db.rollback()
         raise HTTPException(status_code=400, detail=str(e))
 
 @router.get(

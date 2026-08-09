@@ -56,6 +56,8 @@ export default function Planillas() {
     }
   };
 
+  const [editInfo, setEditInfo] = useState(null);
+
   const handleRecalcularPlanilla = (p) => {
     setFormData({
       codigo_periodo: p.codigo_periodo,
@@ -63,6 +65,7 @@ export default function Planillas() {
       fecha_inicio: p.fecha_inicio,
       fecha_fin: p.fecha_fin,
     });
+    setEditInfo(`Período ${p.codigo_periodo} (${p.tipo_planilla}) cargado en el formulario. Modifica si lo deseas y haz clic en 'Generar Planilla' para recalcular.`);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -71,13 +74,18 @@ export default function Planillas() {
     setLoading(true);
     setError(null);
     setSuccessData(null);
+    setEditInfo(null);
     
     try {
       const result = await api.procesarPlanilla(formData);
       setSuccessData(result);
       fetchPlanillas();
     } catch (err) {
-      setError(err.message);
+      if (err.message && err.message.includes('fetch')) {
+        setError("El servidor en la nube se está reactivando. Por favor, reintenta dar clic en 'Generar Planilla' en unos segundos.");
+      } else {
+        setError(err.message);
+      }
     } finally {
       setLoading(false);
     }
@@ -178,6 +186,13 @@ export default function Planillas() {
         isOpen={showVacacionesModal} 
         onClose={() => setShowVacacionesModal(false)} 
       />
+
+      {editInfo && (
+        <div style={{ background: '#eff6ff', border: '1px solid #bfdbfe', color: '#1d4ed8', padding: '1rem', borderRadius: '8px', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <CheckCircle size={20} />
+          {editInfo}
+        </div>
+      )}
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '1.5rem' }}>
         <div className="card">
