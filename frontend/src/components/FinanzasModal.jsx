@@ -58,7 +58,7 @@ export default function FinanzasModal({ empleado, onClose }) {
 
   // Salario info
   const contratoActivo = empleado.contratos?.find(c => c.es_activo);
-  const salarioNominal = contratoActivo ? parseFloat(contratoActivo.salario_base) : 0;
+  const salarioNominal = contratoActivo ? parseFloat(contratoActivo.salario_base) : (parseFloat(empleado.salario_base) || 0);
   const valorHoraNormal = salarioNominal / 240; // 30 días * 8 horas
   const valorDiaNormal = salarioNominal / 30;
   const limiteLegal = salarioNominal * 0.20;

@@ -2,15 +2,17 @@ import React, { useState, useEffect } from 'react';
 import { api } from '../services/api';
 import ProgramacionVacacionesModal from '../components/ProgramacionVacacionesModal';
 import HistorialPlanillasModal from '../components/HistorialPlanillasModal';
+import FinanzasModal from '../components/FinanzasModal';
 import ToastContainer from '../components/ToastContainer';
 import { notificarBoletaWhatsApp, notificarBoletaEmail } from '../utils/notificaciones';
-import { CreditCard, CheckCircle, AlertTriangle, Calculator, FileText, Download, Calendar, Send, Mail, History, RefreshCw } from 'lucide-react';
+import { CreditCard, CheckCircle, AlertTriangle, Calculator, FileText, Download, Calendar, Send, Mail, History, RefreshCw, DollarSign } from 'lucide-react';
 
 export default function Planillas() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [showVacacionesModal, setShowVacacionesModal] = useState(false);
   const [showHistoryModal, setShowHistoryModal] = useState(false);
+  const [selectedEmpleadoFinanzas, setSelectedEmpleadoFinanzas] = useState(null);
 
   const [toasts, setToasts] = useState([]);
 
@@ -126,7 +128,6 @@ export default function Planillas() {
     setActivePlanillaInfo(p);
     addToast(`✏️ Planilla "${p.codigo_periodo}" cargada para edición / recálculo.`, "info");
 
-    // Ejecutar recálculo / consulta limpia
     try {
       setLoading(true);
       setError(null);
@@ -135,6 +136,34 @@ export default function Planillas() {
       addToast(`✨ Planilla "${p.codigo_periodo}" actualizada en pantalla.`, "success");
     } catch (err) {
       addToast(err.message, "error");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleAbrirFinanzasEmpleado = (item) => {
+    const nombres = item.nombre_completo.split(' ');
+    const pNombre = nombres[0] || '';
+    const pApellido = nombres.slice(1).join(' ') || '';
+
+    setSelectedEmpleadoFinanzas({
+      id: item.empleado_id,
+      primer_nombre: pNombre,
+      primer_apellido: pApellido,
+      salario_base: item.salario_base
+    });
+  };
+
+  const handleCerrarFinanzasModal = async () => {
+    setSelectedEmpleadoFinanzas(null);
+    // Recalcular silenciosamente para reflejar nuevas horas extras o préstamos al instante
+    try {
+      setLoading(true);
+      const result = await api.procesarPlanilla(formData);
+      setSuccessData(result);
+      addToast("✨ Nómina recalculada automáticamente con las nuevas novedades de finanzas.", "success");
+    } catch (err) {
+      console.error(err);
     } finally {
       setLoading(false);
     }
@@ -345,6 +374,13 @@ export default function Planillas() {
         onDownloadPDF={handleDownloadPDF}
       />
 
+      {selectedEmpleadoFinanzas && (
+        <FinanzasModal 
+          empleado={selectedEmpleadoFinanzas}
+          onClose={handleCerrarFinanzasModal}
+        />
+      )}
+
       {/* MAIN VIEW: TABLA DE PLANILLA PROCESADA / DETALLES DE BOLETAS */}
       {successData ? (
         <div className="card" style={{ padding: '1.5rem', border: '2px solid #86EFAC', background: '#F0FDF4' }}>
@@ -390,7 +426,7 @@ export default function Planillas() {
                   <th style={{ padding: '0.75rem 0.5rem' }}>Préstamos</th>
                   <th style={{ padding: '0.75rem 0.5rem' }}>Total Desc.</th>
                   <th style={{ padding: '0.75rem 0.5rem' }}>Líquido</th>
-                  <th style={{ padding: '0.75rem 0.5rem', textAlign: 'center' }}>Notificar Recibo</th>
+                  <th style={{ padding: '0.75rem 0.5rem', textAlign: 'center' }}>Acciones & Notificaciones</th>
                 </tr>
               </thead>
               <tbody>
@@ -405,7 +441,16 @@ export default function Planillas() {
                     <td style={{ padding: '0.65rem 0.5rem', color: '#dc2626', fontWeight: '500' }}>${item.total_descuentos.toFixed(2)}</td>
                     <td style={{ padding: '0.65rem 0.5rem', fontWeight: 'bold', color: '#16a34a' }}>${item.liquido_recibir.toFixed(2)}</td>
                     <td style={{ padding: '0.65rem 0.5rem', textAlign: 'center' }}>
-                      <div style={{ display: 'flex', justifyContent: 'center', gap: '0.35rem' }}>
+                      <div style={{ display: 'flex', justifyContent: 'center', gap: '0.35rem', flexWrap: 'wrap' }}>
+                        <button 
+                          type="button" 
+                          onClick={() => handleAbrirFinanzasEmpleado(item)}
+                          className="btn btn-outline"
+                          style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem', color: '#0284c7', borderColor: '#0284c7', display: 'inline-flex', alignItems: 'center', gap: '0.2rem', fontWeight: '600' }}
+                          title="Registrar Horas Extras, Tardanzas o Préstamos para este colaborador"
+                        >
+                          <DollarSign size={13} /> Finanzas
+                        </button>
                         <button 
                           type="button" 
                           onClick={() => {
