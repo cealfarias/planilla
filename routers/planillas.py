@@ -200,8 +200,7 @@ def procesar_liquidacion_empleado(
 
 @router.post(
     "/procesar", 
-    status_code=status.HTTP_201_CREATED,
-    dependencies=[Depends(VerificadorPermiso("PLA_CONFIG_EDITAR"))]
+    status_code=status.HTTP_201_CREATED
 )
 def procesar_nomina_mensual(
     periodo: schemas.planillas.PeriodoPlanillaCreate, 
@@ -215,8 +214,7 @@ def procesar_nomina_mensual(
 
 @router.get(
     "/",
-    response_model=list[schemas.planillas.PeriodoPlanillaResponse],
-    dependencies=[Depends(VerificadorPermiso("PLA_CONFIG_VER"))]
+    response_model=list[schemas.planillas.PeriodoPlanillaResponse]
 )
 def listar_planillas(
     db: Session = Depends(get_db),
@@ -226,8 +224,7 @@ def listar_planillas(
 
 @router.put(
     "/{periodo_id}/cerrar",
-    response_model=schemas.planillas.PeriodoPlanillaResponse,
-    dependencies=[Depends(VerificadorPermiso("PLA_CONFIG_EDITAR"))]
+    response_model=schemas.planillas.PeriodoPlanillaResponse
 )
 def cerrar_periodo_planilla(
     periodo_id: int,
@@ -239,13 +236,25 @@ def cerrar_periodo_planilla(
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
+@router.delete(
+    "/{periodo_id}"
+)
+def eliminar_periodo_planilla(
+    periodo_id: int,
+    db: Session = Depends(get_db),
+    usuario_actual: models.seguridad.Usuario = Depends(obtener_usuario_actual)
+):
+    try:
+        return crud.planillas.eliminar_planilla(db=db, periodo_id=periodo_id, empresa_id=usuario_actual.empresa_id)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
 from fastapi.responses import StreamingResponse
 import io
 from utils.pdf_generator import generar_planilla_general_pdf, generar_boletas_pago_pdf
 
 @router.get(
-    "/{periodo_id}/reporte",
-    dependencies=[Depends(VerificadorPermiso("PLA_CONFIG_VER"))]
+    "/{periodo_id}/reporte"
 )
 def descargar_reporte_planilla(
     periodo_id: int,
@@ -274,8 +283,7 @@ def descargar_reporte_planilla(
     )
 
 @router.get(
-    "/{periodo_id}/boletas",
-    dependencies=[Depends(VerificadorPermiso("PLA_CONFIG_VER"))]
+    "/{periodo_id}/boletas"
 )
 def descargar_boletas_pago(
     periodo_id: int,

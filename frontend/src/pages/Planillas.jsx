@@ -46,6 +46,26 @@ export default function Planillas() {
     }
   };
 
+  const handleEliminarPlanilla = async (periodoId) => {
+    if (!window.confirm("¿Estás seguro de eliminar esta planilla abierta? Podrás volver a generarla desde cero.")) return;
+    try {
+      await api.eliminarPlanilla(periodoId);
+      fetchPlanillas();
+    } catch (err) {
+      alert(err.message);
+    }
+  };
+
+  const handleRecalcularPlanilla = (p) => {
+    setFormData({
+      codigo_periodo: p.codigo_periodo,
+      tipo_planilla: p.tipo_planilla,
+      fecha_inicio: p.fecha_inicio,
+      fecha_fin: p.fecha_fin,
+    });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -378,16 +398,37 @@ export default function Planillas() {
                       </button>
 
                       {p.estado === 'Abierta' ? (
-                        <button 
-                          className="btn btn-outline" 
-                          style={{ fontSize: '0.75rem', padding: '0.25rem 0.5rem', color: '#16a34a', borderColor: '#16a34a', display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}
-                          onClick={() => handleCerrarPlanilla(p.id)}
-                        >
-                          Cerrar Planilla
-                        </button>
+                        <>
+                          <button 
+                            className="btn btn-outline" 
+                            style={{ fontSize: '0.75rem', padding: '0.25rem 0.5rem', color: '#2563eb', borderColor: '#2563eb', display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}
+                            onClick={() => handleRecalcularPlanilla(p)}
+                            title="Cargar datos para Recalcular / Re-procesar"
+                          >
+                            🔄 Editar / Recalcular
+                          </button>
+
+                          <button 
+                            className="btn btn-outline" 
+                            style={{ fontSize: '0.75rem', padding: '0.25rem 0.5rem', color: '#dc2626', borderColor: '#dc2626', display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}
+                            onClick={() => handleEliminarPlanilla(p.id)}
+                            title="Eliminar este período de planilla"
+                          >
+                            🗑️ Eliminar
+                          </button>
+
+                          <button 
+                            className="btn btn-outline" 
+                            style={{ fontSize: '0.75rem', padding: '0.25rem 0.5rem', color: '#16a34a', borderColor: '#16a34a', display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}
+                            onClick={() => handleCerrarPlanilla(p.id)}
+                            title="Cerrar planilla definitivamente"
+                          >
+                            🔒 Cerrar
+                          </button>
+                        </>
                       ) : (
                         <button className="btn btn-outline" disabled style={{ fontSize: '0.75rem', padding: '0.25rem 0.5rem', opacity: 0.5 }}>
-                          Cerrada
+                          🔒 Cerrada
                         </button>
                       )}
                     </td>

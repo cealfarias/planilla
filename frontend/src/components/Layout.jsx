@@ -1,13 +1,28 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { LayoutDashboard, Users, Settings, LogOut, Building, CreditCard } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { api } from '../services/api';
 import './Layout.css';
 
 export default function Layout({ children }) {
   const { logout, user } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  const [empresa, setEmpresa] = useState(null);
+
+  useEffect(() => {
+    fetchEmpresa();
+  }, []);
+
+  const fetchEmpresa = async () => {
+    try {
+      const data = await api.getEmpresa();
+      if (data) setEmpresa(data);
+    } catch (err) {
+      console.error("Error cargando empresa:", err);
+    }
+  };
 
   const handleLogout = () => {
     logout();
@@ -51,7 +66,14 @@ export default function Layout({ children }) {
         <div className="sidebar-header">
           <div className="sidebar-logo">
             <Building size={24} className="logo-icon" />
-            <span>SaaS Planilla</span>
+            <div style={{ display: 'flex', flexDirection: 'column' }}>
+              <span>SaaS Planilla</span>
+              {empresa && (
+                <span style={{ fontSize: '0.75rem', color: '#94a3b8', fontWeight: '500' }}>
+                  {empresa.nombre_comercial || empresa.razon_social}
+                </span>
+              )}
+            </div>
           </div>
         </div>
 
@@ -90,12 +112,31 @@ export default function Layout({ children }) {
 
       {/* Main Content */}
       <main className="main-content">
-        <header className="topbar">
-          <h2 className="page-title">
-            {location.pathname === '/dashboard' || location.pathname === '/' ? 'Dashboard' : 
-             location.pathname.startsWith('/empleados') ? 'Gestión de Colaboradores' : 
-             location.pathname.startsWith('/planillas') ? 'Planillas' : 'Configuración'}
-          </h2>
+        <header className="topbar" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+            <h2 className="page-title" style={{ margin: 0 }}>
+              {location.pathname === '/dashboard' || location.pathname === '/' ? 'Dashboard' : 
+               location.pathname.startsWith('/empleados') ? 'Gestión de Colaboradores' : 
+               location.pathname.startsWith('/planillas') ? 'Planillas' : 'Configuración'}
+            </h2>
+            
+            {empresa && (
+              <div style={{ 
+                background: 'linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%)', 
+                color: 'white', 
+                padding: '0.35rem 0.85rem', 
+                borderRadius: '999px', 
+                fontSize: '0.85rem', 
+                fontWeight: '600',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.4rem',
+                boxShadow: '0 2px 4px rgba(37, 99, 235, 0.2)'
+              }}>
+                <Building size={15} /> 🏢 Empresa: {empresa.nombre_comercial || empresa.razon_social}
+              </div>
+            )}
+          </div>
         </header>
         <div className="content-area">
           {children}

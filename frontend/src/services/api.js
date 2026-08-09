@@ -230,9 +230,16 @@ export const api = {
     const token = localStorage.getItem("token");
     const response = await fetch(`${API_URL}/api/v1/planillas/${periodoId}/cerrar`, {
       method: "PUT",
-      headers: {
-        "Authorization": `Bearer ${token}`
-      }
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    return handleResponse(response);
+  },
+
+  eliminarPlanilla: async (periodoId) => {
+    const token = localStorage.getItem("token");
+    const response = await fetch(`${API_URL}/api/v1/planillas/${periodoId}`, {
+      method: "DELETE",
+      headers: { Authorization: `Bearer ${token}` },
     });
     return handleResponse(response);
   },
