@@ -76,6 +76,63 @@ export default function Planillas() {
     }
   };
 
+  const calcularPeriodoPorTipo = (tipo) => {
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const lastDayOfMonth = new Date(year, today.getMonth() + 1, 0).getDate();
+
+    if (tipo === 'Quincenal') {
+      const day = today.getDate();
+      if (day <= 15) {
+        return {
+          codigo_periodo: `Q1-${year}-${month}`,
+          fecha_inicio: `${year}-${month}-01`,
+          fecha_fin: `${year}-${month}-15`
+        };
+      } else {
+        return {
+          codigo_periodo: `Q2-${year}-${month}`,
+          fecha_inicio: `${year}-${month}-16`,
+          fecha_fin: `${year}-${month}-${String(lastDayOfMonth).padStart(2, '0')}`
+        };
+      }
+    } else if (tipo === 'Aguinaldo') {
+      return {
+        codigo_periodo: `AGUINALDO-${year}`,
+        fecha_inicio: `${year}-12-12`,
+        fecha_fin: `${year}-12-20`
+      };
+    } else if (tipo === 'Vacaciones') {
+      const fechaFinVac = new Date(today);
+      fechaFinVac.setDate(today.getDate() + 15);
+      const finMonth = String(fechaFinVac.getMonth() + 1).padStart(2, '0');
+      const finDay = String(fechaFinVac.getDate()).padStart(2, '0');
+      return {
+        codigo_periodo: `VAC-${year}-${month}`,
+        fecha_inicio: `${year}-${month}-${String(today.getDate()).padStart(2, '0')}`,
+        fecha_fin: `${fechaFinVac.getFullYear()}-${finMonth}-${finDay}`
+      };
+    } else {
+      // Mensual
+      return {
+        codigo_periodo: `MENSUAL-${year}-${month}`,
+        fecha_inicio: `${year}-${month}-01`,
+        fecha_fin: `${year}-${month}-${String(lastDayOfMonth).padStart(2, '0')}`
+      };
+    }
+  };
+
+  const handleTipoPlanillaChange = (e) => {
+    const nuevoTipo = e.target.value;
+    const datosPeriodo = calcularPeriodoPorTipo(nuevoTipo);
+    setFormData({
+      ...formData,
+      tipo_planilla: nuevoTipo,
+      ...datosPeriodo
+    });
+  };
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
       <div>
@@ -108,11 +165,12 @@ export default function Planillas() {
               <select 
                 className="form-control"
                 value={formData.tipo_planilla}
-                onChange={e => setFormData({...formData, tipo_planilla: e.target.value})}
+                onChange={handleTipoPlanillaChange}
               >
-                <option value="Ordinaria Mensual">Ordinaria Mensual</option>
+                <option value="Mensual">Ordinaria Mensual</option>
                 <option value="Quincenal">Quincenal</option>
                 <option value="Aguinaldo">Aguinaldo</option>
+                <option value="Vacaciones">Vacaciones</option>
               </select>
             </div>
             
