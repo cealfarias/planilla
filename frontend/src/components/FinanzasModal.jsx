@@ -11,7 +11,11 @@ export default function FinanzasModal({ empleado, onClose }) {
   const [success, setSuccess] = useState(null);
 
   // Form State
+  // Form State
   const [tipoPrestamo, setTipoPrestamo] = useState('Interno');
+  const [entidad, setEntidad] = useState('');
+  const [fechaInicio, setFechaInicio] = useState('');
+  const [fechaFin, setFechaFin] = useState('');
   const [montoTotal, setMontoTotal] = useState('');
   const [cuotaPeriodica, setCuotaPeriodica] = useState('');
 
@@ -59,11 +63,17 @@ export default function FinanzasModal({ empleado, onClose }) {
         monto_total: parseFloat(montoTotal),
         saldo_pendiente: parseFloat(montoTotal),
         cuota_periodica: parseFloat(cuotaPeriodica),
+        entidad: entidad || null,
+        fecha_inicio: fechaInicio || null,
+        fecha_fin: fechaFin || null,
         estado: "Activo"
       });
       setSuccess("Descuento programado correctamente.");
       setMontoTotal('');
       setCuotaPeriodica('');
+      setEntidad('');
+      setFechaInicio('');
+      setFechaFin('');
       fetchPrestamos(); // Recargar tabla
     } catch (err) {
       setError(err.message);
@@ -144,10 +154,22 @@ export default function FinanzasModal({ empleado, onClose }) {
                   <label>Tipo de Descuento</label>
                   <select className="form-control" value={tipoPrestamo} onChange={e => setTipoPrestamo(e.target.value)}>
                     <option value="Interno">Préstamo Interno</option>
-                    <option value="Bancario">Préstamo Bancario</option>
+                    <option value="Bancario">Préstamo Bancario / Comercial</option>
                     <option value="Anticipo">Anticipo Salarial</option>
                     <option value="Embargo Judicial">Embargo Judicial</option>
                   </select>
+                </div>
+                <div className="form-group">
+                  <label>Entidad / Institución</label>
+                  <input type="text" className="form-control" placeholder="Ej. Banco Agrícola, Procuraduría..." value={entidad} onChange={e => setEntidad(e.target.value)} />
+                </div>
+                <div className="form-group">
+                  <label>Fecha Inicio</label>
+                  <input type="date" className="form-control" value={fechaInicio} onChange={e => setFechaInicio(e.target.value)} />
+                </div>
+                <div className="form-group">
+                  <label>Fecha Fin (Opcional)</label>
+                  <input type="date" className="form-control" value={fechaFin} onChange={e => setFechaFin(e.target.value)} />
                 </div>
                 <div className="form-group">
                   <label>Monto Total ($)</label>
@@ -179,11 +201,13 @@ export default function FinanzasModal({ empleado, onClose }) {
 
             <h4 style={{ marginBottom: '1rem', fontSize: '1rem' }}>Descuentos Activos</h4>
             {loading ? <p>Cargando...</p> : (
-              prestamos.length === 0 ? <p className="text-muted" style={{ fontSize: '0.875rem' }}>No hay descuentos programados.</p> :
+              prestamos.length === 0 ? <p className="text-muted" style={{ fontSize: '0.875rem' }}>Hasta el momento no posee descuentos activos.</p> :
               <table style={{ width: '100%', fontSize: '0.875rem', borderCollapse: 'collapse' }}>
                 <thead>
                   <tr style={{ borderBottom: '1px solid var(--border)', textAlign: 'left' }}>
                     <th style={{ padding: '0.5rem' }}>Tipo</th>
+                    <th style={{ padding: '0.5rem' }}>Entidad</th>
+                    <th style={{ padding: '0.5rem' }}>Vigencia</th>
                     <th style={{ padding: '0.5rem' }}>Monto Total</th>
                     <th style={{ padding: '0.5rem' }}>Saldo Pendiente</th>
                     <th style={{ padding: '0.5rem' }}>Cuota</th>
@@ -193,6 +217,10 @@ export default function FinanzasModal({ empleado, onClose }) {
                   {prestamos.map(p => (
                     <tr key={p.id} style={{ borderBottom: '1px solid var(--border)' }}>
                       <td style={{ padding: '0.5rem' }}>{p.tipo_prestamo}</td>
+                      <td style={{ padding: '0.5rem' }}>{p.entidad || '-'}</td>
+                      <td style={{ padding: '0.5rem', fontSize: '0.75rem' }}>
+                        {p.fecha_inicio ? p.fecha_inicio : '-'} a {p.fecha_fin ? p.fecha_fin : '-'}
+                      </td>
                       <td style={{ padding: '0.5rem' }}>${p.monto_total}</td>
                       <td style={{ padding: '0.5rem', fontWeight: 'bold' }}>${p.saldo_pendiente}</td>
                       <td style={{ padding: '0.5rem', color: '#dc2626' }}>-${p.cuota_periodica}</td>

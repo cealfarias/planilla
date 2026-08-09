@@ -167,7 +167,7 @@ def crear_liquidacion_empleado(db: Session, liquidacion: schemas.planillas.Liqui
     
     # Transacción Atómica: Si se liquida y paga inmediatamente, cambiar estados del sistema
     if liquidacion.estado == models.enums.EstadoLiquidacionEnum.PAGADA:
-        empleado.estado = models.enums.EstadoEmpleadoEnum.INACTIVO
+        empleado.estado = "Inactivo"
         
         # Cerrar la asignación de puesto vigente
         asignacion_activa = db.query(models.organizacion.AsignacionPuesto).filter(

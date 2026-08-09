@@ -44,6 +44,9 @@ class PrestamoEmpleado(Base):
     monto_total = Column(Numeric(10, 2), nullable=False)
     saldo_pendiente = Column(Numeric(10, 2), nullable=False)
     cuota_periodica = Column(Numeric(10, 2), nullable=False)
+    entidad = Column(String, nullable=True)
+    fecha_inicio = Column(Date, nullable=True)
+    fecha_fin = Column(Date, nullable=True)
     estado = Column(Enum(EstadoPrestamoEnum), default=EstadoPrestamoEnum.ACTIVO)
     fecha_registro = Column(DateTime, default=datetime.utcnow)
 

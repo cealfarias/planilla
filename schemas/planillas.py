@@ -91,6 +91,9 @@ class PrestamoEmpleadoBase(BaseModel):
     monto_total: Decimal
     saldo_pendiente: Decimal
     cuota_periodica: Decimal
+    entidad: Optional[str] = None
+    fecha_inicio: Optional[date] = None
+    fecha_fin: Optional[date] = None
     estado: EstadoPrestamoEnum = EstadoPrestamoEnum.ACTIVO
 
 class PrestamoEmpleadoCreate(PrestamoEmpleadoBase):
