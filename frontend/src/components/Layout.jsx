@@ -70,7 +70,7 @@ export default function Layout({ children }) {
               <span>SaaS Planilla</span>
               {empresa && (
                 <span style={{ fontSize: '0.75rem', color: '#94a3b8', fontWeight: '500' }}>
-                  {empresa.nombre_comercial || empresa.razon_social}
+                  {empresa.nombre}
                 </span>
               )}
             </div>
@@ -133,7 +133,7 @@ export default function Layout({ children }) {
                 gap: '0.4rem',
                 boxShadow: '0 2px 4px rgba(37, 99, 235, 0.2)'
               }}>
-                <Building size={15} /> 🏢 Empresa: {empresa.nombre_comercial || empresa.razon_social}
+                <Building size={15} /> 🏢 Empresa: {empresa.nombre}
               </div>
             )}
           </div>
