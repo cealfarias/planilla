@@ -16,7 +16,37 @@ export default function Layout({ children }) {
 
   return (
     <div className="layout-container">
-      {/* Sidebar */}
+      {/* Trial Banner */}
+      <div style={{
+        background: 'linear-gradient(to right, #1e3a8a, #4c1d95)',
+        color: 'white',
+        padding: '0.75rem 2rem',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        fontSize: '0.875rem',
+        zIndex: 50,
+        position: 'relative'
+      }}>
+        <div>
+          Tu prueba expira en <strong style={{ fontWeight: '700' }}>14 días</strong>. Agrega un método de pago para asegurar el servicio ininterrumpido.
+        </div>
+        <button style={{
+          background: 'white',
+          color: '#0f172a',
+          border: 'none',
+          padding: '0.35rem 1rem',
+          borderRadius: '4px',
+          fontWeight: '600',
+          cursor: 'pointer',
+          fontSize: '0.875rem'
+        }}>
+          Agregar Tarjeta
+        </button>
+      </div>
+
+      <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
+        {/* Sidebar */}
       <aside className="sidebar">
         <div className="sidebar-header">
           <div className="sidebar-logo">
@@ -71,6 +101,7 @@ export default function Layout({ children }) {
           {children}
         </div>
       </main>
+      </div>
     </div>
   );
 }

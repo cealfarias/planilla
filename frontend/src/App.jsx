@@ -8,10 +8,14 @@ import Planillas from './pages/Planillas';
 import ProtectedRoute from './components/ProtectedRoute';
 import Layout from './components/Layout';
 
+import CookieBanner from './components/CookieBanner';
+
 function App() {
   return (
-    <Routes>
-      <Route path="/login" element={<Login />} />
+    <>
+      <CookieBanner />
+      <Routes>
+        <Route path="/login" element={<Login />} />
       <Route path="/registro" element={<Registro />} />
       
       {/* Rutas protegidas que usarán el Layout con Sidebar */}
@@ -27,6 +31,7 @@ function App() {
       {/* Fallback */}
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
+    </>
   );
 }
 
