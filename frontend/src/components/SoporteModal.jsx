@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { 
   X, MessageSquare, Plus, Send, Headphones, Clock, CheckCircle2, 
   AlertCircle, ShieldCheck, User, Building, CornerDownRight, RefreshCw,
-  Crown, CreditCard, Filter, PhoneCall, ExternalLink, Sparkles
+  Crown, CreditCard, Filter, PhoneCall, ExternalLink, Sparkles, Inbox, Check
 } from 'lucide-react';
 import { api } from '../services/api';
 import { useAuth } from '../context/AuthContext';
@@ -16,7 +16,7 @@ export default function SoporteModal({ isOpen, onClose }) {
   const [loading, setLoading] = useState(false);
   const [sendingMsg, setSendingMsg] = useState(false);
 
-  // Evaluar si la cuenta actual es el Propietario / Administrador Central del SaaS
+  // Evaluar si la cuenta actual es el Propietario / Administrador Central del SaaS (cealfarias@gmail.com)
   const isOwner = user?.email?.toLowerCase() === 'cealfarias@gmail.com' ||
                   user?.username?.toLowerCase().includes('cealfarias') ||
                   user?.username?.toLowerCase().includes('admin') || 
@@ -24,7 +24,7 @@ export default function SoporteModal({ isOpen, onClose }) {
                   user?.username?.toLowerCase().includes('propietario') || 
                   user?.username?.toLowerCase().includes('soporte');
   
-  // Form para nuevo ticket
+  // Form para nuevo ticket (solo visible para clientes)
   const [nuevoForm, setNuevoForm] = useState({
     asunto: '',
     categoria: 'Soporte Técnico',
@@ -38,8 +38,11 @@ export default function SoporteModal({ isOpen, onClose }) {
   useEffect(() => {
     if (isOpen) {
       cargarTickets();
+      if (isOwner) {
+        setActiveTab('inbox');
+      }
     }
-  }, [isOpen]);
+  }, [isOpen, isOwner]);
 
   const cargarTickets = async () => {
     try {
@@ -107,14 +110,12 @@ export default function SoporteModal({ isOpen, onClose }) {
     if (!selectedTicket) return;
     try {
       setLoading(true);
-      // Responder confirmando la verificación de Transfer365 Davivienda
       await api.enviarMensajeTicket(
         selectedTicket.id, 
         "✅ ¡COMPROBANTE VERIFICADO Y LICENCIA PRO ENTERPRISE ACTIVADA!\n\nEstimado cliente, hemos verificado exitosamente tu transferencia por Transfer365 Davivienda (69893101 - Cesar Arias). Tu cuenta cuenta ahora con la Licencia Pro Enterprise sin anuncios. ¡Gracias por tu preferencia!"
       );
       await api.cambiarEstadoTicket(selectedTicket.id, 'RESUELTO');
       
-      // Si el cliente está en esta misma sesión, activar localmente
       localStorage.setItem('licencia_tipo', 'premium');
       window.dispatchEvent(new Event('licencia_change'));
 
@@ -160,7 +161,7 @@ export default function SoporteModal({ isOpen, onClose }) {
       padding: '1rem'
     }}>
       <div style={{
-        maxWidth: '1020px',
+        maxWidth: '1040px',
         width: '100%',
         height: '88vh',
         backgroundColor: 'white',
@@ -188,15 +189,15 @@ export default function SoporteModal({ isOpen, onClose }) {
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                 <h3 style={{ margin: 0, fontSize: '1.15rem', fontWeight: 'bold' }}>
-                  {isOwner ? '📥 Inbox del Propietario & Central de Soporte' : 'Centro de Mensajería & Soporte Técnico'}
+                  {isOwner ? '👑 Panel de Control Central del Propietario (cealfarias@gmail.com)' : 'Centro de Mensajería & Soporte Técnico'}
                 </h3>
                 <span style={{ fontSize: '0.7rem', backgroundColor: isOwner ? '#FEF3C7' : '#DBEAFE', color: isOwner ? '#78350F' : '#1E40AF', fontWeight: 'bold', padding: '0.15rem 0.55rem', borderRadius: '999px' }}>
-                  {isOwner ? 'VISTA PROPIETARIO / SUPERADMIN' : 'VISTA CLIENTE'}
+                  {isOwner ? 'SUPER SUPER USUARIO' : 'VISTA CLIENTE'}
                 </span>
               </div>
               <p style={{ margin: 0, fontSize: '0.75rem', color: '#94A3B8' }}>
                 {isOwner 
-                  ? 'Gestiona y responde las consultas, comprobantes de pago Transfer365 y asesorías de todas las empresas clientes.' 
+                  ? 'Bandeja de entrada unificada de solicitudes de clientes y validación de comprobantes Transfer365 Davivienda (69893101).' 
                   : 'Envía y recibe mensajes directos con el propietario del sistema y el equipo de soporte técnico.'}
               </p>
             </div>
@@ -206,7 +207,7 @@ export default function SoporteModal({ isOpen, onClose }) {
             <button
               onClick={cargarTickets}
               style={{ background: 'transparent', border: '1px solid #475569', color: '#CBD5E1', padding: '0.35rem 0.65rem', borderRadius: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.75rem', fontWeight: 'bold' }}
-              title="Refrescar bandeja de mensajes"
+              title="Refrescar mensajes de clientes"
             >
               <RefreshCw size={14} className={loading ? 'animate-spin' : ''} /> Refrescar
             </button>
@@ -226,48 +227,66 @@ export default function SoporteModal({ isOpen, onClose }) {
           <div style={{ width: '340px', borderRight: '1px solid #E2E8F0', backgroundColor: '#F8FAFC', display: 'flex', flexDirection: 'column' }}>
             
             <div style={{ padding: '0.75rem', display: 'flex', flexDirection: 'column', gap: '0.5rem', borderBottom: '1px solid #E2E8F0' }}>
-              <div style={{ display: 'flex', gap: '0.5rem' }}>
-                <button
-                  onClick={() => setActiveTab('inbox')}
-                  style={{
-                    flex: 1,
-                    padding: '0.5rem',
-                    fontSize: '0.8rem',
-                    fontWeight: 'bold',
-                    borderRadius: '6px',
-                    border: 'none',
-                    backgroundColor: activeTab === 'inbox' ? (isOwner ? '#D97706' : '#2563EB') : '#E2E8F0',
-                    color: activeTab === 'inbox' ? 'white' : '#475569',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: '0.3rem'
-                  }}
-                >
-                  <MessageSquare size={14} /> Inbox ({ticketsFiltrados.length})
-                </button>
-                <button
-                  onClick={() => setActiveTab('nuevo')}
-                  style={{
-                    flex: 1,
-                    padding: '0.5rem',
-                    fontSize: '0.8rem',
-                    fontWeight: 'bold',
-                    borderRadius: '6px',
-                    border: 'none',
-                    backgroundColor: activeTab === 'nuevo' ? '#16A34A' : '#E2E8F0',
-                    color: activeTab === 'nuevo' ? 'white' : '#475569',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: '0.3rem'
-                  }}
-                >
-                  <Plus size={14} /> Nuevo Ticket
-                </button>
-              </div>
+              
+              {/* Para el Propietario, NO SE MUESTRA EL BOTÓN "+ Nuevo Ticket" */}
+              {isOwner ? (
+                <div style={{
+                  padding: '0.5rem 0.75rem',
+                  backgroundColor: '#0F172A',
+                  color: 'white',
+                  borderRadius: '6px',
+                  fontSize: '0.8rem',
+                  fontWeight: 'bold',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.4rem'
+                }}>
+                  <Inbox size={16} color="#F59E0B" /> Inbox de Clientes ({ticketsFiltrados.length})
+                </div>
+              ) : (
+                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                  <button
+                    onClick={() => setActiveTab('inbox')}
+                    style={{
+                      flex: 1,
+                      padding: '0.5rem',
+                      fontSize: '0.8rem',
+                      fontWeight: 'bold',
+                      borderRadius: '6px',
+                      border: 'none',
+                      backgroundColor: activeTab === 'inbox' ? '#2563EB' : '#E2E8F0',
+                      color: activeTab === 'inbox' ? 'white' : '#475569',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '0.3rem'
+                    }}
+                  >
+                    <MessageSquare size={14} /> Inbox ({ticketsFiltrados.length})
+                  </button>
+                  <button
+                    onClick={() => setActiveTab('nuevo')}
+                    style={{
+                      flex: 1,
+                      padding: '0.5rem',
+                      fontSize: '0.8rem',
+                      fontWeight: 'bold',
+                      borderRadius: '6px',
+                      border: 'none',
+                      backgroundColor: activeTab === 'nuevo' ? '#16A34A' : '#E2E8F0',
+                      color: activeTab === 'nuevo' ? 'white' : '#475569',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '0.3rem'
+                    }}
+                  >
+                    <Plus size={14} /> Nuevo Ticket
+                  </button>
+                </div>
+              )}
 
               {/* Filtros Rápidos en el Inbox */}
               <div style={{ display: 'flex', gap: '0.25rem', overflowX: 'auto', paddingBottom: '0.2rem' }}>
@@ -281,13 +300,19 @@ export default function SoporteModal({ isOpen, onClose }) {
                   onClick={() => setFiltroEstado('PAGOS')}
                   style={{ fontSize: '0.65rem', padding: '0.2rem 0.5rem', borderRadius: '4px', border: '1px solid #F59E0B', backgroundColor: filtroEstado === 'PAGOS' ? '#F59E0B' : '#FEF3C7', color: filtroEstado === 'PAGOS' ? 'white' : '#78350F', cursor: 'pointer', fontWeight: 'bold' }}
                 >
-                  💳 Comprobantes Pagos
+                  💳 Pagos Transfer365
                 </button>
                 <button
                   onClick={() => setFiltroEstado('ABIERTO')}
                   style={{ fontSize: '0.65rem', padding: '0.2rem 0.5rem', borderRadius: '4px', border: '1px solid #3B82F6', backgroundColor: filtroEstado === 'ABIERTO' ? '#2563EB' : '#EFF6FF', color: filtroEstado === 'ABIERTO' ? 'white' : '#1E40AF', cursor: 'pointer', fontWeight: 'bold' }}
                 >
-                  Abiertos
+                  Pendientes
+                </button>
+                <button
+                  onClick={() => setFiltroEstado('RESUELTO')}
+                  style={{ fontSize: '0.65rem', padding: '0.2rem 0.5rem', borderRadius: '4px', border: '1px solid #16A34A', backgroundColor: filtroEstado === 'RESUELTO' ? '#16A34A' : '#DCFCE7', color: filtroEstado === 'RESUELTO' ? 'white' : '#15803D', cursor: 'pointer', fontWeight: 'bold' }}
+                >
+                  Resueltos
                 </button>
               </div>
             </div>
@@ -296,7 +321,7 @@ export default function SoporteModal({ isOpen, onClose }) {
             <div style={{ flex: 1, overflowY: 'auto', padding: '0.5rem' }}>
               {ticketsFiltrados.length === 0 ? (
                 <div style={{ padding: '2rem 1rem', textAlign: 'center', color: '#94A3B8', fontSize: '0.85rem' }}>
-                  No hay mensajes que coincidan con el filtro.
+                  No hay mensajes de clientes en esta categoría.
                 </div>
               ) : (
                 ticketsFiltrados.map(ticket => {
@@ -341,10 +366,10 @@ export default function SoporteModal({ isOpen, onClose }) {
 
           </div>
 
-          {/* Main Chat / Form View Right */}
+          {/* Main Chat / Detail View Right */}
           <div style={{ flex: 1, display: 'flex', flexDirection: 'column', backgroundColor: 'white' }}>
             
-            {activeTab === 'nuevo' ? (
+            {!isOwner && activeTab === 'nuevo' ? (
               <form onSubmit={handleCrearTicket} style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1rem', overflowY: 'auto' }}>
                 <h4 style={{ margin: 0, color: '#1E293B', fontSize: '1.1rem', borderBottom: '1px solid #E2E8F0', paddingBottom: '0.5rem' }}>
                   ✉️ Enviar Nuevo Mensaje al Propietario / Soporte Técnico
@@ -441,12 +466,11 @@ export default function SoporteModal({ isOpen, onClose }) {
                       {getEstadoBadge(selectedTicket.estado)}
                     </div>
                     <span style={{ fontSize: '0.75rem', color: '#64748B' }}>
-                      Empresa Cliente: <strong style={{ color: '#0F172A' }}>{selectedTicket.nombre_empresa}</strong> | Remitente: <strong>{selectedTicket.nombre_usuario}</strong> | Prioridad: <strong>{selectedTicket.prioridad}</strong>
+                      Empresa Cliente: <strong style={{ color: '#0F172A' }}>{selectedTicket.nombre_empresa}</strong> | Usuario: <strong>{selectedTicket.nombre_usuario}</strong> | Prioridad: <strong>{selectedTicket.prioridad}</strong>
                     </span>
                   </div>
 
                   <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-                    {/* Si es un comprobante de pago y somos propietario, boton de aprobacion en 1 clic */}
                     {isOwner && (selectedTicket.asunto.includes('COMPROBANTE') || selectedTicket.categoria === 'Facturación / Licencia') && selectedTicket.estado !== 'RESUELTO' && (
                       <button
                         onClick={handleAprobarPagoLicencia}
@@ -507,7 +531,7 @@ export default function SoporteModal({ isOpen, onClose }) {
                   <input
                     type="text"
                     required
-                    placeholder={isOwner ? "Escribe la respuesta oficial como Propietario / Soporte Técnico..." : "Escribe una respuesta para el ticket de soporte..."}
+                    placeholder={isOwner ? "Escribe la respuesta oficial al cliente como Propietario..." : "Escribe una respuesta para el ticket de soporte..."}
                     value={nuevoMensaje}
                     onChange={(e) => setNuevoMensaje(e.target.value)}
                     style={{ flex: 1, padding: '0.65rem 0.85rem', borderRadius: '8px', border: '1px solid #CBD5E1', fontSize: '0.85rem' }}
@@ -517,14 +541,17 @@ export default function SoporteModal({ isOpen, onClose }) {
                     disabled={sendingMsg}
                     style={{ padding: '0.65rem 1.25rem', backgroundColor: isOwner ? '#D97706' : '#2563EB', color: 'white', border: 'none', borderRadius: '8px', fontWeight: 'bold', fontSize: '0.85rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.3rem' }}
                   >
-                    <Send size={15} /> {isOwner ? 'Responder como Propietario' : 'Enviar Mensaje'}
+                    <Send size={15} /> {isOwner ? 'Responder al Cliente' : 'Enviar Mensaje'}
                   </button>
                 </form>
               </>
             ) : (
-              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: '#94A3B8' }}>
-                <Headphones size={48} style={{ opacity: 0.3, marginBottom: '0.5rem' }} />
-                <p style={{ margin: 0, fontSize: '0.9rem' }}>Selecciona un mensaje del Inbox o crea un Nuevo Ticket.</p>
+              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: '#94A3B8', padding: '2rem' }}>
+                <Crown size={54} style={{ color: '#F59E0B', opacity: 0.4, marginBottom: '0.75rem' }} />
+                <h4 style={{ margin: '0 0 0.4rem 0', color: '#0F172A' }}>Bandeja Central del Propietario</h4>
+                <p style={{ margin: 0, fontSize: '0.875rem', maxWidth: '420px', textAlign: 'center' }}>
+                  Selecciona una consulta o comprobante Transfer365 de la lista izquierda para revisar y responder a tus clientes.
+                </p>
               </div>
             )}
 

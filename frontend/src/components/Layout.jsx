@@ -214,12 +214,14 @@ export default function Layout({ children }) {
             <button
               type="button"
               onClick={() => setShowSoporteModal(true)}
-              title="Soporte Técnico & Inbox Interno"
+              title={isOwner ? "Bandeja Central del Propietario" : "Soporte Técnico & Inbox Interno"}
               className="nav-link"
               style={{ background: 'transparent', border: 'none', width: '100%', cursor: 'pointer', textAlign: 'left' }}
             >
-              <Headphones size={20} style={{ color: '#3B82F6' }} />
-              <span className="hide-on-collapse">Soporte Técnico</span>
+              {isOwner ? <Crown size={20} style={{ color: '#F59E0B' }} /> : <Headphones size={20} style={{ color: '#3B82F6' }} />}
+              <span className="hide-on-collapse" style={{ color: isOwner ? '#F59E0B' : 'inherit', fontWeight: isOwner ? 'bold' : 'normal' }}>
+                {isOwner ? 'Inbox Propietario' : 'Soporte Técnico'}
+              </span>
             </button>
 
             <button
