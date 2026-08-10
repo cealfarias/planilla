@@ -82,8 +82,14 @@ def registrar_novedad_planilla(db: Session, novedad: schemas.planillas.NovedadPl
 # ==========================================
 def obtener_prestamos_empleado(db: Session, empleado_id: int):
     return db.query(models.planillas.PrestamoEmpleado).filter(
+        models.planillas.PrestamoEmpleado.empleado_id == empleado_id
+    ).order_by(models.planillas.PrestamoEmpleado.id.desc()).all()
+
+def obtener_prestamos_activos_empleado(db: Session, empleado_id: int):
+    return db.query(models.planillas.PrestamoEmpleado).filter(
         models.planillas.PrestamoEmpleado.empleado_id == empleado_id,
-        models.planillas.PrestamoEmpleado.estado == models.enums.EstadoPrestamoEnum.ACTIVO
+        models.planillas.PrestamoEmpleado.estado == models.enums.EstadoPrestamoEnum.ACTIVO,
+        models.planillas.PrestamoEmpleado.saldo_pendiente > 0
     ).all()
 
 def crear_prestamo_empleado(db: Session, prestamo: schemas.planillas.PrestamoEmpleadoCreate, empresa_id: int):
@@ -369,7 +375,7 @@ def procesar_planilla_mensual(db: Session, periodo: schemas.planillas.PeriodoPla
         afp = Decimal(str(resultado_calculo["deduccion_afp"]))
         renta = Decimal(str(resultado_calculo["deduccion_isr"]))
         # Deducciones adicionales: Préstamos y Embargos Activos
-        prestamos_activos = obtener_prestamos_empleado(db, emp.id)
+        prestamos_activos = obtener_prestamos_activos_empleado(db, emp.id)
         descuentos_prestamos = Decimal('0.00')
         prestamos_a_amortizar = []
         

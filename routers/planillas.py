@@ -156,8 +156,7 @@ def ingresar_novedades_lote(
 
 @router.get(
     "/prestamos/{empleado_id}",
-    response_model=list[schemas.planillas.PrestamoEmpleadoResponse],
-    dependencies=[Depends(VerificadorPermiso("PLA_NOVEDADES_VER"))]
+    response_model=list[schemas.planillas.PrestamoEmpleadoResponse]
 )
 def listar_prestamos_empleado(
     empleado_id: int,
@@ -169,8 +168,7 @@ def listar_prestamos_empleado(
 @router.post(
     "/prestamos",
     response_model=schemas.planillas.PrestamoEmpleadoResponse,
-    status_code=status.HTTP_201_CREATED,
-    dependencies=[Depends(VerificadorPermiso("PLA_NOVEDADES_EDITAR"))]
+    status_code=status.HTTP_201_CREATED
 )
 def registrar_prestamo_empleado(
     prestamo: schemas.planillas.PrestamoEmpleadoCreate,

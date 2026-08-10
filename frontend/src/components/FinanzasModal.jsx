@@ -182,7 +182,8 @@ export default function FinanzasModal({ empleado, onClose }) {
     }
   };
 
-  const cuotaActualTotal = prestamos.reduce((sum, p) => sum + parseFloat(p.cuota_periodica), 0);
+  const prestamosActivos = prestamos.filter(p => p.estado === 'Activo' || parseFloat(p.saldo_pendiente) > 0);
+  const cuotaActualTotal = prestamosActivos.reduce((sum, p) => sum + parseFloat(p.cuota_periodica), 0);
   const nuevaCuota = parseFloat(cuotaPeriodica) || 0;
   const sumaProyectada = cuotaActualTotal + nuevaCuota;
   const excedeLimite = tipoPrestamo !== 'Embargo Judicial' && sumaProyectada > limiteLegal;
@@ -341,31 +342,40 @@ export default function FinanzasModal({ empleado, onClose }) {
               </div>
             </form>
 
-            <h4 style={{ marginBottom: '1rem', fontSize: '1rem' }}>Descuentos Activos</h4>
+            <h4 style={{ marginBottom: '1rem', fontSize: '1rem' }}>Historial y Descuentos del Empleado</h4>
             {loading ? <p>Cargando...</p> : (
-              prestamos.length === 0 ? <p className="text-muted" style={{ fontSize: '0.875rem' }}>Hasta el momento no posee descuentos activos.</p> :
+              prestamos.length === 0 ? <p className="text-muted" style={{ fontSize: '0.875rem' }}>Hasta el momento no posee descuentos ni préstamos registrados.</p> :
               <table style={{ width: '100%', fontSize: '0.875rem', borderCollapse: 'collapse' }}>
                 <thead>
                   <tr style={{ borderBottom: '1px solid var(--border)', textAlign: 'left' }}>
                     <th style={{ padding: '0.5rem' }}>Tipo</th>
                     <th style={{ padding: '0.5rem' }}>Entidad</th>
-                    <th style={{ padding: '0.5rem' }}>Vigencia</th>
                     <th style={{ padding: '0.5rem' }}>Monto Total</th>
                     <th style={{ padding: '0.5rem' }}>Saldo Pendiente</th>
                     <th style={{ padding: '0.5rem' }}>Cuota</th>
+                    <th style={{ padding: '0.5rem' }}>Estado</th>
                   </tr>
                 </thead>
                 <tbody>
                   {prestamos.map(p => (
                     <tr key={p.id} style={{ borderBottom: '1px solid var(--border)' }}>
-                      <td style={{ padding: '0.5rem' }}>{p.tipo_prestamo}</td>
+                      <td style={{ padding: '0.5rem', fontWeight: '500' }}>{p.tipo_prestamo}</td>
                       <td style={{ padding: '0.5rem' }}>{p.entidad || '-'}</td>
-                      <td style={{ padding: '0.5rem', fontSize: '0.75rem' }}>
-                        {p.fecha_inicio ? p.fecha_inicio : '-'} a {p.fecha_fin ? p.fecha_fin : '-'}
-                      </td>
                       <td style={{ padding: '0.5rem' }}>${p.monto_total}</td>
                       <td style={{ padding: '0.5rem', fontWeight: 'bold' }}>${p.saldo_pendiente}</td>
-                      <td style={{ padding: '0.5rem', color: '#dc2626' }}>-${p.cuota_periodica}</td>
+                      <td style={{ padding: '0.5rem', color: '#dc2626', fontWeight: '500' }}>-${p.cuota_periodica}</td>
+                      <td style={{ padding: '0.5rem' }}>
+                        <span style={{ 
+                          padding: '0.2rem 0.5rem', 
+                          borderRadius: '999px', 
+                          fontSize: '0.75rem', 
+                          fontWeight: '600',
+                          backgroundColor: (p.estado === 'Activo' || parseFloat(p.saldo_pendiente) > 0) ? '#DBEAFE' : '#F1F5F9',
+                          color: (p.estado === 'Activo' || parseFloat(p.saldo_pendiente) > 0) ? '#1D4ED8' : '#475569'
+                        }}>
+                          {(p.estado === 'Activo' || parseFloat(p.saldo_pendiente) > 0) ? 'Activo' : 'Pagado / Amortizado'}
+                        </span>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
