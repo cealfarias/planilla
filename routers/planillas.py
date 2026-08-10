@@ -284,11 +284,14 @@ def descargar_reporte_planilla(
         headers={"Content-Disposition": f"attachment; filename=Planilla_General_{periodo.codigo_periodo}.pdf"}
     )
 
+from typing import Optional
+
 @router.get(
     "/{periodo_id}/boletas"
 )
 def descargar_boletas_pago(
     periodo_id: int,
+    empleado_id: Optional[int] = None,
     db: Session = Depends(get_db),
     usuario_actual: models.seguridad.Usuario = Depends(obtener_usuario_actual)
 ):
@@ -304,14 +307,21 @@ def descargar_boletas_pago(
     if not periodo:
         raise HTTPException(status_code=404, detail="Período no encontrado.")
         
-    boletas = db.query(models.planillas.BoletaPago).filter(
+    query = db.query(models.planillas.BoletaPago).filter(
         models.planillas.BoletaPago.periodo_planilla_id == periodo.id
-    ).all()
+    )
+    if empleado_id:
+        query = query.filter(models.planillas.BoletaPago.empleado_id == empleado_id)
+        
+    boletas = query.all()
+    if not boletas:
+        raise HTTPException(status_code=404, detail="No se encontraron boletas para el empleado especificado.")
     
     pdf_bytes = generar_boletas_pago_pdf(empresa, periodo, boletas, db)
+    filename = f"Boleta_Pago_{empleado_id}_{periodo.codigo_periodo}.pdf" if empleado_id else f"Boletas_Pago_{periodo.codigo_periodo}.pdf"
     
     return StreamingResponse(
         io.BytesIO(pdf_bytes), 
         media_type="application/pdf",
-        headers={"Content-Disposition": f"attachment; filename=Boletas_Pago_{periodo.codigo_periodo}.pdf"}
+        headers={"Content-Disposition": f"attachment; filename={filename}"}
     )

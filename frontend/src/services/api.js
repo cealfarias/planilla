@@ -281,9 +281,13 @@ export const api = {
     return handleResponse(response);
   },
 
-  downloadPDF: async (periodoId, type) => {
+  downloadPDF: async (periodoId, type, empleadoId = null) => {
     const token = localStorage.getItem("token");
-    const response = await fetch(`${API_URL}/api/v1/planillas/${periodoId}/${type}`, {
+    let url = `${API_URL}/api/v1/planillas/${periodoId}/${type}`;
+    if (empleadoId) {
+      url += `?empleado_id=${empleadoId}`;
+    }
+    const response = await fetch(url, {
       headers: {
         "Authorization": `Bearer ${token}`
       }

@@ -243,14 +243,16 @@ export default function Planillas() {
     }
   };
 
-  const handleDownloadPDF = async (periodoId, type) => {
+  const handleDownloadPDF = async (periodoId, type, empleadoId = null, nombreEmpleado = '') => {
     try {
-      addToast("📄 Generando archivo PDF...", "info");
-      const blob = await api.downloadPDF(periodoId, type);
+      const msg = empleadoId ? `📄 Generando boleta individual de ${nombreEmpleado}...` : "📄 Generando archivo PDF...";
+      addToast(msg, "info");
+      const blob = await api.downloadPDF(periodoId, type, empleadoId);
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `${type}_${periodoId}.pdf`;
+      const cleanName = nombreEmpleado ? nombreEmpleado.trim().replace(/\s+/g, '_') : '';
+      a.download = empleadoId ? `Boleta_${cleanName}_${periodoId}.pdf` : `${type}_${periodoId}.pdf`;
       document.body.appendChild(a);
       a.click();
       window.URL.revokeObjectURL(url);
@@ -605,10 +607,10 @@ export default function Planillas() {
                               {currentPeriodoId && (
                                 <button 
                                   type="button" 
-                                  onClick={() => handleDownloadPDF(currentPeriodoId, 'boletas')}
+                                  onClick={() => handleDownloadPDF(currentPeriodoId, 'boletas', item.empleado_id, item.nombre_completo)}
                                   className="btn btn-outline"
                                   style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem', color: '#15803D', borderColor: '#86EFAC', backgroundColor: '#F0FDF4', display: 'inline-flex', alignItems: 'center', gap: '0.2rem', fontWeight: '600' }}
-                                  title="Descargar Boleta de Pago en PDF"
+                                  title={`Descargar la Boleta de Pago en PDF de ${item.nombre_completo}`}
                                 >
                                   <FileText size={13} /> Boleta PDF
                                 </button>
