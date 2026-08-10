@@ -354,6 +354,8 @@ def procesar_planilla_mensual(db: Session, periodo: schemas.planillas.PeriodoPla
     
     desglose = []
     
+    tipo_nombre = str(db_periodo.tipo_planilla.value if hasattr(db_periodo.tipo_planilla, 'value') else db_periodo.tipo_planilla).upper()
+
     for emp in empleados_activos:
         # Obtener contrato activo
         contrato = db.query(models.recursos_humanos.Contrato).filter(
@@ -364,48 +366,87 @@ def procesar_planilla_mensual(db: Session, periodo: schemas.planillas.PeriodoPla
         if not contrato:
             continue
             
-        salario = Decimal(str(contrato.salario_base))
+        salario_base_contrato = Decimal(str(contrato.salario_base))
         
-        # Usar el motor de cálculo original del usuario
+        # 1. Determinar el Ingreso Devengado Nominal según el Tipo de Planilla
+        if 'VACACIONES' in tipo_nombre:
+            # Planilla de Vacaciones: 30% de recargo legal sobre los 15 días de descanso (salario_base / 2 * 0.30)
+            salario_ingreso = round((salario_base_contrato / Decimal('2.0')) * Decimal('0.30'), 2)
+            dias_trab = 15
+            aplica_prestamos = False
+        elif 'QUINCENAL' in tipo_nombre:
+            # Planilla Quincenal: Salario correspondiente a 15 días
+            salario_ingreso = round(salario_base_contrato / Decimal('2.0'), 2)
+            dias_trab = 15
+            aplica_prestamos = True
+        elif 'AGUINALDO' in tipo_nombre:
+            # Planilla de Aguinaldo: Días de ley según antigüedad (15, 19 o 21 días)
+            f_inicio_c = contrato.fecha_inicio
+            f_hoy = date.today()
+            antiguedad_dias = (f_hoy - f_inicio_c).days if f_inicio_c else 365
+            if antiguedad_dias >= 3650:
+                dias_ag = 21
+            elif antiguedad_dias >= 1095:
+                dias_ag = 19
+            else:
+                dias_ag = 15
+            salario_ingreso = round((salario_base_contrato / Decimal('30.0')) * Decimal(str(dias_ag)), 2)
+            dias_trab = dias_ag
+            aplica_prestamos = False
+        else:
+            # Planilla Ordinaria Mensual
+            salario_ingreso = salario_base_contrato
+            dias_trab = 30
+            aplica_prestamos = True
+
+        # 2. Deducciones de Ley (ISSS, AFP, Renta)
         from services.calculos_ley import calcular_liquidacion_boleta
         
-        resultado_calculo = calcular_liquidacion_boleta(float(salario))
-        
-        isss = Decimal(str(resultado_calculo["deduccion_isss"]))
-        afp = Decimal(str(resultado_calculo["deduccion_afp"]))
-        renta = Decimal(str(resultado_calculo["deduccion_isr"]))
-        # Deducciones adicionales: Préstamos y Embargos Activos
-        prestamos_activos = obtener_prestamos_activos_empleado(db, emp.id)
+        if 'AGUINALDO' in tipo_nombre:
+            isss = Decimal('0.00')
+            afp = Decimal('0.00')
+            # Aguinaldo exento de Renta hasta $730.00 (2 salarios mínimos)
+            exceso_renta = max(Decimal('0.00'), salario_ingreso - Decimal('730.00'))
+            renta = round(exceso_renta * Decimal('0.10'), 2) if exceso_renta > Decimal('0.00') else Decimal('0.00')
+        else:
+            resultado_calculo = calcular_liquidacion_boleta(float(salario_ingreso))
+            isss = Decimal(str(resultado_calculo["deduccion_isss"]))
+            afp = Decimal(str(resultado_calculo["deduccion_afp"]))
+            renta = Decimal(str(resultado_calculo["deduccion_isr"]))
+
+        # 3. Deducciones adicionales: Préstamos y Embargos Activos
         descuentos_prestamos = Decimal('0.00')
         prestamos_a_amortizar = []
         
-        for p in prestamos_activos:
-            # Si el saldo pendiente es menor que la cuota, cobramos solo el saldo restante
-            cuota = min(p.cuota_periodica, p.saldo_pendiente)
-            descuentos_prestamos += cuota
-            prestamos_a_amortizar.append({
-                "prestamo": p,
-                "monto_amortizado": cuota
-            })
+        if aplica_prestamos:
+            prestamos_activos = obtener_prestamos_activos_empleado(db, emp.id)
+            for p in prestamos_activos:
+                # Si el saldo pendiente es menor que la cuota, cobramos solo el saldo restante
+                cuota = min(p.cuota_periodica, p.saldo_pendiente)
+                descuentos_prestamos += cuota
+                prestamos_a_amortizar.append({
+                    "prestamo": p,
+                    "monto_amortizado": cuota
+                })
             
-        total_descuentos = Decimal(str(resultado_calculo["total_deducciones"])) + descuentos_prestamos
-        liquido = Decimal(str(resultado_calculo["salario_liquido"])) - descuentos_prestamos
+        total_descuentos = isss + afp + renta + descuentos_prestamos
+        liquido = salario_ingreso - total_descuentos
         
-        # Validar que el líquido no sea negativo (teóricamente no debería por la validación del 20%)
+        # Validar que el líquido no sea negativo
         if liquido < Decimal('0.00'):
             liquido = Decimal('0.00')
         
         boleta = models.planillas.BoletaPago(
             empleado_id=emp.id,
             periodo_planilla_id=db_periodo.id,
-            salario_base_aplicado=salario,
-            dias_trabajados=30, # Asumiendo mes completo para MVP
-            total_ingresos=salario,
+            salario_base_aplicado=salario_ingreso,
+            dias_trabajados=dias_trab,
+            total_ingresos=salario_ingreso,
             total_descuentos=total_descuentos,
             liquido_a_recibir=liquido
         )
         db.add(boleta)
-        db.flush() # Para obtener el ID de la boleta y usarlo en las amortizaciones
+        db.flush()
         
         # Registrar amortizaciones y actualizar saldo
         for pa in prestamos_a_amortizar:
@@ -431,7 +472,7 @@ def procesar_planilla_mensual(db: Session, periodo: schemas.planillas.PeriodoPla
         desglose.append({
             "empleado_id": emp.id,
             "nombre_completo": f"{emp.primer_nombre} {emp.primer_apellido}",
-            "salario_base": float(salario),
+            "salario_base": float(salario_ingreso),
             "isss": float(isss),
             "afp": float(afp),
             "renta": float(renta),
