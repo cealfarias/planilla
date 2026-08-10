@@ -402,7 +402,11 @@ def procesar_planilla_mensual(db: Session, periodo: schemas.planillas.PeriodoPla
         # 2. Deducciones de Ley (ISSS, AFP, Renta)
         from services.calculos_ley import calcular_liquidacion_boleta
         
-        if 'AGUINALDO' in tipo_nombre:
+        if 'VACACIONES' in tipo_nombre:
+            isss = Decimal('0.00')
+            afp = Decimal('0.00')
+            renta = Decimal('0.00')
+        elif 'AGUINALDO' in tipo_nombre:
             isss = Decimal('0.00')
             afp = Decimal('0.00')
             # Aguinaldo exento de Renta hasta $730.00 (2 salarios mínimos)
@@ -472,7 +476,10 @@ def procesar_planilla_mensual(db: Session, periodo: schemas.planillas.PeriodoPla
         desglose.append({
             "empleado_id": emp.id,
             "nombre_completo": f"{emp.primer_nombre} {emp.primer_apellido}",
+            "salario_mensual": float(salario_base_contrato),
+            "salario_quincena": float(round(salario_base_contrato / Decimal('2.0'), 2)),
             "salario_base": float(salario_ingreso),
+            "prima_vacaciones": float(salario_ingreso),
             "isss": float(isss),
             "afp": float(afp),
             "renta": float(renta),

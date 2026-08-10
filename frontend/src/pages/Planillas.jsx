@@ -444,75 +444,113 @@ export default function Planillas() {
           </div>
 
           {/* TABLA DE BOLETAS GENERADAS */}
-          <div style={{ overflowX: 'auto', backgroundColor: 'white', borderRadius: '8px', border: '1px solid #BBF7D0', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
-              <thead>
-                <tr style={{ backgroundColor: '#DCFCE7', borderBottom: '1px solid #BBF7D0', textAlign: 'left', color: '#14532D' }}>
-                  <th style={{ padding: '0.75rem 0.5rem' }}>Empleado</th>
-                  <th style={{ padding: '0.75rem 0.5rem' }}>Nominal</th>
-                  <th style={{ padding: '0.75rem 0.5rem' }}>Renta</th>
-                  <th style={{ padding: '0.75rem 0.5rem' }}>ISSS</th>
-                  <th style={{ padding: '0.75rem 0.5rem' }}>AFP</th>
-                  <th style={{ padding: '0.75rem 0.5rem' }}>Préstamos</th>
-                  <th style={{ padding: '0.75rem 0.5rem' }}>Total Desc.</th>
-                  <th style={{ padding: '0.75rem 0.5rem' }}>Líquido</th>
-                  <th style={{ padding: '0.75rem 0.5rem', textAlign: 'center' }}>Acciones & Notificaciones</th>
-                </tr>
-              </thead>
-              <tbody>
-                {successData.desglose?.map((item, idx) => (
-                  <tr key={idx} style={{ borderBottom: '1px solid #F0FDF4' }}>
-                    <td style={{ padding: '0.65rem 0.5rem', fontWeight: 'bold', color: '#1e293b' }}>{item.nombre_completo}</td>
-                    <td style={{ padding: '0.65rem 0.5rem' }}>${item.salario_base.toFixed(2)}</td>
-                    <td style={{ padding: '0.65rem 0.5rem', color: '#dc2626' }}>${item.renta.toFixed(2)}</td>
-                    <td style={{ padding: '0.65rem 0.5rem', color: '#dc2626' }}>${item.isss.toFixed(2)}</td>
-                    <td style={{ padding: '0.65rem 0.5rem', color: '#dc2626' }}>${item.afp.toFixed(2)}</td>
-                    <td style={{ padding: '0.65rem 0.5rem', color: '#dc2626' }}>${item.prestamos.toFixed(2)}</td>
-                    <td style={{ padding: '0.65rem 0.5rem', color: '#dc2626', fontWeight: '500' }}>${item.total_descuentos.toFixed(2)}</td>
-                    <td style={{ padding: '0.65rem 0.5rem', fontWeight: 'bold', color: '#16a34a' }}>${item.liquido_recibir.toFixed(2)}</td>
-                    <td style={{ padding: '0.65rem 0.5rem', textAlign: 'center' }}>
-                      <div style={{ display: 'flex', justifyContent: 'center', gap: '0.35rem', flexWrap: 'wrap' }}>
-                        <button 
-                          type="button" 
-                          onClick={() => handleAbrirFinanzasEmpleado(item)}
-                          className="btn btn-outline"
-                          style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem', color: '#0284c7', borderColor: '#0284c7', display: 'inline-flex', alignItems: 'center', gap: '0.2rem', fontWeight: '600' }}
-                          title="Registrar Horas Extras, Tardanzas o Préstamos para este colaborador"
-                        >
-                          <DollarSign size={13} /> Finanzas
-                        </button>
-                        <button 
-                          type="button" 
-                          onClick={() => {
-                            notificarBoletaWhatsApp(item, formData.codigo_periodo, item.liquido_recibir);
-                            addToast(`📱 WhatsApp abierto para ${item.nombre_completo}`, "info");
-                          }}
-                          className="btn btn-outline"
-                          style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem', color: '#25d366', borderColor: '#25d366', display: 'inline-flex', alignItems: 'center', gap: '0.2rem' }}
-                          title="Enviar Boleta por WhatsApp"
-                        >
-                          <Send size={12} /> WhatsApp
-                        </button>
-                        <button 
-                          type="button" 
-                          onClick={() => {
-                            notificarBoletaEmail(item, formData.codigo_periodo, item.liquido_recibir);
-                            addToast(`✉️ Correo configurado para ${item.nombre_completo}`, "info");
-                          }}
-                          className="btn btn-outline"
-                          style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem', color: '#2563eb', borderColor: '#2563eb', display: 'inline-flex', alignItems: 'center', gap: '0.2rem' }}
-                          title="Enviar Boleta por Correo"
-                        >
-                          <Mail size={12} /> Correo
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
+          {(() => {
+            const isVacaciones = formData.tipo_planilla === 'Vacaciones' || (activePlanillaInfo && (activePlanillaInfo.tipo_planilla === 'Vacaciones' || activePlanillaInfo.tipo_planilla === 'VACACIONES'));
+
+            return (
+              <div style={{ overflowX: 'auto', backgroundColor: 'white', borderRadius: '8px', border: '1px solid #BBF7D0', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
+                  <thead>
+                    <tr style={{ backgroundColor: '#DCFCE7', borderBottom: '1px solid #BBF7D0', textAlign: 'left', color: '#14532D' }}>
+                      <th style={{ padding: '0.75rem 0.5rem' }}>Empleado</th>
+                      {isVacaciones ? (
+                        <>
+                          <th style={{ padding: '0.75rem 0.5rem' }}>Salario Nominal Mensual</th>
+                          <th style={{ padding: '0.75rem 0.5rem' }}>Salario 15 Días (Vacación)</th>
+                          <th style={{ padding: '0.75rem 0.5rem', color: '#15803D', fontWeight: 'bold' }}>Prima Vacación (30%)</th>
+                          <th style={{ padding: '0.75rem 0.5rem' }}>Total Desc.</th>
+                          <th style={{ padding: '0.75rem 0.5rem' }}>Líquido a Pagar</th>
+                        </>
+                      ) : (
+                        <>
+                          <th style={{ padding: '0.75rem 0.5rem' }}>Nominal</th>
+                          <th style={{ padding: '0.75rem 0.5rem' }}>Renta</th>
+                          <th style={{ padding: '0.75rem 0.5rem' }}>ISSS</th>
+                          <th style={{ padding: '0.75rem 0.5rem' }}>AFP</th>
+                          <th style={{ padding: '0.75rem 0.5rem' }}>Préstamos</th>
+                          <th style={{ padding: '0.75rem 0.5rem' }}>Total Desc.</th>
+                          <th style={{ padding: '0.75rem 0.5rem' }}>Líquido</th>
+                        </>
+                      )}
+                      <th style={{ padding: '0.75rem 0.5rem', textAlign: 'center' }}>Acciones & Notificaciones</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {successData.desglose?.map((item, idx) => {
+                      const salarioMensual = item.salario_mensual || (item.salario_base / 0.15);
+                      const salario15dias = item.salario_quincena || (salarioMensual / 2);
+                      const prima30 = item.prima_vacaciones || item.salario_base;
+
+                      return (
+                        <tr key={idx} style={{ borderBottom: '1px solid #F0FDF4' }}>
+                          <td style={{ padding: '0.65rem 0.5rem', fontWeight: 'bold', color: '#1e293b' }}>{item.nombre_completo}</td>
+                          
+                          {isVacaciones ? (
+                            <>
+                              <td style={{ padding: '0.65rem 0.5rem', color: '#475569' }}>${salarioMensual.toFixed(2)}</td>
+                              <td style={{ padding: '0.65rem 0.5rem', color: '#475569' }}>${salario15dias.toFixed(2)}</td>
+                              <td style={{ padding: '0.65rem 0.5rem', fontWeight: 'bold', color: '#15803D' }}>${prima30.toFixed(2)}</td>
+                              <td style={{ padding: '0.65rem 0.5rem', color: '#64748b' }}>$0.00</td>
+                              <td style={{ padding: '0.65rem 0.5rem', fontWeight: 'bold', color: '#16a34a' }}>${prima30.toFixed(2)}</td>
+                            </>
+                          ) : (
+                            <>
+                              <td style={{ padding: '0.65rem 0.5rem' }}>${item.salario_base.toFixed(2)}</td>
+                              <td style={{ padding: '0.65rem 0.5rem', color: '#dc2626' }}>${item.renta.toFixed(2)}</td>
+                              <td style={{ padding: '0.65rem 0.5rem', color: '#dc2626' }}>${item.isss.toFixed(2)}</td>
+                              <td style={{ padding: '0.65rem 0.5rem', color: '#dc2626' }}>${item.afp.toFixed(2)}</td>
+                              <td style={{ padding: '0.65rem 0.5rem', color: '#dc2626' }}>${item.prestamos.toFixed(2)}</td>
+                              <td style={{ padding: '0.65rem 0.5rem', color: '#dc2626', fontWeight: '500' }}>${item.total_descuentos.toFixed(2)}</td>
+                              <td style={{ padding: '0.65rem 0.5rem', fontWeight: 'bold', color: '#16a34a' }}>${item.liquido_recibir.toFixed(2)}</td>
+                            </>
+                          )}
+                          
+                          <td style={{ padding: '0.65rem 0.5rem', textAlign: 'center' }}>
+                            <div style={{ display: 'flex', justifyContent: 'center', gap: '0.35rem', flexWrap: 'wrap' }}>
+                              <button 
+                                type="button" 
+                                onClick={() => handleAbrirFinanzasEmpleado(item)}
+                                className="btn btn-outline"
+                                style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem', color: '#0284c7', borderColor: '#0284c7', display: 'inline-flex', alignItems: 'center', gap: '0.2rem', fontWeight: '600' }}
+                                title="Registrar Horas Extras, Tardanzas o Préstamos para este colaborador"
+                              >
+                                <DollarSign size={13} /> Finanzas
+                              </button>
+                              <button 
+                                type="button" 
+                                onClick={() => {
+                                  notificarBoletaWhatsApp(item, formData.codigo_periodo, item.liquido_recibir);
+                                  addToast(`📱 WhatsApp abierto para ${item.nombre_completo}`, "info");
+                                }}
+                                className="btn btn-outline"
+                                style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem', color: '#25d366', borderColor: '#25d366', display: 'inline-flex', alignItems: 'center', gap: '0.2rem' }}
+                                title="Enviar Boleta por WhatsApp"
+                              >
+                                <Send size={12} /> WhatsApp
+                              </button>
+                              <button 
+                                type="button" 
+                                onClick={() => {
+                                  notificarBoletaEmail(item, formData.codigo_periodo, item.liquido_recibir);
+                                  addToast(`✉️ Correo configurado para ${item.nombre_completo}`, "info");
+                                }}
+                                className="btn btn-outline"
+                                style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem', color: '#2563eb', borderColor: '#2563eb', display: 'inline-flex', alignItems: 'center', gap: '0.2rem' }}
+                                title="Enviar Boleta por Correo"
+                              >
+                                <Mail size={12} /> Correo
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            );
+          })()}
+      </div>
       ) : (
         <div className="card" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '260px', color: 'var(--text-muted)', textAlign: 'center' }}>
           <CreditCard size={56} style={{ opacity: 0.2, marginBottom: '1rem' }} />
