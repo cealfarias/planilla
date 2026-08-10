@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { Link, NavLink, useNavigate, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Users, Settings, LogOut, Building, CreditCard, ChevronLeft, ChevronRight, Menu, Crown, Sparkles, Headphones } from 'lucide-react';
+import { LayoutDashboard, Users, Settings, LogOut, Building, CreditCard, ChevronLeft, ChevronRight, Menu, Crown, Sparkles, Headphones, Scale } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../services/api';
 import AdBanner from './AdBanner';
 import InterstitialAdModal from './InterstitialAdModal';
 import SoporteModal from './SoporteModal';
+import AsesoriaLegalModal from './AsesoriaLegalModal';
 import './Layout.css';
 
 export default function Layout({ children }) {
@@ -23,6 +24,7 @@ export default function Layout({ children }) {
 
   const [showInterstitial, setShowInterstitial] = useState(false);
   const [showSoporteModal, setShowSoporteModal] = useState(false);
+  const [showAsesoriaLegalModal, setShowAsesoriaLegalModal] = useState(false);
   const [prevPath, setPrevPath] = useState(location.pathname);
 
   useEffect(() => {
@@ -92,6 +94,12 @@ export default function Layout({ children }) {
       <SoporteModal
         isOpen={showSoporteModal}
         onClose={() => setShowSoporteModal(false)}
+      />
+
+      {/* Modal de Asesoría Legal Laboral con Abogados Certificados CSJ */}
+      <AsesoriaLegalModal
+        isOpen={showAsesoriaLegalModal}
+        onClose={() => setShowAsesoriaLegalModal(false)}
       />
 
       {/* Trial Banner */}
@@ -192,6 +200,17 @@ export default function Layout({ children }) {
             >
               <Headphones size={20} style={{ color: '#3B82F6' }} />
               <span className="hide-on-collapse">Soporte Técnico</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setShowAsesoriaLegalModal(true)}
+              title="Asesoría Legal Laboral (Abogados Certificados CSJ)"
+              className="nav-link"
+              style={{ background: 'transparent', border: 'none', width: '100%', cursor: 'pointer', textAlign: 'left' }}
+            >
+              <Scale size={20} style={{ color: '#D97706' }} />
+              <span className="hide-on-collapse" style={{ color: '#D97706', fontWeight: '600' }}>Asesoría Legal (CSJ)</span>
             </button>
           </nav>
 

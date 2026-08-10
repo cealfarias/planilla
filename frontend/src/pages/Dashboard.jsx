@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { 
   Users, Building2, Briefcase, DollarSign, CheckCircle2, ShieldAlert, 
-  Crown, Sparkles, Award, FileText, Zap, ExternalLink, ShieldCheck, ArrowUpRight
+  Crown, Sparkles, Award, FileText, Zap, ExternalLink, ShieldCheck, ArrowUpRight, Scale
 } from 'lucide-react';
 import { api } from '../services/api';
 import AdBanner from '../components/AdBanner';
+import AsesoriaLegalModal from '../components/AsesoriaLegalModal';
 import './Dashboard.css';
 
 export default function Dashboard() {
@@ -15,6 +16,7 @@ export default function Dashboard() {
     return localStorage.getItem('licencia_tipo') || 'freeware';
   });
   const [loading, setLoading] = useState(true);
+  const [showAsesoriaModal, setShowAsesoriaModal] = useState(false);
 
   useEffect(() => {
     cargarDatos();
@@ -214,6 +216,59 @@ export default function Dashboard() {
             </p>
           </div>
         </div>
+
+        {/* BANNER DESTACADO DE ASESORÍA LEGAL LABORAL CON ABOGADOS CSJ */}
+        <div style={{
+          marginTop: '1.25rem',
+          padding: '1.25rem',
+          background: 'linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%)',
+          border: '1px solid #F59E0B',
+          borderRadius: '10px',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          flexWrap: 'wrap',
+          gap: '1rem'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
+            <div style={{ backgroundColor: '#D97706', padding: '0.6rem', borderRadius: '8px', display: 'flex', color: 'white' }}>
+              <Scale size={26} />
+            </div>
+            <div>
+              <h4 style={{ margin: 0, color: '#78350F', fontSize: '1.05rem', fontWeight: 'bold' }}>
+                ⚖️ Asesoría Legal Laboral & Servicios Jurídicos (Abogados Certificados CSJ)
+              </h4>
+              <p style={{ margin: '0.2rem 0 0 0', fontSize: '0.85rem', color: '#92400E' }}>
+                Defensa en inspecciones del MTPS, dictámenes expresos y patrocinios laborales por abogados autorizados en El Salvador.
+              </p>
+            </div>
+          </div>
+
+          <button
+            onClick={() => setShowAsesoriaModal(true)}
+            style={{
+              backgroundColor: '#B45309',
+              color: 'white',
+              border: 'none',
+              padding: '0.55rem 1.1rem',
+              borderRadius: '8px',
+              fontWeight: 'bold',
+              fontSize: '0.85rem',
+              cursor: 'pointer',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '0.35rem',
+              boxShadow: '0 2px 8px rgba(180, 83, 9, 0.3)'
+            }}
+          >
+            <Scale size={16} /> Consultar Honorarios & Servicios Legales
+          </button>
+        </div>
+
+        <AsesoriaLegalModal
+          isOpen={showAsesoriaModal}
+          onClose={() => setShowAsesoriaModal(false)}
+        />
       </div>
 
       {/* SECCIÓN DE COMPARACIÓN DE LICENCIAS & PLANES DISPONIBLES */}
