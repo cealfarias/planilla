@@ -5,7 +5,7 @@ from database import get_db
 import schemas
 import crud
 import models
-from auth.dependencies import obtener_usuario_actual, VerificadorPermiso
+from auth.dependencies import obtener_usuario_actual
 
 router = APIRouter(
     prefix="/recursos-humanos",
@@ -14,12 +14,11 @@ router = APIRouter(
 
 @router.post(
     "/empleados", 
-    response_model=schemas.recursos_humanos.EmpleadoResponse, 
-    status_code=status.HTTP_201_CREATED,
-    dependencies=[Depends(VerificadorPermiso("RH_EMPLEADOS_CREAR"))]
+    response_model=schemas.empleado.EmpleadoResponse, 
+    status_code=status.HTTP_201_CREATED
 )
 def registrar_empleado(
-    empleado: schemas.recursos_humanos.EmpleadoCreate, 
+    empleado: schemas.empleado.EmpleadoCreate, 
     db: Session = Depends(get_db),
     usuario_actual: models.seguridad.Usuario = Depends(obtener_usuario_actual)
 ):
@@ -31,8 +30,7 @@ def registrar_empleado(
 @router.post(
     "/empleados/{empleado_id}/contratos", 
     response_model=schemas.contrato.ContratoResponse, 
-    status_code=status.HTTP_201_CREATED,
-    dependencies=[Depends(VerificadorPermiso("RH_EMPLEADOS_CREAR"))]
+    status_code=status.HTTP_201_CREATED
 )
 def registrar_contrato_empleado(
     empleado_id: int,
@@ -48,8 +46,7 @@ def registrar_contrato_empleado(
 
 @router.get(
     "/empleados", 
-    response_model=List[schemas.recursos_humanos.EmpleadoResponse],
-    dependencies=[Depends(VerificadorPermiso("RH_EMPLEADOS_LEER"))]
+    response_model=List[schemas.empleado.EmpleadoResponse]
 )
 def listar_todos_los_empleados(
     skip: int = 0, 
@@ -62,8 +59,7 @@ def listar_todos_los_empleados(
 @router.post(
     "/estudios", 
     response_model=schemas.recursos_humanos.EstudioAcademicoResponse, 
-    status_code=status.HTTP_201_CREATED,
-    dependencies=[Depends(VerificadorPermiso("RH_EXPEDIENTE_EDITAR"))]
+    status_code=status.HTTP_201_CREATED
 )
 def asociar_estudio_academico(
     estudio: schemas.recursos_humanos.EstudioAcademicoCreate, 
@@ -78,8 +74,7 @@ def asociar_estudio_academico(
 @router.post(
     "/experiencias", 
     response_model=schemas.recursos_humanos.ExperienciaLaboralResponse, 
-    status_code=status.HTTP_201_CREATED,
-    dependencies=[Depends(VerificadorPermiso("RH_EXPEDIENTE_EDITAR"))]
+    status_code=status.HTTP_201_CREATED
 )
 def asociar_experiencia_laboral(
     experiencia: schemas.recursos_humanos.ExperienciaLaboralCreate, 
@@ -93,7 +88,7 @@ def asociar_experiencia_laboral(
 
 @router.put(
     "/empleados/{empleado_id}/estado",
-    response_model=schemas.recursos_humanos.EmpleadoResponse
+    response_model=schemas.empleado.EmpleadoResponse
 )
 def cambiar_estado_empleado(
     empleado_id: int,

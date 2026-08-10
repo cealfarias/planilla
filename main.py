@@ -17,13 +17,11 @@ def crear_aplicacion() -> FastAPI:
         redoc_url="/api/redoc"
     )
 
-    # Configuración estricta de Orígenes Cruzados (CORS) para producción viva
-    origenes_permitidos = os.getenv("FRONTEND_URL", "http://localhost:3000").split(",")
-    
+    # Configuración de Orígenes Cruzados (CORS) permitiendo dominios Vercel y locales
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=origenes_permitidos,
-        allow_credentials=True,
+        allow_origins=["*"],
+        allow_credentials=False,
         allow_methods=["*"],
         allow_headers=["*"],
     )
@@ -35,8 +33,9 @@ def crear_aplicacion() -> FastAPI:
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             content={
                 "error": "Error interno del servidor",
-                "detalle": str(exc) if os.getenv("DEBUG") == "True" else "Ocurrió una anomalía transaccional en el backend."
-            }
+                "detalle": str(exc)
+            },
+            headers={"Access-Control-Allow-Origin": "*"}
         )
 
     # Inyección atómica de la arquitectura de enrutadores unificados
