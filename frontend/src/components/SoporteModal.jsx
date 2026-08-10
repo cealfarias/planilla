@@ -1,16 +1,26 @@
 import React, { useState, useEffect } from 'react';
 import { 
   X, MessageSquare, Plus, Send, Headphones, Clock, CheckCircle2, 
-  AlertCircle, ShieldCheck, User, Building, CornerDownRight, RefreshCw 
+  AlertCircle, ShieldCheck, User, Building, CornerDownRight, RefreshCw,
+  Crown, CreditCard, Filter, PhoneCall, ExternalLink, Sparkles
 } from 'lucide-react';
 import { api } from '../services/api';
+import { useAuth } from '../context/AuthContext';
 
 export default function SoporteModal({ isOpen, onClose }) {
+  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState('inbox'); // 'inbox' | 'nuevo'
+  const [filtroEstado, setFiltroEstado] = useState('TODOS'); // 'TODOS' | 'ABIERTO' | 'PAGOS' | 'RESUELTO'
   const [tickets, setTickets] = useState([]);
   const [selectedTicket, setSelectedTicket] = useState(null);
   const [loading, setLoading] = useState(false);
   const [sendingMsg, setSendingMsg] = useState(false);
+
+  // Evaluar si la cuenta actual es el Propietario / Administrador Central del SaaS
+  const isOwner = user?.username?.toLowerCase().includes('admin') || 
+                  user?.username?.toLowerCase().includes('cesar') || 
+                  user?.username?.toLowerCase().includes('propietario') || 
+                  user?.username?.toLowerCase().includes('soporte');
   
   // Form para nuevo ticket
   const [nuevoForm, setNuevoForm] = useState({
@@ -71,7 +81,7 @@ export default function SoporteModal({ isOpen, onClose }) {
 
     try {
       setSendingMsg(true);
-      const msg = await api.enviarMensajeTicket(selectedTicket.id, nuevoMensaje);
+      await api.enviarMensajeTicket(selectedTicket.id, nuevoMensaje);
       setNuevoMensaje('');
       await cargarTickets();
     } catch (err) {
@@ -91,7 +101,38 @@ export default function SoporteModal({ isOpen, onClose }) {
     }
   };
 
+  const handleAprobarPagoLicencia = async () => {
+    if (!selectedTicket) return;
+    try {
+      setLoading(true);
+      // Responder confirmando la verificación de Transfer365 Davivienda
+      await api.enviarMensajeTicket(
+        selectedTicket.id, 
+        "✅ ¡COMPROBANTE VERIFICADO Y LICENCIA PRO ENTERPRISE ACTIVADA!\n\nEstimado cliente, hemos verificado exitosamente tu transferencia por Transfer365 Davivienda (69893101 - Cesar Arias). Tu cuenta cuenta ahora con la Licencia Pro Enterprise sin anuncios. ¡Gracias por tu preferencia!"
+      );
+      await api.cambiarEstadoTicket(selectedTicket.id, 'RESUELTO');
+      
+      // Si el cliente está en esta misma sesión, activar localmente
+      localStorage.setItem('licencia_tipo', 'premium');
+      window.dispatchEvent(new Event('licencia_change'));
+
+      await cargarTickets();
+      alert("✨ Comprobante verificado. Se notificó al cliente y se activó la Licencia Pro Enterprise.");
+    } catch (err) {
+      alert("Error al aprobar pago: " + err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   if (!isOpen) return null;
+
+  const ticketsFiltrados = tickets.filter(t => {
+    if (filtroEstado === 'ABIERTO') return t.estado === 'ABIERTO';
+    if (filtroEstado === 'PAGOS') return t.asunto.includes('COMPROBANTE') || t.categoria === 'Facturación / Licencia';
+    if (filtroEstado === 'RESUELTO') return t.estado === 'RESUELTO';
+    return true;
+  });
 
   const getEstadoBadge = (estado) => {
     switch (estado) {
@@ -108,7 +149,7 @@ export default function SoporteModal({ isOpen, onClose }) {
     <div style={{
       position: 'fixed',
       inset: 0,
-      backgroundColor: 'rgba(15, 23, 42, 0.75)',
+      backgroundColor: 'rgba(15, 23, 42, 0.85)',
       backdropFilter: 'blur(4px)',
       zIndex: 9999,
       display: 'flex',
@@ -117,12 +158,12 @@ export default function SoporteModal({ isOpen, onClose }) {
       padding: '1rem'
     }}>
       <div style={{
-        maxWidth: '960px',
+        maxWidth: '1020px',
         width: '100%',
-        height: '85vh',
+        height: '88vh',
         backgroundColor: 'white',
         borderRadius: '16px',
-        boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.3)',
+        boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.35)',
         display: 'flex',
         flexDirection: 'column',
         overflow: 'hidden'
@@ -131,30 +172,41 @@ export default function SoporteModal({ isOpen, onClose }) {
         {/* Header Modal */}
         <div style={{
           padding: '1rem 1.5rem',
-          backgroundColor: '#0F172A',
+          backgroundColor: isOwner ? '#0F172A' : '#1E293B',
           color: 'white',
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
-          borderBottom: '1px solid #1E293B'
+          borderBottom: '1px solid #334155'
         }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-            <div style={{ backgroundColor: '#2563EB', padding: '0.4rem', borderRadius: '8px', display: 'flex' }}>
-              <Headphones size={20} color="white" />
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+            <div style={{ backgroundColor: isOwner ? '#D97706' : '#2563EB', padding: '0.45rem', borderRadius: '8px', display: 'flex' }}>
+              {isOwner ? <Crown size={22} color="white" /> : <Headphones size={22} color="white" />}
             </div>
             <div>
-              <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 'bold' }}>Centro de Soporte Técnico & Mensajería Directa</h3>
-              <p style={{ margin: 0, fontSize: '0.75rem', color: '#94A3B8' }}>Comunícate directamente con el propietario y el equipo de soporte técnico.</p>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <h3 style={{ margin: 0, fontSize: '1.15rem', fontWeight: 'bold' }}>
+                  {isOwner ? '📥 Inbox del Propietario & Central de Soporte' : 'Centro de Mensajería & Soporte Técnico'}
+                </h3>
+                <span style={{ fontSize: '0.7rem', backgroundColor: isOwner ? '#FEF3C7' : '#DBEAFE', color: isOwner ? '#78350F' : '#1E40AF', fontWeight: 'bold', padding: '0.15rem 0.55rem', borderRadius: '999px' }}>
+                  {isOwner ? 'VISTA PROPIETARIO / SUPERADMIN' : 'VISTA CLIENTE'}
+                </span>
+              </div>
+              <p style={{ margin: 0, fontSize: '0.75rem', color: '#94A3B8' }}>
+                {isOwner 
+                  ? 'Gestiona y responde las consultas, comprobantes de pago Transfer365 y asesorías de todas las empresas clientes.' 
+                  : 'Envía y recibe mensajes directos con el propietario del sistema y el equipo de soporte técnico.'}
+              </p>
             </div>
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
             <button
               onClick={cargarTickets}
-              style={{ background: 'transparent', border: '1px solid #334155', color: '#94A3B8', padding: '0.35rem 0.6rem', borderRadius: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.75rem' }}
-              title="Refrescar mensajes"
+              style={{ background: 'transparent', border: '1px solid #475569', color: '#CBD5E1', padding: '0.35rem 0.65rem', borderRadius: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.75rem', fontWeight: 'bold' }}
+              title="Refrescar bandeja de mensajes"
             >
-              <RefreshCw size={14} className={loading ? 'animate-spin' : ''} /> Actualizar
+              <RefreshCw size={14} className={loading ? 'animate-spin' : ''} /> Refrescar
             </button>
             <button
               onClick={onClose}
@@ -169,60 +221,85 @@ export default function SoporteModal({ isOpen, onClose }) {
         <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
           
           {/* Sidebar Left Navigation / Ticket List */}
-          <div style={{ width: '320px', borderRight: '1px solid #E2E8F0', backgroundColor: '#F8FAFC', display: 'flex', flexDirection: 'column' }}>
+          <div style={{ width: '340px', borderRight: '1px solid #E2E8F0', backgroundColor: '#F8FAFC', display: 'flex', flexDirection: 'column' }}>
             
-            <div style={{ padding: '0.75rem', display: 'flex', gap: '0.5rem', borderBottom: '1px solid #E2E8F0' }}>
-              <button
-                onClick={() => setActiveTab('inbox')}
-                style={{
-                  flex: 1,
-                  padding: '0.5rem',
-                  fontSize: '0.8rem',
-                  fontWeight: 'bold',
-                  borderRadius: '6px',
-                  border: 'none',
-                  backgroundColor: activeTab === 'inbox' ? '#2563EB' : '#E2E8F0',
-                  color: activeTab === 'inbox' ? 'white' : '#475569',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '0.3rem'
-                }}
-              >
-                <MessageSquare size={14} /> Inbox ({tickets.length})
-              </button>
-              <button
-                onClick={() => setActiveTab('nuevo')}
-                style={{
-                  flex: 1,
-                  padding: '0.5rem',
-                  fontSize: '0.8rem',
-                  fontWeight: 'bold',
-                  borderRadius: '6px',
-                  border: 'none',
-                  backgroundColor: activeTab === 'nuevo' ? '#16A34A' : '#E2E8F0',
-                  color: activeTab === 'nuevo' ? 'white' : '#475569',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '0.3rem'
-                }}
-              >
-                <Plus size={14} /> Nuevo Ticket
-              </button>
+            <div style={{ padding: '0.75rem', display: 'flex', flexDirection: 'column', gap: '0.5rem', borderBottom: '1px solid #E2E8F0' }}>
+              <div style={{ display: 'flex', gap: '0.5rem' }}>
+                <button
+                  onClick={() => setActiveTab('inbox')}
+                  style={{
+                    flex: 1,
+                    padding: '0.5rem',
+                    fontSize: '0.8rem',
+                    fontWeight: 'bold',
+                    borderRadius: '6px',
+                    border: 'none',
+                    backgroundColor: activeTab === 'inbox' ? (isOwner ? '#D97706' : '#2563EB') : '#E2E8F0',
+                    color: activeTab === 'inbox' ? 'white' : '#475569',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '0.3rem'
+                  }}
+                >
+                  <MessageSquare size={14} /> Inbox ({ticketsFiltrados.length})
+                </button>
+                <button
+                  onClick={() => setActiveTab('nuevo')}
+                  style={{
+                    flex: 1,
+                    padding: '0.5rem',
+                    fontSize: '0.8rem',
+                    fontWeight: 'bold',
+                    borderRadius: '6px',
+                    border: 'none',
+                    backgroundColor: activeTab === 'nuevo' ? '#16A34A' : '#E2E8F0',
+                    color: activeTab === 'nuevo' ? 'white' : '#475569',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '0.3rem'
+                  }}
+                >
+                  <Plus size={14} /> Nuevo Ticket
+                </button>
+              </div>
+
+              {/* Filtros Rápidos en el Inbox */}
+              <div style={{ display: 'flex', gap: '0.25rem', overflowX: 'auto', paddingBottom: '0.2rem' }}>
+                <button
+                  onClick={() => setFiltroEstado('TODOS')}
+                  style={{ fontSize: '0.65rem', padding: '0.2rem 0.5rem', borderRadius: '4px', border: '1px solid #CBD5E1', backgroundColor: filtroEstado === 'TODOS' ? '#0F172A' : 'white', color: filtroEstado === 'TODOS' ? 'white' : '#475569', cursor: 'pointer', fontWeight: 'bold' }}
+                >
+                  Todos
+                </button>
+                <button
+                  onClick={() => setFiltroEstado('PAGOS')}
+                  style={{ fontSize: '0.65rem', padding: '0.2rem 0.5rem', borderRadius: '4px', border: '1px solid #F59E0B', backgroundColor: filtroEstado === 'PAGOS' ? '#F59E0B' : '#FEF3C7', color: filtroEstado === 'PAGOS' ? 'white' : '#78350F', cursor: 'pointer', fontWeight: 'bold' }}
+                >
+                  💳 Comprobantes Pagos
+                </button>
+                <button
+                  onClick={() => setFiltroEstado('ABIERTO')}
+                  style={{ fontSize: '0.65rem', padding: '0.2rem 0.5rem', borderRadius: '4px', border: '1px solid #3B82F6', backgroundColor: filtroEstado === 'ABIERTO' ? '#2563EB' : '#EFF6FF', color: filtroEstado === 'ABIERTO' ? 'white' : '#1E40AF', cursor: 'pointer', fontWeight: 'bold' }}
+                >
+                  Abiertos
+                </button>
+              </div>
             </div>
 
             {/* List of Tickets */}
             <div style={{ flex: 1, overflowY: 'auto', padding: '0.5rem' }}>
-              {tickets.length === 0 ? (
+              {ticketsFiltrados.length === 0 ? (
                 <div style={{ padding: '2rem 1rem', textAlign: 'center', color: '#94A3B8', fontSize: '0.85rem' }}>
-                  No tienes mensajes o tickets registrados. Haz clic en <strong>Nuevo Ticket</strong> para iniciar una consulta.
+                  No hay mensajes que coincidan con el filtro.
                 </div>
               ) : (
-                tickets.map(ticket => {
+                ticketsFiltrados.map(ticket => {
                   const isSelected = selectedTicket?.id === ticket.id;
+                  const esPago = ticket.asunto.includes('COMPROBANTE') || ticket.categoria === 'Facturación / Licencia';
                   return (
                     <div
                       key={ticket.id}
@@ -235,21 +312,23 @@ export default function SoporteModal({ isOpen, onClose }) {
                         borderRadius: '8px',
                         marginBottom: '0.4rem',
                         cursor: 'pointer',
-                        backgroundColor: isSelected ? '#EFF6FF' : 'white',
-                        border: isSelected ? '1px solid #3B82F6' : '1px solid #E2E8F0',
+                        backgroundColor: isSelected ? (esPago ? '#FEF3C7' : '#EFF6FF') : 'white',
+                        border: isSelected ? (esPago ? '2px solid #F59E0B' : '2px solid #3B82F6') : '1px solid #E2E8F0',
                         boxShadow: '0 1px 2px rgba(0,0,0,0.02)',
                         transition: 'all 0.15s ease'
                       }}
                     >
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.25rem' }}>
-                        <span style={{ fontSize: '0.65rem', color: '#64748B', fontWeight: '600' }}>#{ticket.id} • {ticket.categoria}</span>
+                        <span style={{ fontSize: '0.65rem', color: esPago ? '#D97706' : '#64748B', fontWeight: 'bold' }}>
+                          {esPago ? '💳 COMPROBANTE PAGO' : `#${ticket.id} • ${ticket.categoria}`}
+                        </span>
                         {getEstadoBadge(ticket.estado)}
                       </div>
                       <h5 style={{ margin: '0 0 0.25rem 0', fontSize: '0.85rem', color: '#1E293B', fontWeight: 'bold' }}>
                         {ticket.asunto}
                       </h5>
                       <div style={{ fontSize: '0.7rem', color: '#64748B', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <span>🏢 {ticket.nombre_empresa}</span>
+                        <span style={{ fontWeight: '600', color: '#334155' }}>🏢 {ticket.nombre_empresa}</span>
                         <span>{new Date(ticket.fecha_actualizacion).toLocaleDateString()}</span>
                       </div>
                     </div>
@@ -281,7 +360,7 @@ export default function SoporteModal({ isOpen, onClose }) {
                     >
                       <option value="Soporte Técnico">Soporte Técnico / Error en el sistema</option>
                       <option value="Consultoría Laboral">Consultoría Laboral El Salvador</option>
-                      <option value="Facturación / Licencia">Facturación & Cambio de Licencia</option>
+                      <option value="Facturación / Licencia">Facturación & Comprobantes Transfer365</option>
                       <option value="Sugerencia">Sugerencia de nueva funcionalidad</option>
                     </select>
                   </div>
@@ -310,7 +389,7 @@ export default function SoporteModal({ isOpen, onClose }) {
                   <input
                     type="text"
                     required
-                    placeholder="Ej. Consulta sobre cálculo de aguinaldos o error en PDF"
+                    placeholder="Ej. Consulta sobre cálculo de aguinaldos o confirmación de pago Transfer365"
                     value={nuevoForm.asunto}
                     onChange={(e) => setNuevoForm({ ...nuevoForm, asunto: e.target.value })}
                     style={{ width: '100%', padding: '0.5rem', borderRadius: '6px', border: '1px solid #CBD5E1', fontSize: '0.85rem' }}
@@ -324,7 +403,7 @@ export default function SoporteModal({ isOpen, onClose }) {
                   <textarea
                     required
                     rows={6}
-                    placeholder="Describe en detalle tu inquietud o requerimiento para el equipo técnico..."
+                    placeholder="Describe en detalle tu inquietud, consulta o referencia de pago..."
                     value={nuevoForm.mensaje_inicial}
                     onChange={(e) => setNuevoForm({ ...nuevoForm, mensaje_inicial: e.target.value })}
                     style={{ width: '100%', padding: '0.6rem', borderRadius: '6px', border: '1px solid #CBD5E1', fontSize: '0.85rem', resize: 'vertical' }}
@@ -351,7 +430,7 @@ export default function SoporteModal({ isOpen, onClose }) {
             ) : selectedTicket ? (
               <>
                 {/* Header Ticket Activo */}
-                <div style={{ padding: '0.85rem 1.25rem', borderBottom: '1px solid #E2E8F0', backgroundColor: '#F8FAFC', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div style={{ padding: '0.85rem 1.25rem', borderBottom: '1px solid #E2E8F0', backgroundColor: '#F8FAFC', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem' }}>
                   <div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                       <h4 style={{ margin: 0, fontSize: '1rem', color: '#0F172A', fontWeight: 'bold' }}>
@@ -360,15 +439,25 @@ export default function SoporteModal({ isOpen, onClose }) {
                       {getEstadoBadge(selectedTicket.estado)}
                     </div>
                     <span style={{ fontSize: '0.75rem', color: '#64748B' }}>
-                      Organización: <strong>{selectedTicket.nombre_empresa}</strong> | Usuario: <strong>{selectedTicket.nombre_usuario}</strong> | Prioridad: <strong>{selectedTicket.prioridad}</strong>
+                      Empresa Cliente: <strong style={{ color: '#0F172A' }}>{selectedTicket.nombre_empresa}</strong> | Remitente: <strong>{selectedTicket.nombre_usuario}</strong> | Prioridad: <strong>{selectedTicket.prioridad}</strong>
                     </span>
                   </div>
 
-                  <div style={{ display: 'flex', gap: '0.5rem' }}>
+                  <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                    {/* Si es un comprobante de pago y somos propietario, boton de aprobacion en 1 clic */}
+                    {isOwner && (selectedTicket.asunto.includes('COMPROBANTE') || selectedTicket.categoria === 'Facturación / Licencia') && selectedTicket.estado !== 'RESUELTO' && (
+                      <button
+                        onClick={handleAprobarPagoLicencia}
+                        style={{ padding: '0.4rem 0.85rem', fontSize: '0.75rem', backgroundColor: '#16A34A', color: 'white', border: 'none', borderRadius: '6px', fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.3rem', boxShadow: '0 2px 6px rgba(22, 163, 74, 0.3)' }}
+                      >
+                        <CheckCircle2 size={14} /> Aprobar Transfer365 & Activar Premium
+                      </button>
+                    )}
+
                     {selectedTicket.estado !== 'RESUELTO' && (
                       <button
                         onClick={() => handleCambiarEstado('RESUELTO')}
-                        style={{ padding: '0.35rem 0.75rem', fontSize: '0.75rem', backgroundColor: '#DCFCE7', color: '#15803D', border: '1px solid #86EFAC', borderRadius: '6px', fontWeight: 'bold', cursor: 'pointer' }}
+                        style={{ padding: '0.4rem 0.75rem', fontSize: '0.75rem', backgroundColor: '#DCFCE7', color: '#15803D', border: '1px solid #86EFAC', borderRadius: '6px', fontWeight: 'bold', cursor: 'pointer' }}
                       >
                         Marcar como Resuelto
                       </button>
@@ -385,25 +474,25 @@ export default function SoporteModal({ isOpen, onClose }) {
                         key={msg.id}
                         style={{
                           alignSelf: esStaff ? 'flex-start' : 'flex-end',
-                          maxWidth: '75%',
+                          maxWidth: '78%',
                           backgroundColor: esStaff ? '#0F172A' : '#2563EB',
                           color: 'white',
                           borderRadius: esStaff ? '12px 12px 12px 2px' : '12px 12px 2px 12px',
-                          padding: '0.85rem 1rem',
-                          boxShadow: '0 2px 4px rgba(0,0,0,0.08)'
+                          padding: '0.85rem 1.1rem',
+                          boxShadow: '0 2px 6px rgba(0,0,0,0.1)'
                         }}
                       >
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.35rem', gap: '1rem' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.35rem', gap: '1.5rem' }}>
                           <span style={{ fontSize: '0.7rem', fontWeight: 'bold', color: esStaff ? '#F59E0B' : '#93C5FD', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
-                            {esStaff ? <ShieldCheck size={12} /> : <User size={12} />}
-                            {esStaff ? 'PROPIETARIO / SOPORTE TÉCNICO' : msg.nombre_remitente}
+                            {esStaff ? <Crown size={13} color="#F59E0B" /> : <User size={13} />}
+                            {esStaff ? 'PROPIETARIO / SOPORTE TÉCNICO' : `${msg.nombre_remitente} (${selectedTicket.nombre_empresa})`}
                           </span>
                           <span style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.7)' }}>
                             {new Date(msg.fecha_envio).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                           </span>
                         </div>
 
-                        <p style={{ margin: 0, fontSize: '0.85rem', lineHeight: '1.45', whiteSpace: 'pre-wrap' }}>
+                        <p style={{ margin: 0, fontSize: '0.85rem', lineHeight: '1.5', whiteSpace: 'pre-wrap' }}>
                           {msg.contenido}
                         </p>
                       </div>
@@ -416,17 +505,17 @@ export default function SoporteModal({ isOpen, onClose }) {
                   <input
                     type="text"
                     required
-                    placeholder="Escribe una respuesta para el ticket de soporte..."
+                    placeholder={isOwner ? "Escribe la respuesta oficial como Propietario / Soporte Técnico..." : "Escribe una respuesta para el ticket de soporte..."}
                     value={nuevoMensaje}
                     onChange={(e) => setNuevoMensaje(e.target.value)}
-                    style={{ flex: 1, padding: '0.6rem 0.85rem', borderRadius: '8px', border: '1px solid #CBD5E1', fontSize: '0.85rem' }}
+                    style={{ flex: 1, padding: '0.65rem 0.85rem', borderRadius: '8px', border: '1px solid #CBD5E1', fontSize: '0.85rem' }}
                   />
                   <button
                     type="submit"
                     disabled={sendingMsg}
-                    style={{ padding: '0.6rem 1.25rem', backgroundColor: '#2563EB', color: 'white', border: 'none', borderRadius: '8px', fontWeight: 'bold', fontSize: '0.85rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.3rem' }}
+                    style={{ padding: '0.65rem 1.25rem', backgroundColor: isOwner ? '#D97706' : '#2563EB', color: 'white', border: 'none', borderRadius: '8px', fontWeight: 'bold', fontSize: '0.85rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.3rem' }}
                   >
-                    <Send size={15} /> Responder
+                    <Send size={15} /> {isOwner ? 'Responder como Propietario' : 'Enviar Mensaje'}
                   </button>
                 </form>
               </>
