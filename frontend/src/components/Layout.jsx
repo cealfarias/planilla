@@ -86,10 +86,9 @@ export default function Layout({ children }) {
   };
 
   const isOwner = user?.email?.toLowerCase() === 'cealfarias@gmail.com' ||
-                  user?.username?.toLowerCase().includes('cealfarias') ||
-                  user?.username?.toLowerCase().includes('admin') || 
-                  user?.username?.toLowerCase().includes('cesar') || 
-                  user?.username?.toLowerCase().includes('propietario');
+                  user?.username?.toLowerCase() === 'cealfarias' ||
+                  user?.username?.toLowerCase() === 'cesararias' ||
+                  user?.username?.toLowerCase() === 'propietario';
 
   const isPremium = isOwner || licenciaTipo === 'premium';
 

@@ -37,7 +37,7 @@ def listar_tickets(
 ):
     email = getattr(usuario_actual, 'email', '') or ''
     username = getattr(usuario_actual, 'username', '') or ''
-    es_propietario = email.lower() == "cealfarias@gmail.com" or username.lower() in ["cealfarias", "admin", "propietario", "superadmin", "cesar", "cesararias", "soporte"] or usuario_actual.rol_id == 1
+    es_propietario = email.lower() == "cealfarias@gmail.com" or username.lower() in ["cealfarias", "cesararias", "propietario"]
     tickets = crud.soporte.obtener_tickets_usuario(db, empresa_id=usuario_actual.empresa_id, es_propietario=es_propietario)
     
     resultado = []

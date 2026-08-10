@@ -16,13 +16,10 @@ export default function SoporteModal({ isOpen, onClose }) {
   const [loading, setLoading] = useState(false);
   const [sendingMsg, setSendingMsg] = useState(false);
 
-  // Evaluar si la cuenta actual es el Propietario / Administrador Central del SaaS (cealfarias@gmail.com)
   const isOwner = user?.email?.toLowerCase() === 'cealfarias@gmail.com' ||
-                  user?.username?.toLowerCase().includes('cealfarias') ||
-                  user?.username?.toLowerCase().includes('admin') || 
-                  user?.username?.toLowerCase().includes('cesar') || 
-                  user?.username?.toLowerCase().includes('propietario') || 
-                  user?.username?.toLowerCase().includes('soporte');
+                  user?.username?.toLowerCase() === 'cealfarias' ||
+                  user?.username?.toLowerCase() === 'cesararias' ||
+                  user?.username?.toLowerCase() === 'propietario';
   
   // Form para nuevo ticket (solo visible para clientes)
   const [nuevoForm, setNuevoForm] = useState({
