@@ -448,7 +448,29 @@ export default function Planillas() {
             const isVacaciones = formData.tipo_planilla === 'Vacaciones' || (activePlanillaInfo && (activePlanillaInfo.tipo_planilla === 'Vacaciones' || activePlanillaInfo.tipo_planilla === 'VACACIONES'));
 
             return (
-              <div style={{ overflowX: 'auto', backgroundColor: 'white', borderRadius: '8px', border: '1px solid #BBF7D0', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
+              <>
+                {isVacaciones && (
+                  <div style={{
+                    backgroundColor: '#EFF6FF',
+                    border: '1px solid #BFDBFE',
+                    color: '#1E40AF',
+                    padding: '0.85rem 1.25rem',
+                    borderRadius: '8px',
+                    marginBottom: '1rem',
+                    fontSize: '0.85rem',
+                    lineHeight: '1.45'
+                  }}>
+                    <div style={{ fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.25rem', fontSize: '0.9rem' }}>
+                      <FileText size={16} /> Base Legal Aplicada - Planilla de Vacaciones (Código de Trabajo de El Salvador):
+                    </div>
+                    <ul style={{ margin: 0, paddingLeft: '1.2rem' }}>
+                      <li><strong>Art. 177 C.T.:</strong> Todo trabajador tiene derecho a 15 días de vacación remunerada anual con un <strong>30% de recargo ordinario legal</strong> ($Salario\, 15\, días \times 30\%$).</li>
+                      <li><strong>Art. 178 y 187 C.T.:</strong> La remuneración cubre el descanso continuo. Al coexistir con la planilla ordinaria quincenal/mensual, el recargo del 30% se otorga como prima íntegra de ley sin deducción duplicada de ISSS y AFP.</li>
+                    </ul>
+                  </div>
+                )}
+
+                <div style={{ overflowX: 'auto', backgroundColor: 'white', borderRadius: '8px', border: '1px solid #BBF7D0', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
                   <thead>
                     <tr style={{ backgroundColor: '#DCFCE7', borderBottom: '1px solid #BBF7D0', textAlign: 'left', color: '#14532D' }}>
@@ -548,8 +570,9 @@ export default function Planillas() {
                   </tbody>
                 </table>
               </div>
-            );
-          })()}
+            </>
+          );
+        })()}
       </div>
       ) : (
         <div className="card" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '260px', color: 'var(--text-muted)', textAlign: 'center' }}>
