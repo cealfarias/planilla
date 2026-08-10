@@ -186,7 +186,9 @@ export default function FinanzasModal({ empleado, onClose }) {
   const cuotaActualTotal = prestamosActivos.reduce((sum, p) => sum + parseFloat(p.cuota_periodica), 0);
   const nuevaCuota = parseFloat(cuotaPeriodica) || 0;
   const sumaProyectada = cuotaActualTotal + nuevaCuota;
-  const excedeLimite = tipoPrestamo !== 'Embargo Judicial' && sumaProyectada > limiteLegal;
+  const mensajeExcedeLimite = excedeLimite
+    ? `⚠️ No se puede agregar este descuento en esta planilla porque supera el límite de ley del 20% (Art. 136 Código de Trabajo). Salario Base: $${salarioNominal.toFixed(2)} | Límite Máximo 20%: $${limiteLegal.toFixed(2)} | Cuotas Activas: $${cuotaActualTotal.toFixed(2)} | Cuota Solicitada: $${nuevaCuota.toFixed(2)}.`
+    : null;
 
   const handleSubmitDescuento = async (e) => {
     e.preventDefault();
@@ -194,7 +196,7 @@ export default function FinanzasModal({ empleado, onClose }) {
     setSuccess(null);
     
     if (excedeLimite) {
-      setError(`La cuota excede el límite legal del 20% ($${limiteLegal.toFixed(2)}).`);
+      setError(mensajeExcedeLimite);
       return;
     }
 
@@ -288,7 +290,41 @@ export default function FinanzasModal({ empleado, onClose }) {
               </div>
             </div>
 
-            {error && <div style={{ marginBottom: '1rem', padding: '0.75rem', background: '#fee2e2', color: '#dc2626', borderRadius: '4px', fontSize: '0.875rem' }}>{error}</div>}
+            {(error || (excedeLimite && nuevaCuota > 0)) && (
+              <div style={{
+                position: 'sticky',
+                top: '0.5rem',
+                zIndex: 100,
+                background: 'linear-gradient(135deg, #b91c1c 0%, #dc2626 100%)',
+                color: 'white',
+                padding: '1rem 1.25rem',
+                borderRadius: '12px',
+                boxShadow: '0 12px 25px -5px rgba(220, 38, 38, 0.4), 0 8px 10px -6px rgba(0, 0, 0, 0.1)',
+                animation: 'toastBounceIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards',
+                display: 'flex',
+                alignItems: 'flex-start',
+                justifyContent: 'space-between',
+                gap: '0.75rem',
+                marginBottom: '1.25rem'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem' }}>
+                  <AlertCircle size={22} style={{ flexShrink: 0, marginTop: '2px' }} />
+                  <div style={{ fontSize: '0.875rem', lineHeight: '1.45', fontWeight: '500' }}>
+                    {error || mensajeExcedeLimite}
+                  </div>
+                </div>
+                {error && (
+                  <button 
+                    type="button" 
+                    onClick={() => setError(null)} 
+                    style={{ background: 'transparent', border: 'none', color: 'white', cursor: 'pointer', opacity: 0.85, padding: 0 }}
+                    title="Cerrar aviso"
+                  >
+                    <X size={18} />
+                  </button>
+                )}
+              </div>
+            )}
             {success && <div style={{ marginBottom: '1rem', padding: '0.75rem', background: '#dcfce7', color: '#16a34a', borderRadius: '4px', fontSize: '0.875rem' }}>{success}</div>}
 
             <form onSubmit={handleSubmitDescuento} style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginBottom: '2rem' }}>
