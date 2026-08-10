@@ -35,7 +35,9 @@ def listar_tickets(
     db: Session = Depends(get_db),
     usuario_actual: models.seguridad.Usuario = Depends(obtener_usuario_actual)
 ):
-    es_propietario = usuario_actual.username.lower() in ["admin", "propietario", "superadmin", "cesar", "cesararias", "soporte"] or usuario_actual.rol_id == 1
+    email = getattr(usuario_actual, 'email', '') or ''
+    username = getattr(usuario_actual, 'username', '') or ''
+    es_propietario = email.lower() == "cealfarias@gmail.com" or username.lower() in ["cealfarias", "admin", "propietario", "superadmin", "cesar", "cesararias", "soporte"] or usuario_actual.rol_id == 1
     tickets = crud.soporte.obtener_tickets_usuario(db, empresa_id=usuario_actual.empresa_id, es_propietario=es_propietario)
     
     resultado = []
@@ -66,7 +68,9 @@ def enviar_mensaje(
     if not ticket:
         raise HTTPException(status_code=404, detail="Ticket no encontrado.")
 
-    es_propietario = usuario_actual.username.lower() in ["admin", "propietario", "superadmin", "cesar", "cesararias", "soporte"] or usuario_actual.rol_id == 1
+    email = getattr(usuario_actual, 'email', '') or ''
+    username = getattr(usuario_actual, 'username', '') or ''
+    es_propietario = email.lower() == "cealfarias@gmail.com" or username.lower() in ["cealfarias", "admin", "propietario", "superadmin", "cesar", "cesararias", "soporte"] or usuario_actual.rol_id == 1
     if not es_propietario and ticket.empresa_id != usuario_actual.empresa_id:
         raise HTTPException(status_code=403, detail="No tiene permisos para responder a este ticket.")
 

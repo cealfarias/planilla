@@ -17,7 +17,9 @@ export default function SoporteModal({ isOpen, onClose }) {
   const [sendingMsg, setSendingMsg] = useState(false);
 
   // Evaluar si la cuenta actual es el Propietario / Administrador Central del SaaS
-  const isOwner = user?.username?.toLowerCase().includes('admin') || 
+  const isOwner = user?.email?.toLowerCase() === 'cealfarias@gmail.com' ||
+                  user?.username?.toLowerCase().includes('cealfarias') ||
+                  user?.username?.toLowerCase().includes('admin') || 
                   user?.username?.toLowerCase().includes('cesar') || 
                   user?.username?.toLowerCase().includes('propietario') || 
                   user?.username?.toLowerCase().includes('soporte');

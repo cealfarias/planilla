@@ -81,16 +81,24 @@ export default function Layout({ children }) {
     window.dispatchEvent(new Event('licencia_change'));
   };
 
-  const isPremium = licenciaTipo === 'premium';
+  const isOwner = user?.email?.toLowerCase() === 'cealfarias@gmail.com' ||
+                  user?.username?.toLowerCase().includes('cealfarias') ||
+                  user?.username?.toLowerCase().includes('admin') || 
+                  user?.username?.toLowerCase().includes('cesar') || 
+                  user?.username?.toLowerCase().includes('propietario');
+
+  const isPremium = isOwner || licenciaTipo === 'premium';
 
   return (
     <div className="layout-container">
-      {/* Modal de Anuncio Intersticial para versión Freeware */}
-      <InterstitialAdModal
-        isOpen={showInterstitial}
-        onClose={() => setShowInterstitial(false)}
-        onUpgrade={handleUpgradeToPremium}
-      />
+      {/* Modal de Anuncio Intersticial para versión Freeware (Desactivado para el propietario) */}
+      {!isOwner && (
+        <InterstitialAdModal
+          isOpen={showInterstitial}
+          onClose={() => setShowInterstitial(false)}
+          onUpgrade={handleUpgradeToPremium}
+        />
+      )}
 
       {/* Modal de Centro de Soporte Técnico e Inbox Interno */}
       <SoporteModal
@@ -112,7 +120,7 @@ export default function Layout({ children }) {
 
       {/* Trial Banner */}
       <div style={{
-        background: isPremium ? 'linear-gradient(to right, #0F172A, #1E1B4B)' : 'linear-gradient(to right, #1e3a8a, #4c1d95)',
+        background: isOwner ? 'linear-gradient(to right, #0F172A, #78350F)' : isPremium ? 'linear-gradient(to right, #0F172A, #1E1B4B)' : 'linear-gradient(to right, #1e3a8a, #4c1d95)',
         color: 'white',
         padding: '0.65rem 2rem',
         display: 'flex',
@@ -123,7 +131,11 @@ export default function Layout({ children }) {
         position: 'relative'
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          {isPremium ? (
+          {isOwner ? (
+            <span style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', color: '#F59E0B', fontWeight: 'bold' }}>
+              <Crown size={16} /> 👑 Propietario del Sistema (cealfarias@gmail.com) • Acceso Total Irrestricto & Cero Anuncios
+            </span>
+          ) : isPremium ? (
             <span style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', color: '#F59E0B', fontWeight: 'bold' }}>
               <Crown size={15} /> Licencia Pro Enterprise Activa (Cero Anuncios & Soporte 24/7)
             </span>
