@@ -203,19 +203,20 @@ def notificar_contador(
     partida = obtener_partida_contable(periodo_id=periodo_id, forma_pago="TRANSFERENCIA", db=db, usuario_actual=usuario_actual)
 
     mensaje_texto = (
-        f"📑 *PARTIDA CONTABLE DE PLANILLA LISTA - {partida['periodo_codigo']}*\n\n"
-        f"Estimado Contador, la partida contable por Doble Entrada de la planilla correspondientes al período {partida['periodo_codigo']} ha sido generada exitosamente:\n\n"
-        f"▫️ *Total Cargos (Debe):* ${partida['total_debe']:,.2f}\n"
-        f"▫️ *Total Abonos (Haber):* ${partida['total_haber']:,.2f}\n"
-        f"▫️ *Estado:* {'✅ CUADRADO (PRINCIPIO DE DOBLE ENTRADA)' if partida['cuadrado'] else '⚠️ REVISAR'}\n\n"
-        f"Las partidas agrupadas por Administración, Ventas y Costos se encuentran disponibles en la plataforma para su integración contable."
+        f"📢 *AVISO DE PAGO DE PLANILLA A CONTABILIDAD - {partida['periodo_codigo']}*\n\n"
+        f"Estimado Contador, le informamos que la Planilla de Sueldos correspondiente al período *{partida['periodo_codigo']}* ya fue procesada y pagada por Recursos Humanos.\n\n"
+        f"Los montos del período agrupados por Gastos de Administración, Ventas y Costos están listos para que usted (como máxima autoridad contable) elabore y valide la partida de diario de nómina:\n\n"
+        f"▫️ *Cargos Estimados (Debe):* ${partida['total_debe']:,.2f}\n"
+        f"▫️ *Abonos Estimados (Haber):* ${partida['total_haber']:,.2f}\n"
+        f"▫️ *Estado de Balance:* {'✅ CUADRADO (PRINCIPIO DE DOBLE ENTRADA)' if partida['cuadrado'] else '⚠️ REVISAR'}\n\n"
+        f"Los datos completos están disponibles en el módulo contable para su integración."
     )
 
     # Registrar Ticket en Inbox Interno del Propietario / Contador
     crud.soporte.crear_ticket_soporte(
         db=db,
         ticket_data=schemas.soporte.TicketSoporteCreate(
-            asunto=f"📊 PARTIDA CONTABLE LISTA: {partida['periodo_codigo']}",
+            asunto=f"📢 PLANILLA PAGADA - NOTIFICACIÓN A CONTABILIDAD: {partida['periodo_codigo']}",
             categoria="Consultoría Laboral",
             prioridad="Media",
             mensaje_inicial=mensaje_texto

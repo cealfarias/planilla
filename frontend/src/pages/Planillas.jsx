@@ -482,9 +482,9 @@ export default function Planillas() {
                         }}
                         className="btn"
                         style={{ backgroundColor: '#0F172A', color: 'white', border: 'none', padding: '0.5rem 0.85rem', fontSize: '0.8rem', display: 'inline-flex', alignItems: 'center', gap: '0.35rem', fontWeight: '600', borderRadius: '6px', cursor: 'pointer', boxShadow: '0 2px 6px rgba(15, 23, 42, 0.25)' }}
-                        title="Generar Asiento / Partida Contable por Doble Entrada"
+                        title="Notificar pago de planilla a Contabilidad para elaboración de partida"
                       >
-                        <BookOpen size={15} /> 📊 Partida Contable
+                        <BookOpen size={15} /> 📢 Notificar Pago a Contabilidad
                       </button>
                     </div>
                   )}

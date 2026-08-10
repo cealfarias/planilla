@@ -91,14 +91,14 @@ export default function PartidaContableModal({ isOpen, onClose, periodoId, codig
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                 <h3 style={{ margin: 0, fontSize: '1.15rem', fontWeight: 'bold' }}>
-                  Asiento / Partida Contable por Doble Entrada
+                  Datos de Planilla Pagada para Elaboración de Partida Contable
                 </h3>
                 <span style={{ fontSize: '0.7rem', backgroundColor: '#DCFCE7', color: '#15803D', fontWeight: 'bold', padding: '0.15rem 0.55rem', borderRadius: '999px' }}>
-                  {codigoPeriodo || 'PLANILLA'}
+                  {codigoPeriodo || 'PLANILLA PAGADA'}
                 </span>
               </div>
               <p style={{ margin: 0, fontSize: '0.75rem', color: '#94A3B8' }}>
-                Clasificación por Departamentos (Administración, Ventas, Costos) y principio de partida doble.
+                Recursos Humanos notifica el pago del período. La validación final de la partida corresponde al Contador.
               </p>
             </div>
           </div>
