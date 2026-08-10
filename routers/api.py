@@ -8,6 +8,7 @@ from routers.empresa import router as empresa_router
 from routers.vacaciones import router as vacaciones_router
 from routers.soporte import router as soporte_router
 from routers.contabilidad import router as contabilidad_router
+from routers.exportaciones_oficiales import router as exportaciones_router
 
 # Enrutador maestro para la API de datos puros
 api_router = APIRouter(prefix="/api/v1")
@@ -22,3 +23,4 @@ api_router.include_router(empresa_router)
 api_router.include_router(vacaciones_router)
 api_router.include_router(soporte_router)
 api_router.include_router(contabilidad_router)
+api_router.include_router(exportaciones_router)

@@ -363,5 +363,55 @@ export const api = {
       headers: { Authorization: `Bearer ${token}` }
     });
     return handleResponse(response);
+  },
+
+  downloadISSS: async (periodoId) => {
+    const token = localStorage.getItem("token");
+    const response = await fetch(`${API_URL}/api/v1/exportaciones/isss-txt?periodo_id=${periodoId}`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    if (!response.ok) throw new Error("Error generando archivo ISSS");
+    return await response.blob();
+  },
+
+  downloadAFP: async (periodoId) => {
+    const token = localStorage.getItem("token");
+    const response = await fetch(`${API_URL}/api/v1/exportaciones/afp-csv?periodo_id=${periodoId}`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    if (!response.ok) throw new Error("Error generando archivo AFP");
+    return await response.blob();
+  },
+
+  downloadPagoMasivo: async (periodoId, banco = "BANCO_AGRICOLA") => {
+    const token = localStorage.getItem("token");
+    const response = await fetch(`${API_URL}/api/v1/exportaciones/pago-masivo-banco?periodo_id=${periodoId}&banco=${banco}`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    if (!response.ok) throw new Error("Error generando archivo de Pago Masivo");
+    return await response.blob();
+  },
+
+  downloadF910: async (anio = 2026) => {
+    const token = localStorage.getItem("token");
+    const response = await fetch(`${API_URL}/api/v1/exportaciones/f910-hacienda?anio=${anio}`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    if (!response.ok) throw new Error("Error generando informe F-910");
+    return await response.blob();
+  },
+
+  calcularFiniquitoPDF: async (data) => {
+    const token = localStorage.getItem("token");
+    const response = await fetch(`${API_URL}/api/v1/exportaciones/liquidar-finiquito`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`
+      },
+      body: JSON.stringify(data)
+    });
+    if (!response.ok) throw new Error("Error calculando finiquito");
+    return await response.blob();
   }
 };

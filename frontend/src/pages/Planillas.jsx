@@ -4,9 +4,10 @@ import ProgramacionVacacionesModal from '../components/ProgramacionVacacionesMod
 import HistorialPlanillasModal from '../components/HistorialPlanillasModal';
 import FinanzasModal from '../components/FinanzasModal';
 import PartidaContableModal from '../components/PartidaContableModal';
+import ExportacionesOficialesModal from '../components/ExportacionesOficialesModal';
 import ToastContainer from '../components/ToastContainer';
 import { notificarBoletaWhatsApp, notificarBoletaEmail } from '../utils/notificaciones';
-import { CreditCard, CheckCircle, AlertTriangle, Calculator, FileText, Download, Calendar, Send, Mail, History, RefreshCw, DollarSign, BookOpen } from 'lucide-react';
+import { CreditCard, CheckCircle, AlertTriangle, Calculator, FileText, Download, Calendar, Send, Mail, History, RefreshCw, DollarSign, BookOpen, FileSpreadsheet } from 'lucide-react';
 
 export default function Planillas() {
   const [loading, setLoading] = useState(false);
@@ -14,6 +15,7 @@ export default function Planillas() {
   const [showVacacionesModal, setShowVacacionesModal] = useState(false);
   const [showHistoryModal, setShowHistoryModal] = useState(false);
   const [showPartidaModal, setShowPartidaModal] = useState(false);
+  const [showExportacionesModal, setShowExportacionesModal] = useState(false);
   const [selectedPeriodoId, setSelectedPeriodoId] = useState(null);
   const [selectedPeriodoCodigo, setSelectedPeriodoCodigo] = useState('');
   const [selectedEmpleadoFinanzas, setSelectedEmpleadoFinanzas] = useState(null);
@@ -486,6 +488,19 @@ export default function Planillas() {
                       >
                         <BookOpen size={15} /> 📢 Notificar Pago a Contabilidad
                       </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSelectedPeriodoId(currentPeriodoId);
+                          setSelectedPeriodoCodigo(activePlanillaInfo?.codigo_periodo || formData.codigo_periodo);
+                          setShowExportacionesModal(true);
+                        }}
+                        className="btn"
+                        style={{ backgroundColor: '#D97706', color: 'white', border: 'none', padding: '0.5rem 0.85rem', fontSize: '0.8rem', display: 'inline-flex', alignItems: 'center', gap: '0.35rem', fontWeight: '600', borderRadius: '6px', cursor: 'pointer', boxShadow: '0 2px 6px rgba(217, 119, 6, 0.25)' }}
+                        title="Generar archivos para ISSS, AFP, Pagos Masivos Bancarios, F-910 y Finiquitos"
+                      >
+                        <FileSpreadsheet size={15} /> 📄 Exportaciones Oficiales ($10/mes)
+                      </button>
                     </div>
                   )}
                 </div>
@@ -691,6 +706,14 @@ export default function Planillas() {
       <PartidaContableModal
         isOpen={showPartidaModal}
         onClose={() => setShowPartidaModal(false)}
+        periodoId={selectedPeriodoId}
+        codigoPeriodo={selectedPeriodoCodigo}
+      />
+
+      {/* Modal de Exportaciones Oficiales & Reportes Avanzados */}
+      <ExportacionesOficialesModal
+        isOpen={showExportacionesModal}
+        onClose={() => setShowExportacionesModal(false)}
         periodoId={selectedPeriodoId}
         codigoPeriodo={selectedPeriodoCodigo}
       />
