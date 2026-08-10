@@ -49,10 +49,40 @@ export default function Planillas() {
       setLoadingPlanillas(true);
       const data = await api.getPlanillas();
       setPlanillas(data);
+
+      // Si existe una planilla ABIERTA (estado 'Abierta'), la aperturamos/cargamos automáticamente
+      if (data && data.length > 0) {
+        const planillaAbierta = data.find(p => p.estado === 'Abierta');
+        if (planillaAbierta) {
+          cargarPlanillaSilenciosa(planillaAbierta);
+        }
+      }
     } catch (err) {
       console.error(err);
     } finally {
       setLoadingPlanillas(false);
+    }
+  };
+
+  const cargarPlanillaSilenciosa = async (p) => {
+    const datosPlanilla = {
+      codigo_periodo: p.codigo_periodo,
+      tipo_planilla: p.tipo_planilla,
+      fecha_inicio: p.fecha_inicio,
+      fecha_fin: p.fecha_fin,
+    };
+
+    setFormData(datosPlanilla);
+    setActivePlanillaInfo(p);
+
+    try {
+      setLoading(true);
+      const result = await api.procesarPlanilla(datosPlanilla);
+      setSuccessData(result);
+    } catch (err) {
+      console.error("Error al aperturar automática planilla abierta:", err);
+    } finally {
+      setLoading(false);
     }
   };
 
