@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, NavLink, useNavigate, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Users, Settings, LogOut, Building, CreditCard, ChevronLeft, ChevronRight, Menu, Crown, Sparkles, Headphones, Scale } from 'lucide-react';
+import { LayoutDashboard, Users, Settings, LogOut, Building, CreditCard, ChevronLeft, ChevronRight, Menu, Crown, Sparkles, Headphones, Scale, Grid } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../services/api';
 import AdBanner from './AdBanner';
@@ -8,6 +8,7 @@ import InterstitialAdModal from './InterstitialAdModal';
 import SoporteModal from './SoporteModal';
 import AsesoriaLegalModal from './AsesoriaLegalModal';
 import PasarelaPagoModal from './PasarelaPagoModal';
+import EcosistemaAppsModal from './EcosistemaAppsModal';
 import './Layout.css';
 
 export default function Layout({ children }) {
@@ -27,6 +28,7 @@ export default function Layout({ children }) {
   const [showSoporteModal, setShowSoporteModal] = useState(false);
   const [showAsesoriaLegalModal, setShowAsesoriaLegalModal] = useState(false);
   const [showPasarelaModal, setShowPasarelaModal] = useState(false);
+  const [showEcosistemaModal, setShowEcosistemaModal] = useState(false);
   const [prevPath, setPrevPath] = useState(location.pathname);
 
   useEffect(() => {
@@ -234,6 +236,17 @@ export default function Layout({ children }) {
               <Scale size={20} style={{ color: '#D97706' }} />
               <span className="hide-on-collapse" style={{ color: '#D97706', fontWeight: '600' }}>Asesoría Legal (CSJ)</span>
             </button>
+
+            <button
+              type="button"
+              onClick={() => setShowEcosistemaModal(true)}
+              title="Ecosistema de Aplicaciones Empresariales SaaS"
+              className="nav-link"
+              style={{ background: 'transparent', border: 'none', width: '100%', cursor: 'pointer', textAlign: 'left' }}
+            >
+              <Grid size={20} style={{ color: '#10B981' }} />
+              <span className="hide-on-collapse" style={{ color: '#10B981', fontWeight: 'bold' }}>Ecosistema Apps</span>
+            </button>
           </nav>
 
           {!collapsed && !isPremium && (
@@ -298,6 +311,12 @@ export default function Layout({ children }) {
           </div>
         </main>
       </div>
+
+      {/* Modal Ecosistema de Aplicaciones SaaS */}
+      <EcosistemaAppsModal
+        isOpen={showEcosistemaModal}
+        onClose={() => setShowEcosistemaModal(false)}
+      />
     </div>
   );
 }
