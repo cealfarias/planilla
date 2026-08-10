@@ -68,6 +68,51 @@ class BoletaPagoPDF(FPDF):
         self.cell(0, 10, f"Generado el {datetime.now().strftime('%Y-%m-%d %H:%M')}", align="C")
 
 
+def obtener_desglose_boleta(boleta, periodo):
+    """Calcula las deducciones exactas respetando el tipo de planilla (Vacaciones, Aguinaldo, Mensual/Quincenal)."""
+    tipo = str(periodo.tipo_planilla.value if hasattr(periodo.tipo_planilla, 'value') else periodo.tipo_planilla).upper()
+    salario_ingreso = float(boleta.salario_base_aplicado)
+    
+    if 'VACACIONES' in tipo:
+        return {
+            "concepto_ingreso": "Prima de Vacaciones (30% Recargo Art. 177 C.T.)",
+            "isss": 0.00,
+            "afp": 0.00,
+            "renta": 0.00,
+            "prestamos": 0.00,
+            "etiqueta_isss": "Cotización ISSS (Exento Prima Vacacional)",
+            "etiqueta_afp": "Cotización AFP (Exento Prima Vacacional)",
+            "etiqueta_renta": "Impuesto Sobre la Renta (ISR - Exento)"
+        }
+    elif 'AGUINALDO' in tipo:
+        exceso_renta = max(0.00, salario_ingreso - 730.00)
+        renta = round(exceso_renta * 0.10, 2) if exceso_renta > 0 else 0.00
+        return {
+            "concepto_ingreso": "Prima de Aguinaldo Anual (Art. 196-198 C.T.)",
+            "isss": 0.00,
+            "afp": 0.00,
+            "renta": renta,
+            "prestamos": 0.00,
+            "etiqueta_isss": "Cotización ISSS (Exento Art. 202 C.T.)",
+            "etiqueta_afp": "Cotización AFP (Exento Art. 202 C.T.)",
+            "etiqueta_renta": "Impuesto Sobre la Renta (Exento hasta $730.00)"
+        }
+    else:
+        resultado = calcular_liquidacion_boleta(salario_ingreso)
+        prestamos = float(boleta.total_descuentos) - resultado["total_deducciones"]
+        if prestamos < 0: prestamos = 0.00
+        return {
+            "concepto_ingreso": "Salario Base Devengado",
+            "isss": resultado["deduccion_isss"],
+            "afp": resultado["deduccion_afp"],
+            "renta": resultado["deduccion_isr"],
+            "prestamos": round(prestamos, 2),
+            "etiqueta_isss": "Retención ISSS (3.00%)",
+            "etiqueta_afp": "Retención AFP (7.25%)",
+            "etiqueta_renta": "Impuesto Sobre la Renta (ISR)"
+        }
+
+
 def generar_planilla_general_pdf(empresa, periodo, boletas, db: Session) -> bytes:
     pdf = ReportePlanilla(empresa, periodo)
     pdf.add_page()
@@ -82,13 +127,12 @@ def generar_planilla_general_pdf(empresa, periodo, boletas, db: Session) -> byte
     import models
     for boleta in boletas:
         empleado = db.query(models.recursos_humanos.Empleado).filter(models.recursos_humanos.Empleado.id == boleta.empleado_id).first()
+        desglose = obtener_desglose_boleta(boleta, periodo)
         
-        resultado_calculo = calcular_liquidacion_boleta(float(boleta.salario_base_aplicado))
-        isss = resultado_calculo["deduccion_isss"]
-        afp = resultado_calculo["deduccion_afp"]
-        renta = resultado_calculo["deduccion_isr"]
-        prestamos = float(boleta.total_descuentos) - resultado_calculo["total_deducciones"]
-        if prestamos < 0: prestamos = 0
+        isss = desglose["isss"]
+        afp = desglose["afp"]
+        renta = desglose["renta"]
+        prestamos = desglose["prestamos"]
         
         pdf.cell(10, 8, str(empleado.id), border=1, align="C")
         nombre_trunc = f"{empleado.primer_nombre} {empleado.primer_apellido}"[:22]
@@ -140,7 +184,7 @@ def generar_boletas_pago_pdf(empresa, periodo, boletas, db: Session) -> bytes:
     import models
     for boleta in boletas:
         empleado = db.query(models.recursos_humanos.Empleado).filter(models.recursos_humanos.Empleado.id == boleta.empleado_id).first()
-        resultado_calculo = calcular_liquidacion_boleta(float(boleta.salario_base_aplicado))
+        desglose = obtener_desglose_boleta(boleta, periodo)
         
         pdf.add_page()
         pdf.set_font("helvetica", "B", 16)
@@ -151,15 +195,15 @@ def generar_boletas_pago_pdf(empresa, periodo, boletas, db: Session) -> bytes:
         
         pdf.ln(10)
         pdf.set_font("helvetica", "B", 11)
-        pdf.cell(0, 8, f"Datos del Empleado:", new_x="LMARGIN", new_y="NEXT")
+        pdf.cell(0, 8, "Datos del Empleado:", new_x="LMARGIN", new_y="NEXT")
         pdf.set_font("helvetica", "", 10)
-        pdf.cell(50, 6, f"Nombre Completo:")
+        pdf.cell(50, 6, "Nombre Completo:")
         pdf.cell(0, 6, f"{empleado.primer_nombre} {empleado.primer_apellido}", new_x="LMARGIN", new_y="NEXT")
-        pdf.cell(50, 6, f"DUI:")
+        pdf.cell(50, 6, "DUI:")
         pdf.cell(0, 6, f"{empleado.dui or 'N/A'}", new_x="LMARGIN", new_y="NEXT")
-        pdf.cell(50, 6, f"Días Trabajados:")
+        pdf.cell(50, 6, "Días Trabajados:")
         pdf.cell(0, 6, f"{boleta.dias_trabajados}", new_x="LMARGIN", new_y="NEXT")
-        pdf.cell(50, 6, f"Salario Base Mensual:")
+        pdf.cell(50, 6, "Salario Base Mensual:")
         pdf.cell(0, 6, f"${boleta.salario_base_aplicado:.2f}", new_x="LMARGIN", new_y="NEXT")
         
         pdf.ln(5)
@@ -173,27 +217,28 @@ def generar_boletas_pago_pdf(empresa, periodo, boletas, db: Session) -> bytes:
         
         pdf.set_font("helvetica", "", 10)
         
-        pdf.cell(130, 8, "Salario Base", border=1)
+        # Ingreso
+        pdf.cell(130, 8, desglose["concepto_ingreso"], border=1)
         pdf.cell(30, 8, f"${boleta.salario_base_aplicado:.2f}", border=1, align="R")
         pdf.cell(30, 8, "", border=1, align="R", new_x="LMARGIN", new_y="NEXT")
         
-        pdf.cell(130, 8, "Retención ISSS", border=1)
+        # Descuentos de Ley (ISSS, AFP, Renta)
+        pdf.cell(130, 8, desglose["etiqueta_isss"], border=1)
         pdf.cell(30, 8, "", border=1, align="R")
-        pdf.cell(30, 8, f"${resultado_calculo['deduccion_isss']:.2f}", border=1, align="R", new_x="LMARGIN", new_y="NEXT")
+        pdf.cell(30, 8, f"${desglose['isss']:.2f}", border=1, align="R", new_x="LMARGIN", new_y="NEXT")
         
-        pdf.cell(130, 8, "Retención AFP", border=1)
+        pdf.cell(130, 8, desglose["etiqueta_afp"], border=1)
         pdf.cell(30, 8, "", border=1, align="R")
-        pdf.cell(30, 8, f"${resultado_calculo['deduccion_afp']:.2f}", border=1, align="R", new_x="LMARGIN", new_y="NEXT")
+        pdf.cell(30, 8, f"${desglose['afp']:.2f}", border=1, align="R", new_x="LMARGIN", new_y="NEXT")
         
-        pdf.cell(130, 8, "Impuesto Sobre la Renta (ISR)", border=1)
+        pdf.cell(130, 8, desglose["etiqueta_renta"], border=1)
         pdf.cell(30, 8, "", border=1, align="R")
-        pdf.cell(30, 8, f"${resultado_calculo['deduccion_isr']:.2f}", border=1, align="R", new_x="LMARGIN", new_y="NEXT")
+        pdf.cell(30, 8, f"${desglose['renta']:.2f}", border=1, align="R", new_x="LMARGIN", new_y="NEXT")
         
-        prestamos = float(boleta.total_descuentos) - resultado_calculo["total_deducciones"]
-        if prestamos > 0.01:
+        if desglose["prestamos"] > 0.01:
             pdf.cell(130, 8, "Préstamos / Embargos Activos", border=1)
             pdf.cell(30, 8, "", border=1, align="R")
-            pdf.cell(30, 8, f"${prestamos:.2f}", border=1, align="R", new_x="LMARGIN", new_y="NEXT")
+            pdf.cell(30, 8, f"${desglose['prestamos']:.2f}", border=1, align="R", new_x="LMARGIN", new_y="NEXT")
                 
         # Resumen
         pdf.set_font("helvetica", "B", 10)
