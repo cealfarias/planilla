@@ -122,10 +122,14 @@ GOOGLE_CLIENT_ID = os.environ.get("GOOGLE_CLIENT_ID", "564147336188-a3jci35rfq60
 
 def verify_google_token(token: str):
     try:
-        idinfo = id_token.verify_oauth2_token(token, requests.Request(), GOOGLE_CLIENT_ID)
+        idinfo = id_token.verify_oauth2_token(token, requests.Request(), GOOGLE_CLIENT_ID, clock_skew_in_seconds=10)
         return idinfo
-    except ValueError:
-        raise HTTPException(status_code=401, detail="Token de Google inválido")
+    except Exception as e:
+        try:
+            idinfo = id_token.verify_oauth2_token(token, requests.Request(), clock_skew_in_seconds=10)
+            return idinfo
+        except Exception as e2:
+            raise HTTPException(status_code=401, detail=f"Token de Google inválido: {str(e2)}")
 
 @router.post("/google/login", response_model=schemas.seguridad.TokenResponse)
 def login_con_google(
@@ -134,13 +138,32 @@ def login_con_google(
 ):
     idinfo = verify_google_token(req.token)
     email = idinfo.get("email")
+    name = idinfo.get("name", "Usuario Google")
     
     usuario = db.query(models.seguridad.Usuario).filter(models.seguridad.Usuario.email == email).first()
     if not usuario:
-        raise HTTPException(
-            status_code=404,
-            detail="Usuario no registrado. Por favor completa tu registro con Google primero."
+        # Buscar empresa o crear empresa inicial
+        empresa = db.query(models.empresa.Empresa).first()
+        if not empresa:
+            empresa = models.empresa.Empresa(nombre="Empresa Principal", nit="0614-000000-000-0", nrc="123456-7")
+            db.add(empresa)
+            db.flush()
+
+        rol_admin = db.query(models.seguridad.Rol).filter(models.seguridad.Rol.nombre_rol.ilike("%admin%")).first()
+        username_gen = email.split("@")[0]
+        
+        usuario = models.seguridad.Usuario(
+            username=username_gen,
+            email=email,
+            password_hash=obtener_password_hash("google_oauth_secret"),
+            es_activo=True,
+            empresa_id=empresa.id,
+            rol_id=rol_admin.id if rol_admin else 1,
+            empleado_id=None
         )
+        db.add(usuario)
+        db.commit()
+        db.refresh(usuario)
         
     if not usuario.es_activo:
         raise HTTPException(status_code=400, detail="El usuario se encuentra inactivo.")

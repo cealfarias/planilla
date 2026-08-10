@@ -139,14 +139,14 @@ export default function Login() {
               <hr style={{ flex: 1, borderTop: '1px solid #e2e8f0', margin: 0 }} />
             </div>
 
-            <div style={{ display: 'flex', justifyContent: 'center' }}>
+            <div style={{ display: 'flex', justifyContent: 'center', width: '100%', minHeight: '44px' }}>
               <GoogleLogin
                 onSuccess={async (credentialResponse) => {
                   try {
                     setLoading(true);
                     setError(null);
                     const data = await api.loginWithGoogle(credentialResponse.credential);
-                    login({ username: data.username }, data.access_token);
+                    login({ username: data.username, email: data.email }, data.access_token);
                     navigate('/');
                   } catch (err) {
                     setError(err.message);
@@ -155,12 +155,14 @@ export default function Login() {
                   }
                 }}
                 onError={() => {
-                  setError('Fallo la autenticación con Google');
+                  setError('Falló la autenticación con Google');
                 }}
                 theme="outline"
                 size="large"
-                width="100%"
+                width="350"
                 text="continue_with"
+                locale="es"
+                shape="rectangular"
               />
             </div>
           </form>
