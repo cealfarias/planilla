@@ -446,6 +446,7 @@ export default function Planillas() {
           {/* TABLA DE BOLETAS GENERADAS */}
           {(() => {
             const isVacaciones = formData.tipo_planilla === 'Vacaciones' || (activePlanillaInfo && (activePlanillaInfo.tipo_planilla === 'Vacaciones' || activePlanillaInfo.tipo_planilla === 'VACACIONES'));
+            const isAguinaldo = formData.tipo_planilla === 'Aguinaldo' || (activePlanillaInfo && (activePlanillaInfo.tipo_planilla === 'Aguinaldo' || activePlanillaInfo.tipo_planilla === 'AGUINALDO'));
 
             return (
               <>
@@ -470,6 +471,28 @@ export default function Planillas() {
                   </div>
                 )}
 
+                {isAguinaldo && (
+                  <div style={{
+                    backgroundColor: '#FEF3C7',
+                    border: '1px solid #FDE68A',
+                    color: '#92400E',
+                    padding: '0.85rem 1.25rem',
+                    borderRadius: '8px',
+                    marginBottom: '1rem',
+                    fontSize: '0.85rem',
+                    lineHeight: '1.45'
+                  }}>
+                    <div style={{ fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.25rem', fontSize: '0.9rem' }}>
+                      <FileText size={16} /> Base Legal Aplicada - Planilla de Aguinaldo (Código de Trabajo & Ley de Impuesto sobre la Renta):
+                    </div>
+                    <ul style={{ margin: 0, paddingLeft: '1.2rem' }}>
+                      <li><strong>Art. 196 y 197 C.T.:</strong> Prima de gratificación anual por antigüedad: <strong>15 días</strong> (1 a &lt;3 años), <strong>19 días</strong> (3 a &lt;10 años) o <strong>21 días</strong> (10+ años de servicio). Proporcional si &lt;1 año (Art. 198 C.T.).</li>
+                      <li><strong>Art. 200 C.T.:</strong> Período legal de pago obligatorio entre el <strong>12 y el 20 de diciembre</strong> de cada año.</li>
+                      <li><strong>Art. 202 C.T. y Decreto ISR:</strong> Exento al 100% de cotizaciones <strong>ISSS y AFP</strong>. Exento del Impuesto sobre la Renta (ISR) hasta <strong>2 Salarios Mínimos ($730.00)</strong>.</li>
+                    </ul>
+                  </div>
+                )}
+
                 <div style={{ overflowX: 'auto', backgroundColor: 'white', borderRadius: '8px', border: '1px solid #BBF7D0', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
                   <thead>
@@ -481,6 +504,15 @@ export default function Planillas() {
                           <th style={{ padding: '0.75rem 0.5rem' }}>Salario 15 Días (Vacación)</th>
                           <th style={{ padding: '0.75rem 0.5rem', color: '#15803D', fontWeight: 'bold' }}>Prima Vacación (30%)</th>
                           <th style={{ padding: '0.75rem 0.5rem' }}>Total Desc.</th>
+                          <th style={{ padding: '0.75rem 0.5rem' }}>Líquido a Pagar</th>
+                        </>
+                      ) : isAguinaldo ? (
+                        <>
+                          <th style={{ padding: '0.75rem 0.5rem' }}>Salario Nominal Mensual</th>
+                          <th style={{ padding: '0.75rem 0.5rem' }}>Antigüedad Laboral</th>
+                          <th style={{ padding: '0.75rem 0.5rem' }}>Días Aguinaldo</th>
+                          <th style={{ padding: '0.75rem 0.5rem', color: '#B45309', fontWeight: 'bold' }}>Monto Aguinaldo</th>
+                          <th style={{ padding: '0.75rem 0.5rem' }}>Renta (Exceso &gt; $730)</th>
                           <th style={{ padding: '0.75rem 0.5rem' }}>Líquido a Pagar</th>
                         </>
                       ) : (
@@ -499,7 +531,7 @@ export default function Planillas() {
                   </thead>
                   <tbody>
                     {successData.desglose?.map((item, idx) => {
-                      const salarioMensual = item.salario_mensual || (item.salario_base / 0.15);
+                      const salarioMensual = item.salario_mensual || item.salario_base;
                       const salario15dias = item.salario_quincena || (salarioMensual / 2);
                       const prima30 = item.prima_vacaciones || item.salario_base;
 
@@ -514,6 +546,15 @@ export default function Planillas() {
                               <td style={{ padding: '0.65rem 0.5rem', fontWeight: 'bold', color: '#15803D' }}>${prima30.toFixed(2)}</td>
                               <td style={{ padding: '0.65rem 0.5rem', color: '#64748b' }}>$0.00</td>
                               <td style={{ padding: '0.65rem 0.5rem', fontWeight: 'bold', color: '#16a34a' }}>${prima30.toFixed(2)}</td>
+                            </>
+                          ) : isAguinaldo ? (
+                            <>
+                              <td style={{ padding: '0.65rem 0.5rem', color: '#475569' }}>${salarioMensual.toFixed(2)}</td>
+                              <td style={{ padding: '0.65rem 0.5rem', color: '#475569' }}>{item.antiguedad_texto || '1.0 años'}</td>
+                              <td style={{ padding: '0.65rem 0.5rem', fontWeight: '500' }}>{item.dias_aguinaldo || 15} días</td>
+                              <td style={{ padding: '0.65rem 0.5rem', fontWeight: 'bold', color: '#B45309' }}>${item.salario_base.toFixed(2)}</td>
+                              <td style={{ padding: '0.65rem 0.5rem', color: item.renta > 0 ? '#dc2626' : '#64748b' }}>${item.renta.toFixed(2)}</td>
+                              <td style={{ padding: '0.65rem 0.5rem', fontWeight: 'bold', color: '#16a34a' }}>${item.liquido_recibir.toFixed(2)}</td>
                             </>
                           ) : (
                             <>

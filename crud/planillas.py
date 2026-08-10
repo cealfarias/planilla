@@ -1,6 +1,7 @@
 from sqlalchemy.orm import Session
 from sqlalchemy import extract
 from decimal import Decimal
+from datetime import date
 import models
 import schemas
 
@@ -368,6 +369,9 @@ def procesar_planilla_mensual(db: Session, periodo: schemas.planillas.PeriodoPla
             
         salario_base_contrato = Decimal(str(contrato.salario_base))
         
+        dias_ag_val = 0
+        antiguedad_txt = ""
+
         # 1. Determinar el Ingreso Devengado Nominal según el Tipo de Planilla
         if 'VACACIONES' in tipo_nombre:
             # Planilla de Vacaciones: 30% de recargo legal sobre los 15 días de descanso (salario_base / 2 * 0.30)
@@ -384,12 +388,17 @@ def procesar_planilla_mensual(db: Session, periodo: schemas.planillas.PeriodoPla
             f_inicio_c = contrato.fecha_inicio
             f_hoy = date.today()
             antiguedad_dias = (f_hoy - f_inicio_c).days if f_inicio_c else 365
+            anos_ant = round(antiguedad_dias / 365.25, 1)
+            antiguedad_txt = f"{anos_ant} años" if anos_ant >= 1 else f"{antiguedad_dias} días"
+
             if antiguedad_dias >= 3650:
                 dias_ag = 21
             elif antiguedad_dias >= 1095:
                 dias_ag = 19
             else:
                 dias_ag = 15
+
+            dias_ag_val = dias_ag
             salario_ingreso = round((salario_base_contrato / Decimal('30.0')) * Decimal(str(dias_ag)), 2)
             dias_trab = dias_ag
             aplica_prestamos = False
@@ -480,6 +489,8 @@ def procesar_planilla_mensual(db: Session, periodo: schemas.planillas.PeriodoPla
             "salario_quincena": float(round(salario_base_contrato / Decimal('2.0'), 2)),
             "salario_base": float(salario_ingreso),
             "prima_vacaciones": float(salario_ingreso),
+            "dias_aguinaldo": dias_ag_val,
+            "antiguedad_texto": antiguedad_txt,
             "isss": float(isss),
             "afp": float(afp),
             "renta": float(renta),
