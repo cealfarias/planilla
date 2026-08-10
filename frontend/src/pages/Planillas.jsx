@@ -3,15 +3,19 @@ import { api } from '../services/api';
 import ProgramacionVacacionesModal from '../components/ProgramacionVacacionesModal';
 import HistorialPlanillasModal from '../components/HistorialPlanillasModal';
 import FinanzasModal from '../components/FinanzasModal';
+import PartidaContableModal from '../components/PartidaContableModal';
 import ToastContainer from '../components/ToastContainer';
 import { notificarBoletaWhatsApp, notificarBoletaEmail } from '../utils/notificaciones';
-import { CreditCard, CheckCircle, AlertTriangle, Calculator, FileText, Download, Calendar, Send, Mail, History, RefreshCw, DollarSign } from 'lucide-react';
+import { CreditCard, CheckCircle, AlertTriangle, Calculator, FileText, Download, Calendar, Send, Mail, History, RefreshCw, DollarSign, BookOpen } from 'lucide-react';
 
 export default function Planillas() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [showVacacionesModal, setShowVacacionesModal] = useState(false);
   const [showHistoryModal, setShowHistoryModal] = useState(false);
+  const [showPartidaModal, setShowPartidaModal] = useState(false);
+  const [selectedPeriodoId, setSelectedPeriodoId] = useState(null);
+  const [selectedPeriodoCodigo, setSelectedPeriodoCodigo] = useState('');
   const [selectedEmpleadoFinanzas, setSelectedEmpleadoFinanzas] = useState(null);
 
   const [toasts, setToasts] = useState([]);
@@ -469,6 +473,19 @@ export default function Planillas() {
                       >
                         <Download size={15} /> Reporte General PDF
                       </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSelectedPeriodoId(currentPeriodoId);
+                          setSelectedPeriodoCodigo(activePlanillaInfo?.codigo_periodo || formData.codigo_periodo);
+                          setShowPartidaModal(true);
+                        }}
+                        className="btn"
+                        style={{ backgroundColor: '#0F172A', color: 'white', border: 'none', padding: '0.5rem 0.85rem', fontSize: '0.8rem', display: 'inline-flex', alignItems: 'center', gap: '0.35rem', fontWeight: '600', borderRadius: '6px', cursor: 'pointer', boxShadow: '0 2px 6px rgba(15, 23, 42, 0.25)' }}
+                        title="Generar Asiento / Partida Contable por Doble Entrada"
+                      >
+                        <BookOpen size={15} /> 📊 Partida Contable
+                      </button>
                     </div>
                   )}
                 </div>
@@ -669,6 +686,14 @@ export default function Planillas() {
           </p>
         </div>
       )}
+
+      {/* Modal de Asiento / Partida Contable por Doble Entrada */}
+      <PartidaContableModal
+        isOpen={showPartidaModal}
+        onClose={() => setShowPartidaModal(false)}
+        periodoId={selectedPeriodoId}
+        codigoPeriodo={selectedPeriodoCodigo}
+      />
     </div>
   );
 }

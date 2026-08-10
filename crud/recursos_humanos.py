@@ -58,6 +58,10 @@ def crear_empleado(db: Session, empleado: schemas.empleado.EmpleadoCreate, empre
         dui_distrito_expedicion=empleado.dui_distrito_expedicion,
         dui_fecha_expedicion=empleado.dui_fecha_expedicion,
         puesto_id=empleado.puesto_id,
+        banco_nombre=getattr(empleado, 'banco_nombre', None),
+        numero_cuenta_bancaria=getattr(empleado, 'numero_cuenta_bancaria', None),
+        departamento_costo=getattr(empleado, 'departamento_costo', 'Administrativo') or 'Administrativo',
+        foto_url_base64=getattr(empleado, 'foto_url_base64', None),
         estado="Activo"
     )
     

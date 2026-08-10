@@ -346,5 +346,22 @@ export const api = {
       headers: { Authorization: `Bearer ${token}` }
     });
     return handleResponse(response);
+  },
+
+  getPartidaContable: async (periodoId, formaPago = "TRANSFERENCIA") => {
+    const token = localStorage.getItem("token");
+    const response = await fetch(`${API_URL}/api/v1/contabilidad/planillas/${periodoId}/partida-contable?forma_pago=${formaPago}`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    return handleResponse(response);
+  },
+
+  notificarContador: async (periodoId, telefonoContador = "") => {
+    const token = localStorage.getItem("token");
+    const response = await fetch(`${API_URL}/api/v1/contabilidad/planillas/${periodoId}/notificar-contador?telefono_contador=${telefonoContador}`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    return handleResponse(response);
   }
 };

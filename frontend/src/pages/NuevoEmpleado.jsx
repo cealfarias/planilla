@@ -400,6 +400,17 @@ export default function NuevoEmpleado() {
                     <option value="Servicios Profesionales">Servicios Profesionales</option>
                   </select>
                 </div>
+                <div className="form-group">
+                  <label style={{ fontWeight: 'bold', color: '#1E293B' }}>📊 Departamento Contable *</label>
+                  <select name="departamento_costo" required value={formData.departamento_costo || 'Administrativo'} onChange={handleChange} className="form-input" style={{ fontWeight: 'bold', color: '#2563EB' }}>
+                    <option value="Administrativo">Gastos de Administración (Personal Administrativo)</option>
+                    <option value="Ventas">Gastos de Ventas (Comercial / Ventas)</option>
+                    <option value="Costos">Costos de Producción / Directos (Operativo)</option>
+                  </select>
+                  <small style={{ color: '#64748b', fontSize: '0.75rem', display: 'block', marginTop: '0.2rem' }}>
+                    Define la cuenta contable de doble entrada (Gastos de Admón, Ventas o Costos) a la que se cargará su salario.
+                  </small>
+                </div>
               </div>
 
               <h4 style={{ marginTop: '1.5rem', marginBottom: '1rem', color: '#1e293b', borderBottom: '1px solid var(--border)', paddingBottom: '0.5rem' }}>

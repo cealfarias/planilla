@@ -77,6 +77,7 @@ class PeriodoPlanilla(Base):
     fecha_inicio = Column(Date, nullable=False)
     fecha_fin = Column(Date, nullable=False)
     estado = Column(Enum(EstadoPlanillaEnum), default=EstadoPlanillaEnum.ABIERTA)
+    forma_pago = Column(String(30), default="TRANSFERENCIA", nullable=True) # TRANSFERENCIA, EFECTIVO, CHEQUE
     fecha_procesamiento = Column(DateTime, nullable=True)
 
 class NovedadPlanilla(Base):

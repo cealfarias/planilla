@@ -73,6 +73,7 @@ export default function Empleados() {
               <th style={{ padding: '0.85rem 0.5rem', textAlign: 'center' }}>Fotografía</th>
               <th style={{ padding: '0.85rem 0.5rem' }}>Nombre Completo</th>
               <th style={{ padding: '0.85rem 0.5rem' }}>Cargo</th>
+              <th style={{ padding: '0.85rem 0.5rem' }}>Dept. Contable</th>
               <th style={{ padding: '0.85rem 0.5rem' }}>Salario Base</th>
               <th style={{ padding: '0.85rem 0.5rem' }}>Estado</th>
               <th style={{ padding: '0.85rem 0.5rem', textAlign: 'right' }}>Acciones</th>
@@ -80,10 +81,10 @@ export default function Empleados() {
           </thead>
           <tbody>
             {loading ? (
-              <tr><td colSpan="6" style={{ padding: '2rem', textAlign: 'center' }}>Cargando datos...</td></tr>
+              <tr><td colSpan="7" style={{ padding: '2rem', textAlign: 'center' }}>Cargando datos...</td></tr>
             ) : empleados.length === 0 ? (
               <tr>
-                <td colSpan="6" style={{ padding: '3rem 1rem', textAlign: 'center', color: 'var(--text-muted)' }}>
+                <td colSpan="7" style={{ padding: '3rem 1rem', textAlign: 'center', color: 'var(--text-muted)' }}>
                   <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem' }}>
                     <Users size={32} style={{ opacity: 0.5 }} />
                     <p>No hay empleados registrados en esta empresa.</p>
@@ -93,7 +94,6 @@ export default function Empleados() {
             ) : (
               empleados.map((emp) => (
                 <tr key={emp.id} style={{ borderBottom: '1px solid var(--border)' }}>
-                  {/* FOTOGRAFIA EN LUGAR DE CODIGO */}
                   <td style={{ padding: '0.65rem 0.5rem', textAlign: 'center' }}>
                     {emp.foto_url_base64 || emp.foto_perfil ? (
                       <img 
@@ -118,7 +118,19 @@ export default function Empleados() {
                     {emp.primer_nombre} {emp.segundo_nombre || ''} {emp.primer_apellido} {emp.segundo_apellido || ''}
                   </td>
                   <td style={{ padding: '0.65rem 0.5rem' }}>
-                    {emp.contratos?.find(c => c.es_activo)?.cargo || 'Sin Asignar'}
+                    {emp.contratos && emp.contratos.length > 0 ? emp.contratos[0].cargo : 'Sin asignar'}
+                  </td>
+                  <td style={{ padding: '0.65rem 0.5rem' }}>
+                    <span style={{
+                      fontSize: '0.75rem',
+                      fontWeight: 'bold',
+                      padding: '0.15rem 0.55rem',
+                      borderRadius: '999px',
+                      backgroundColor: (emp.departamento_costo === 'Ventas') ? '#FCE7F3' : (emp.departamento_costo === 'Costos') ? '#FEF3C7' : '#DBEAFE',
+                      color: (emp.departamento_costo === 'Ventas') ? '#BE185D' : (emp.departamento_costo === 'Costos') ? '#B45309' : '#1E40AF'
+                    }}>
+                      📊 {emp.departamento_costo || 'Administrativo'}
+                    </span>
                   </td>
                   <td style={{ padding: '0.65rem 0.5rem', fontWeight: '500' }}>
                     ${(emp.contratos?.find(c => c.es_activo)?.salario_base || 0).toFixed(2)}

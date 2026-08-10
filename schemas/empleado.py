@@ -84,6 +84,7 @@ class EmpleadoBase(BaseModel):
     
     banco_nombre: Optional[str] = None
     numero_cuenta_bancaria: Optional[str] = None
+    departamento_costo: Optional[str] = "Administrativo"
     foto_url_base64: Optional[str] = None
     
     departamento_residencia: Optional[str] = None
@@ -109,6 +110,7 @@ class EmpleadoUpdate(BaseModel):
     estado: Optional[str] = Field(None, max_length=20)
     banco_nombre: Optional[str] = Field(None, max_length=100)
     numero_cuenta_bancaria: Optional[str] = Field(None, max_length=50)
+    departamento_costo: Optional[str] = Field(None, max_length=50)
     foto_url_base64: Optional[str] = None
     
     departamento_residencia: Optional[str] = Field(None, max_length=50)

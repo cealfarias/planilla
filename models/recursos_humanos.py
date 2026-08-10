@@ -36,9 +36,10 @@ class Empleado(Base):
     email_institucional = Column(String(100), unique=True, index=True, nullable=True)
     telefono = Column(String(20), nullable=True)
     
-    # DATOS BANCARIOS PARA TRANSFERENCIAS
+    # DATOS BANCARIOS Y CONTABILIDAD
     banco_nombre = Column(String(100), nullable=True)
     numero_cuenta_bancaria = Column(String(50), nullable=True)
+    departamento_costo = Column(String(50), default="Administrativo", nullable=True) # Administrativo, Ventas, Costos
     foto_url_base64 = Column(Text, nullable=True)
 
     estado = Column(String(20), default="Activo", nullable=False)
