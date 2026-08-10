@@ -384,23 +384,36 @@ def procesar_planilla_mensual(db: Session, periodo: schemas.planillas.PeriodoPla
             dias_trab = 15
             aplica_prestamos = True
         elif 'AGUINALDO' in tipo_nombre:
-            # Planilla de Aguinaldo: Días de ley según antigüedad (15, 19 o 21 días)
-            f_inicio_c = contrato.fecha_inicio
-            f_hoy = date.today()
-            antiguedad_dias = (f_hoy - f_inicio_c).days if f_inicio_c else 365
-            anos_ant = round(antiguedad_dias / 365.25, 1)
-            antiguedad_txt = f"{anos_ant} años" if anos_ant >= 1 else f"{antiguedad_dias} días"
+            # Planilla de Aguinaldo (Art. 196, 197, 198 C.T. El Salvador)
+            ano_corte = periodo.fecha_inicio.year if hasattr(periodo.fecha_inicio, 'year') else date.today().year
+            fecha_corte = date(ano_corte, 12, 12)
+            f_inicio_c = contrato.fecha_inicio or date(ano_corte, 1, 1)
+            
+            antiguedad_dias = (fecha_corte - f_inicio_c).days
+            if antiguedad_dias < 1:
+                antiguedad_dias = 1
+                
+            anos_exactos = antiguedad_dias / 365.0
+            
+            if antiguedad_dias >= 3650: # 10+ años
+                dias_base_ag = Decimal('21.0')
+                antiguedad_txt = f"{anos_exactos:.1f} años"
+            elif antiguedad_dias >= 1095: # 3 a <10 años
+                dias_base_ag = Decimal('19.0')
+                antiguedad_txt = f"{anos_exactos:.1f} años"
+            elif antiguedad_dias >= 365: # 1 a <3 años
+                dias_base_ag = Decimal('15.0')
+                antiguedad_txt = f"{anos_exactos:.1f} años"
+            else: # < 1 AÑO -> PROPORCIONAL DE LEY (Art. 198 CT)
+                # Días proporcionales = (dias_laborados / 365) * 15
+                dias_base_ag = (Decimal(str(antiguedad_dias)) / Decimal('365.0')) * Decimal('15.0')
+                antiguedad_txt = f"{antiguedad_dias} días (Prop. Art. 198)"
 
-            if antiguedad_dias >= 3650:
-                dias_ag = 21
-            elif antiguedad_dias >= 1095:
-                dias_ag = 19
-            else:
-                dias_ag = 15
-
-            dias_ag_val = dias_ag
-            salario_ingreso = round((salario_base_contrato / Decimal('30.0')) * Decimal(str(dias_ag)), 2)
-            dias_trab = dias_ag
+            salario_diario = salario_base_contrato / Decimal('30.0')
+            salario_ingreso = round(salario_diario * dias_base_ag, 2)
+            
+            dias_ag_val = round(float(dias_base_ag), 2)
+            dias_trab = max(1, int(dias_ag_val))
             aplica_prestamos = False
         else:
             # Planilla Ordinaria Mensual
