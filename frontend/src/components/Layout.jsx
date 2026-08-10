@@ -7,6 +7,7 @@ import AdBanner from './AdBanner';
 import InterstitialAdModal from './InterstitialAdModal';
 import SoporteModal from './SoporteModal';
 import AsesoriaLegalModal from './AsesoriaLegalModal';
+import PasarelaPagoModal from './PasarelaPagoModal';
 import './Layout.css';
 
 export default function Layout({ children }) {
@@ -25,6 +26,7 @@ export default function Layout({ children }) {
   const [showInterstitial, setShowInterstitial] = useState(false);
   const [showSoporteModal, setShowSoporteModal] = useState(false);
   const [showAsesoriaLegalModal, setShowAsesoriaLegalModal] = useState(false);
+  const [showPasarelaModal, setShowPasarelaModal] = useState(false);
   const [prevPath, setPrevPath] = useState(location.pathname);
 
   useEffect(() => {
@@ -102,6 +104,12 @@ export default function Layout({ children }) {
         onClose={() => setShowAsesoriaLegalModal(false)}
       />
 
+      {/* Pasarela de Pago Interna (Transfer365 Davivienda 69893101 CesarArias) */}
+      <PasarelaPagoModal
+        isOpen={showPasarelaModal}
+        onClose={() => setShowPasarelaModal(false)}
+      />
+
       {/* Trial Banner */}
       <div style={{
         background: isPremium ? 'linear-gradient(to right, #0F172A, #1E1B4B)' : 'linear-gradient(to right, #1e3a8a, #4c1d95)',
@@ -128,7 +136,7 @@ export default function Layout({ children }) {
         
         {!isPremium && (
           <button 
-            onClick={handleUpgradeToPremium}
+            onClick={() => setShowPasarelaModal(true)}
             style={{
               background: 'white',
               color: '#0f172a',
@@ -143,7 +151,7 @@ export default function Layout({ children }) {
               gap: '0.3rem'
             }}
           >
-            <Crown size={13} color="#D97706" /> Quitar Anuncios ($29.99/mes)
+            <Crown size={13} color="#D97706" /> Quitar Anuncios / Pago ($29.99/mes)
           </button>
         )}
       </div>

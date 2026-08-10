@@ -6,6 +6,7 @@ import {
 import { api } from '../services/api';
 import AdBanner from '../components/AdBanner';
 import AsesoriaLegalModal from '../components/AsesoriaLegalModal';
+import PasarelaPagoModal from '../components/PasarelaPagoModal';
 import './Dashboard.css';
 
 export default function Dashboard() {
@@ -17,6 +18,7 @@ export default function Dashboard() {
   });
   const [loading, setLoading] = useState(true);
   const [showAsesoriaModal, setShowAsesoriaModal] = useState(false);
+  const [showPasarelaModal, setShowPasarelaModal] = useState(false);
 
   useEffect(() => {
     cargarDatos();
@@ -93,7 +95,7 @@ export default function Dashboard() {
           <div style={{ display: 'flex', gap: '0.75rem' }}>
             {!isPremium ? (
               <button
-                onClick={() => cambiarLicencia('premium')}
+                onClick={() => setShowPasarelaModal(true)}
                 style={{
                   backgroundColor: '#16A34A',
                   color: 'white',
@@ -109,7 +111,7 @@ export default function Dashboard() {
                   boxShadow: '0 4px 12px rgba(22, 163, 74, 0.4)'
                 }}
               >
-                <Crown size={16} /> Actualizar a Premium ($29.99/mes)
+                <Crown size={16} /> Pagar & Actualizar a Premium ($29.99/mes)
               </button>
             ) : (
               <button
@@ -401,14 +403,19 @@ export default function Dashboard() {
                 Licencia Premium Activa
               </button>
             ) : (
-              <button onClick={() => cambiarLicencia('premium')} style={{ width: '100%', padding: '0.65rem', borderRadius: '6px', border: 'none', backgroundColor: '#16A34A', color: 'white', fontWeight: 'bold', fontSize: '0.85rem', cursor: 'pointer', boxShadow: '0 4px 12px rgba(22, 163, 74, 0.3)' }}>
-                Activar Licencia Pro Enterprise
+              <button onClick={() => setShowPasarelaModal(true)} style={{ width: '100%', padding: '0.65rem', borderRadius: '6px', border: 'none', backgroundColor: '#16A34A', color: 'white', fontWeight: 'bold', fontSize: '0.85rem', cursor: 'pointer', boxShadow: '0 4px 12px rgba(22, 163, 74, 0.3)' }}>
+                Pagar & Activar Licencia Pro Enterprise ($29.99)
               </button>
             )}
           </div>
 
         </div>
       </div>
+
+      <PasarelaPagoModal
+        isOpen={showPasarelaModal}
+        onClose={() => setShowPasarelaModal(false)}
+      />
 
     </div>
   );
