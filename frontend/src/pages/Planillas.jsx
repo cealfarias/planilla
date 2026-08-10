@@ -427,26 +427,58 @@ export default function Planillas() {
               </div>
             </div>
 
-            <div style={{ display: 'flex', gap: '2rem', textAlign: 'right' }}>
-              <div>
-                <span style={{ fontSize: '0.75rem', textTransform: 'uppercase', color: '#166534', fontWeight: 'bold' }}>Boletas Generadas</span>
-                <p style={{ fontSize: '1.5rem', fontWeight: 'bold', margin: 0, color: '#15803D' }}>
-                  {successData.estadisticas?.boletas_generadas || successData.desglose?.length || 0}
-                </p>
-              </div>
-              <div>
-                <span style={{ fontSize: '0.75rem', textTransform: 'uppercase', color: '#166534', fontWeight: 'bold' }}>Total Líquido a Pagar</span>
-                <p style={{ fontSize: '1.5rem', fontWeight: 'bold', margin: 0, color: '#15803D' }}>
-                  ${(successData.estadisticas?.total_liquido_pagar || 0).toFixed(2)}
-                </p>
-              </div>
-            </div>
+            {(() => {
+              const currentPeriodoId = successData.periodo?.id || activePlanillaInfo?.id || (planillas.find(p => p.codigo_periodo === formData.codigo_periodo)?.id);
+
+              return (
+                <div style={{ display: 'flex', gap: '1.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
+                  <div style={{ display: 'flex', gap: '1.5rem', textAlign: 'right' }}>
+                    <div>
+                      <span style={{ fontSize: '0.75rem', textTransform: 'uppercase', color: '#166534', fontWeight: 'bold' }}>Boletas Generadas</span>
+                      <p style={{ fontSize: '1.5rem', fontWeight: 'bold', margin: 0, color: '#15803D' }}>
+                        {successData.estadisticas?.boletas_generadas || successData.desglose?.length || 0}
+                      </p>
+                    </div>
+                    <div>
+                      <span style={{ fontSize: '0.75rem', textTransform: 'uppercase', color: '#166534', fontWeight: 'bold' }}>Total Líquido a Pagar</span>
+                      <p style={{ fontSize: '1.5rem', fontWeight: 'bold', margin: 0, color: '#15803D' }}>
+                        ${(successData.estadisticas?.total_liquido_pagar || 0).toFixed(2)}
+                      </p>
+                    </div>
+                  </div>
+
+                  {currentPeriodoId && (
+                    <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                      <button
+                        type="button"
+                        onClick={() => handleDownloadPDF(currentPeriodoId, 'boletas')}
+                        className="btn"
+                        style={{ backgroundColor: '#15803D', color: 'white', border: 'none', padding: '0.5rem 0.85rem', fontSize: '0.8rem', display: 'inline-flex', alignItems: 'center', gap: '0.35rem', fontWeight: '600', borderRadius: '6px', cursor: 'pointer' }}
+                        title="Descargar PDF con todas las boletas de pago de esta nómina"
+                      >
+                        <FileText size={15} /> Descargar Boletas PDF
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleDownloadPDF(currentPeriodoId, 'reporte')}
+                        className="btn btn-outline"
+                        style={{ borderColor: '#15803D', color: '#15803D', padding: '0.5rem 0.85rem', fontSize: '0.8rem', display: 'inline-flex', alignItems: 'center', gap: '0.35rem', fontWeight: '600', borderRadius: '6px', cursor: 'pointer' }}
+                        title="Descargar PDF del Reporte General Consolidado"
+                      >
+                        <Download size={15} /> Reporte General PDF
+                      </button>
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
           </div>
 
           {/* TABLA DE BOLETAS GENERADAS */}
           {(() => {
             const isVacaciones = formData.tipo_planilla === 'Vacaciones' || (activePlanillaInfo && (activePlanillaInfo.tipo_planilla === 'Vacaciones' || activePlanillaInfo.tipo_planilla === 'VACACIONES'));
             const isAguinaldo = formData.tipo_planilla === 'Aguinaldo' || (activePlanillaInfo && (activePlanillaInfo.tipo_planilla === 'Aguinaldo' || activePlanillaInfo.tipo_planilla === 'AGUINALDO'));
+            const currentPeriodoId = successData.periodo?.id || activePlanillaInfo?.id || (planillas.find(p => p.codigo_periodo === formData.codigo_periodo)?.id);
 
             return (
               <>
@@ -570,6 +602,17 @@ export default function Planillas() {
                           
                           <td style={{ padding: '0.65rem 0.5rem', textAlign: 'center' }}>
                             <div style={{ display: 'flex', justifyContent: 'center', gap: '0.35rem', flexWrap: 'wrap' }}>
+                              {currentPeriodoId && (
+                                <button 
+                                  type="button" 
+                                  onClick={() => handleDownloadPDF(currentPeriodoId, 'boletas')}
+                                  className="btn btn-outline"
+                                  style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem', color: '#15803D', borderColor: '#86EFAC', backgroundColor: '#F0FDF4', display: 'inline-flex', alignItems: 'center', gap: '0.2rem', fontWeight: '600' }}
+                                  title="Descargar Boleta de Pago en PDF"
+                                >
+                                  <FileText size={13} /> Boleta PDF
+                                </button>
+                              )}
                               <button 
                                 type="button" 
                                 onClick={() => handleAbrirFinanzasEmpleado(item)}
