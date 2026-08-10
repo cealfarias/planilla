@@ -293,11 +293,31 @@ export default function Planillas() {
           <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
             <button 
               type="button" 
+              onClick={() => setShowExportacionesModal(true)} 
+              className="btn" 
+              style={{ backgroundColor: '#D97706', color: 'white', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.85rem', boxShadow: '0 2px 8px rgba(217, 119, 6, 0.3)' }}
+              title="Descargas de ISSS TXT, AFP CSV, Pagos Bancarios, F-910 Hacienda y Finiquitos PDF"
+            >
+              <FileSpreadsheet size={16} /> 📄 Exportaciones Oficiales ($10/mes)
+            </button>
+
+            <button 
+              type="button" 
+              onClick={() => setShowPartidaModal(true)} 
+              className="btn" 
+              style={{ backgroundColor: '#0F172A', color: 'white', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.85rem', boxShadow: '0 2px 8px rgba(15, 23, 42, 0.3)' }}
+              title="Notificar pago de nómina y montos por departamento al Contador"
+            >
+              <BookOpen size={16} /> 📢 Notificar a Contabilidad
+            </button>
+
+            <button 
+              type="button" 
               onClick={() => setShowHistoryModal(true)} 
               className="btn btn-outline" 
               style={{ borderColor: '#1e3a8a', color: '#1e3a8a', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.85rem' }}
             >
-              <History size={16} /> 📜 Historial de Planillas ({planillas.length})
+              <History size={16} /> 📜 Historial ({planillas.length})
             </button>
 
             <button 
@@ -306,7 +326,7 @@ export default function Planillas() {
               className="btn btn-outline" 
               style={{ borderColor: '#2563eb', color: '#2563eb', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.85rem' }}
             >
-              <Calendar size={16} /> 📅 Programar Vacaciones (Art. 182)
+              <Calendar size={16} /> 📅 Vacaciones (Art. 182)
             </button>
           </div>
         </div>

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, NavLink, useNavigate, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Users, Settings, LogOut, Building, CreditCard, ChevronLeft, ChevronRight, Menu, Crown, Sparkles, Headphones, Scale, Grid } from 'lucide-react';
+import { LayoutDashboard, Users, Settings, LogOut, Building, CreditCard, ChevronLeft, ChevronRight, Menu, Crown, Sparkles, Headphones, Scale, Grid, FileSpreadsheet } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../services/api';
 import AdBanner from './AdBanner';
@@ -9,6 +9,7 @@ import SoporteModal from './SoporteModal';
 import AsesoriaLegalModal from './AsesoriaLegalModal';
 import PasarelaPagoModal from './PasarelaPagoModal';
 import EcosistemaAppsModal from './EcosistemaAppsModal';
+import ExportacionesOficialesModal from './ExportacionesOficialesModal';
 import './Layout.css';
 
 export default function Layout({ children }) {
@@ -29,6 +30,7 @@ export default function Layout({ children }) {
   const [showAsesoriaLegalModal, setShowAsesoriaLegalModal] = useState(false);
   const [showPasarelaModal, setShowPasarelaModal] = useState(false);
   const [showEcosistemaModal, setShowEcosistemaModal] = useState(false);
+  const [showExportacionesModal, setShowExportacionesModal] = useState(false);
   const [prevPath, setPrevPath] = useState(location.pathname);
 
   useEffect(() => {
@@ -239,6 +241,17 @@ export default function Layout({ children }) {
 
             <button
               type="button"
+              onClick={() => setShowExportacionesModal(true)}
+              title="Descargas Oficiales ISSS TXT, AFP CSV, Bancos, F-910 y Finiquitos"
+              className="nav-link"
+              style={{ background: 'transparent', border: 'none', width: '100%', cursor: 'pointer', textAlign: 'left' }}
+            >
+              <FileSpreadsheet size={20} style={{ color: '#F59E0B' }} />
+              <span className="hide-on-collapse" style={{ color: '#F59E0B', fontWeight: 'bold' }}>Exportaciones ($10/mes)</span>
+            </button>
+
+            <button
+              type="button"
               onClick={() => setShowEcosistemaModal(true)}
               title="Ecosistema de Aplicaciones Empresariales SaaS"
               className="nav-link"
@@ -316,6 +329,12 @@ export default function Layout({ children }) {
       <EcosistemaAppsModal
         isOpen={showEcosistemaModal}
         onClose={() => setShowEcosistemaModal(false)}
+      />
+
+      {/* Modal Módulo de Exportaciones Oficiales & Reportes Avanzados */}
+      <ExportacionesOficialesModal
+        isOpen={showExportacionesModal}
+        onClose={() => setShowExportacionesModal(false)}
       />
     </div>
   );
