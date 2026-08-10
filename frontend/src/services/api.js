@@ -303,5 +303,48 @@ export const api = {
     }
     
     return await response.blob();
+  },
+
+  getTicketsSoporte: async () => {
+    const token = localStorage.getItem("token");
+    const response = await fetch(`${API_URL}/api/v1/soporte/tickets`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    return handleResponse(response);
+  },
+
+  crearTicketSoporte: async (datos) => {
+    const token = localStorage.getItem("token");
+    const response = await fetch(`${API_URL}/api/v1/soporte/tickets`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(datos),
+    });
+    return handleResponse(response);
+  },
+
+  enviarMensajeTicket: async (ticketId, contenido) => {
+    const token = localStorage.getItem("token");
+    const response = await fetch(`${API_URL}/api/v1/soporte/tickets/${ticketId}/mensajes`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ contenido }),
+    });
+    return handleResponse(response);
+  },
+
+  cambiarEstadoTicket: async (ticketId, nuevoEstado) => {
+    const token = localStorage.getItem("token");
+    const response = await fetch(`${API_URL}/api/v1/soporte/tickets/${ticketId}/estado?nuevo_estado=${nuevoEstado}`, {
+      method: "PUT",
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    return handleResponse(response);
   }
 };

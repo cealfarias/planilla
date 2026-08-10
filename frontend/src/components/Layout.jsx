@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { Link, NavLink, useNavigate, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Users, Settings, LogOut, Building, CreditCard, ChevronLeft, ChevronRight, Menu, Crown, Sparkles } from 'lucide-react';
+import { LayoutDashboard, Users, Settings, LogOut, Building, CreditCard, ChevronLeft, ChevronRight, Menu, Crown, Sparkles, Headphones } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../services/api';
 import AdBanner from './AdBanner';
 import InterstitialAdModal from './InterstitialAdModal';
+import SoporteModal from './SoporteModal';
 import './Layout.css';
 
 export default function Layout({ children }) {
@@ -21,6 +22,7 @@ export default function Layout({ children }) {
   });
 
   const [showInterstitial, setShowInterstitial] = useState(false);
+  const [showSoporteModal, setShowSoporteModal] = useState(false);
   const [prevPath, setPrevPath] = useState(location.pathname);
 
   useEffect(() => {
@@ -84,6 +86,12 @@ export default function Layout({ children }) {
         isOpen={showInterstitial}
         onClose={() => setShowInterstitial(false)}
         onUpgrade={handleUpgradeToPremium}
+      />
+
+      {/* Modal de Centro de Soporte Técnico e Inbox Interno */}
+      <SoporteModal
+        isOpen={showSoporteModal}
+        onClose={() => setShowSoporteModal(false)}
       />
 
       {/* Trial Banner */}
@@ -175,6 +183,16 @@ export default function Layout({ children }) {
               <Settings size={20} />
               <span className="hide-on-collapse">Configuración</span>
             </NavLink>
+            <button
+              type="button"
+              onClick={() => setShowSoporteModal(true)}
+              title="Soporte Técnico & Inbox Interno"
+              className="nav-link"
+              style={{ background: 'transparent', border: 'none', width: '100%', cursor: 'pointer', textAlign: 'left' }}
+            >
+              <Headphones size={20} style={{ color: '#3B82F6' }} />
+              <span className="hide-on-collapse">Soporte Técnico</span>
+            </button>
           </nav>
 
           {!collapsed && !isPremium && (

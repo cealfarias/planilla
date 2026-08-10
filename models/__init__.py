@@ -5,3 +5,4 @@ from models.seguridad import *
 from models.organizacion import *
 from models.recursos_humanos import *
 from models.planillas import *
+from models.soporte import *
