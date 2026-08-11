@@ -23,13 +23,13 @@ function App() {
     <GoogleOAuthProvider clientId={clientId}>
       <CookieBanner />
       <Routes>
+        <Route path="/" element={<LandingPortal />} />
         <Route path="/portal" element={<LandingPortal />} />
         <Route path="/login" element={<Login />} />
         <Route path="/registro" element={<Registro />} />
       
       {/* Rutas protegidas que usarán el Layout con Sidebar */}
       <Route element={<ProtectedRoute />}>
-        <Route path="/" element={<Navigate to="/dashboard" replace />} />
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/empleados" element={<Empleados />} />
         <Route path="/empleados/nuevo" element={<NuevoEmpleado />} />
