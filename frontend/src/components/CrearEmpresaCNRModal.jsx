@@ -169,7 +169,7 @@ export default function CrearEmpresaCNRModal({ isOpen, onClose }) {
 
               <div style={{ display: 'flex', justifyContent: 'center', marginTop: '0.5rem' }}>
                 <button
-                  onClick={() => window.open('https://creaempresa.cnr.gob.sv', '_blank')}
+                  onClick={() => window.open('https://creaempresa.cnr.gob.sv/ServiciosOL/creaEmpresa.htm', '_blank')}
                   style={{
                     padding: '0.75rem 1.75rem',
                     backgroundColor: '#D97706',
@@ -185,7 +185,7 @@ export default function CrearEmpresaCNRModal({ isOpen, onClose }) {
                     boxShadow: '0 4px 12px rgba(217, 119, 6, 0.35)'
                   }}
                 >
-                  <Globe size={18} /> Ir al Portal Oficial CreaEmpresa CNR (creaempresa.cnr.gob.sv) <ExternalLink size={16} />
+                  <Globe size={18} /> Ir al Portal Oficial CreaEmpresa CNR (creaempresa.cnr.gob.sv/ServiciosOL/creaEmpresa.htm) <ExternalLink size={16} />
                 </button>
               </div>
             </div>
@@ -195,11 +195,11 @@ export default function CrearEmpresaCNRModal({ isOpen, onClose }) {
             <div style={{ display: 'flex', flexDirection: 'column', height: '520px', gap: '0.75rem' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#F8FAFC', padding: '0.6rem 1rem', borderRadius: '8px', border: '1px solid #E2E8F0' }}>
                 <span style={{ fontSize: '0.8rem', color: '#475569', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-                  <ShieldCheck size={16} color="#16A34A" /> Enlace Oficial del Gobierno de El Salvador: <strong>creaempresa.cnr.gob.sv</strong>
+                  <ShieldCheck size={16} color="#16A34A" /> Enlace Oficial del Gobierno de El Salvador: <strong>creaempresa.cnr.gob.sv/ServiciosOL/creaEmpresa.htm</strong>
                 </span>
 
                 <a
-                  href="https://creaempresa.cnr.gob.sv"
+                  href="https://creaempresa.cnr.gob.sv/ServiciosOL/creaEmpresa.htm"
                   target="_blank"
                   rel="noreferrer"
                   style={{ fontSize: '0.78rem', color: '#2563EB', fontWeight: 'bold', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}
@@ -209,7 +209,7 @@ export default function CrearEmpresaCNRModal({ isOpen, onClose }) {
               </div>
 
               <iframe
-                src="https://creaempresa.cnr.gob.sv"
+                src="https://creaempresa.cnr.gob.sv/ServiciosOL/creaEmpresa.htm"
                 title="CreaEmpresa CNR El Salvador"
                 style={{ width: '100%', height: '100%', border: '1px solid #CBD5E1', borderRadius: '10px' }}
               />

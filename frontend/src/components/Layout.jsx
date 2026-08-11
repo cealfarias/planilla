@@ -261,16 +261,10 @@ export default function Layout({ children }) {
               <span className="hide-on-collapse" style={{ color: '#D97706', fontWeight: '600' }}>Asesoría Legal (CSJ)</span>
             </button>
 
-            <button
-              type="button"
-              onClick={() => setShowCNRModal(true)}
-              title="Constitución Legal de Empresas en El Salvador (creaempresa.cnr.gob.sv)"
-              className="nav-link"
-              style={{ background: 'transparent', border: 'none', width: '100%', cursor: 'pointer', textAlign: 'left' }}
-            >
+            <NavLink to="/crear-empresa" title="Asesoría & Constitución de Empresa (CNR)" className={({isActive}) => isActive ? "nav-link active" : "nav-link"}>
               <Building size={20} style={{ color: '#3B82F6' }} />
-              <span className="hide-on-collapse" style={{ color: '#3B82F6', fontWeight: 'bold' }}>Registro Empresa (CNR)</span>
-            </button>
+              <span className="hide-on-collapse" style={{ color: '#3B82F6', fontWeight: 'bold' }}>Crear Empresa (CNR)</span>
+            </NavLink>
 
             <button
               type="button"

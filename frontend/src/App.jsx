@@ -14,6 +14,7 @@ import CookieBanner from './components/CookieBanner';
 import { GoogleOAuthProvider } from '@react-oauth/google';
 
 import LandingPortal from './pages/LandingPortal';
+import AsesoriaCreacionEmpresa from './pages/AsesoriaCreacionEmpresa';
 
 function App() {
   const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || "564147336188-a3jci35rfq609v8d7sbopsd3aeuec93c.apps.googleusercontent.com";
@@ -34,6 +35,7 @@ function App() {
         <Route path="/empleados/nuevo" element={<NuevoEmpleado />} />
         <Route path="/planillas" element={<Planillas />} />
         <Route path="/configuracion" element={<Configuracion />} />
+        <Route path="/crear-empresa" element={<AsesoriaCreacionEmpresa />} />
       </Route>
 
       {/* Fallback */}
