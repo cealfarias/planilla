@@ -6,7 +6,7 @@ import io
 import csv
 from datetime import datetime
 from database import get_db
-from routers.auth import obtener_usuario_actual
+from auth.dependencies import obtener_usuario_actual
 import models
 import schemas
 from fpdf import FPDF
