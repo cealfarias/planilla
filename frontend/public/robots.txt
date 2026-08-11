@@ -1,0 +1,11 @@
+# robots.txt para SaaS Planilla El Salvador (https://planilla.demiempresa.online)
+User-agent: *
+Allow: /
+Allow: /login
+Allow: /dashboard
+Allow: /colaboradores
+Allow: /planillas
+Allow: /configuracion
+
+# Sitemap oficial para indexación en Google Search Console
+Sitemap: https://planilla.demiempresa.online/sitemap.xml

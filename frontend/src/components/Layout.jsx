@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, NavLink, useNavigate, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Users, Settings, LogOut, Building, CreditCard, ChevronLeft, ChevronRight, Menu, Crown, Sparkles, Headphones, Scale, Grid, FileSpreadsheet } from 'lucide-react';
+import { LayoutDashboard, Users, Settings, LogOut, Building, CreditCard, ChevronLeft, ChevronRight, Menu, Crown, Sparkles, Headphones, Scale, Grid, FileSpreadsheet, Search, ExternalLink } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../services/api';
 import AdBanner from './AdBanner';
@@ -31,7 +31,14 @@ export default function Layout({ children }) {
   const [showPasarelaModal, setShowPasarelaModal] = useState(false);
   const [showEcosistemaModal, setShowEcosistemaModal] = useState(false);
   const [showExportacionesModal, setShowExportacionesModal] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
   const [prevPath, setPrevPath] = useState(location.pathname);
+
+  const handleGoogleSearch = (e) => {
+    e.preventDefault();
+    if (!searchQuery.trim()) return;
+    window.open(`https://www.google.com/search?q=${encodeURIComponent(searchQuery + " El Salvador")}`, '_blank');
+  };
 
   useEffect(() => {
     fetchEmpresa();
@@ -331,6 +338,44 @@ export default function Layout({ children }) {
                 </div>
               )}
             </div>
+
+            {/* Buscador Rápido Integrado de Google & Leyes de El Salvador */}
+            <form onSubmit={handleGoogleSearch} style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', backgroundColor: '#F1F5F9', padding: '0.25rem 0.6rem', borderRadius: '999px', border: '1px solid #CBD5E1' }}>
+              <Search size={15} color="#64748B" />
+              <input
+                type="text"
+                placeholder="Buscar ley, ISSS, AFP o Google..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                style={{
+                  border: 'none',
+                  backgroundColor: 'transparent',
+                  outline: 'none',
+                  fontSize: '0.8rem',
+                  width: '180px',
+                  color: '#0F172A'
+                }}
+              />
+              <button
+                type="submit"
+                style={{
+                  padding: '0.25rem 0.55rem',
+                  backgroundColor: '#2563EB',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '999px',
+                  fontSize: '0.725rem',
+                  fontWeight: 'bold',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.2rem'
+                }}
+                title="Buscar en Google"
+              >
+                Google <ExternalLink size={11} />
+              </button>
+            </form>
           </header>
           <div className="content-area">
             {children}
