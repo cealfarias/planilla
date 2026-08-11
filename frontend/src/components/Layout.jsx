@@ -10,6 +10,7 @@ import AsesoriaLegalModal from './AsesoriaLegalModal';
 import PasarelaPagoModal from './PasarelaPagoModal';
 import EcosistemaAppsModal from './EcosistemaAppsModal';
 import ExportacionesOficialesModal from './ExportacionesOficialesModal';
+import CrearEmpresaCNRModal from './CrearEmpresaCNRModal';
 import './Layout.css';
 
 export default function Layout({ children }) {
@@ -31,6 +32,7 @@ export default function Layout({ children }) {
   const [showPasarelaModal, setShowPasarelaModal] = useState(false);
   const [showEcosistemaModal, setShowEcosistemaModal] = useState(false);
   const [showExportacionesModal, setShowExportacionesModal] = useState(false);
+  const [showCNRModal, setShowCNRModal] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [prevPath, setPrevPath] = useState(location.pathname);
 
@@ -261,6 +263,17 @@ export default function Layout({ children }) {
 
             <button
               type="button"
+              onClick={() => setShowCNRModal(true)}
+              title="Constitución Legal de Empresas en El Salvador (creaempresa.cnr.gob.sv)"
+              className="nav-link"
+              style={{ background: 'transparent', border: 'none', width: '100%', cursor: 'pointer', textAlign: 'left' }}
+            >
+              <Building size={20} style={{ color: '#3B82F6' }} />
+              <span className="hide-on-collapse" style={{ color: '#3B82F6', fontWeight: 'bold' }}>Registro Empresa (CNR)</span>
+            </button>
+
+            <button
+              type="button"
               onClick={() => setShowExportacionesModal(true)}
               title="Descargas Oficiales ISSS TXT, AFP CSV, Bancos, F-910 y Finiquitos"
               className="nav-link"
@@ -393,6 +406,12 @@ export default function Layout({ children }) {
       <ExportacionesOficialesModal
         isOpen={showExportacionesModal}
         onClose={() => setShowExportacionesModal(false)}
+      />
+
+      {/* Modal Ventanilla Única CreaEmpresa CNR El Salvador */}
+      <CrearEmpresaCNRModal
+        isOpen={showCNRModal}
+        onClose={() => setShowCNRModal(false)}
       />
     </div>
   );
