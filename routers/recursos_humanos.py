@@ -153,12 +153,25 @@ def importar_empleados_masivo(
     for item in lista_empleados:
         try:
             dui = str(item.get("dui", "")).strip()
-            primer_nombre = str(item.get("primer_nombre", "")).strip()
-            primer_apellido = str(item.get("primer_apellido", "")).strip()
+            primer_nombre = str(item.get("primer_nombre", "") or item.get("nombres", "") or item.get("nombre", "")).strip()
+            primer_apellido = str(item.get("primer_apellido", "") or item.get("apellidos", "") or item.get("apellido", "")).strip()
 
-            if not dui or not primer_nombre or not primer_apellido:
+            # Si viene un nombre completo único
+            if not primer_nombre and item.get("nombre_completo"):
+                partes = str(item.get("nombre_completo")).strip().split()
+                if len(partes) >= 2:
+                    primer_nombre = partes[0]
+                    primer_apellido = partes[1]
+                elif len(partes) == 1:
+                    primer_nombre = partes[0]
+                    primer_apellido = "N/A"
+
+            if not dui or not primer_nombre:
                 omitidos += 1
                 continue
+
+            if not primer_apellido:
+                primer_apellido = "N/A"
 
             # Verificar duplicado
             existente = db.query(models.recursos_humanos.Empleado).filter(

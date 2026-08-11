@@ -151,10 +151,10 @@ export default function ImportarEmpleadosModal({ isOpen, onClose, onSuccess }) {
           <div style={{ padding: '1rem 1.25rem', backgroundColor: '#F0FDF4', border: '1px solid #BBF7D0', borderRadius: '10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
             <div>
               <h4 style={{ margin: 0, color: '#166534', fontSize: '0.9rem', fontWeight: 'bold' }}>
-                paso 1: Descarga la Plantilla Excel / CSV Oficial
+                Paso 1: Descarga la Plantilla Excel / CSV Oficial
               </h4>
               <p style={{ margin: 0, fontSize: '0.78rem', color: '#15803D' }}>
-                Descarga el archivo preformateado con las columnas de DUI, NIT, ISSS, AFP, Salario y Departamentos Contables.
+                Descarga el archivo preformateado con las columnas de <strong>Nombres, Apellidos, DUI, NIT, ISSS, AFP, Cargo, Salario Base y Departamento Contable</strong>.
               </p>
             </div>
 
