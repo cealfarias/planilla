@@ -413,5 +413,27 @@ export const api = {
     });
     if (!response.ok) throw new Error("Error calculando finiquito");
     return await response.blob();
+  },
+
+  downloadPlantillaEmpleados: async () => {
+    const token = localStorage.getItem("token");
+    const response = await fetch(`${API_URL}/api/v1/recursos-humanos/empleados/plantilla-csv`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    if (!response.ok) throw new Error("Error descargando plantilla CSV");
+    return await response.blob();
+  },
+
+  importarEmpleadosMasivo: async (listaEmpleados) => {
+    const token = localStorage.getItem("token");
+    const response = await fetch(`${API_URL}/api/v1/recursos-humanos/empleados/importar-masivo`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`
+      },
+      body: JSON.stringify(listaEmpleados)
+    });
+    return handleResponse(response);
   }
 };

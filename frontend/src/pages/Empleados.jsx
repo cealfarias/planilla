@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../services/api';
-import { Users, Plus, DollarSign, FileWarning, Edit } from 'lucide-react';
+import { Users, Plus, DollarSign, FileWarning, Edit, FileSpreadsheet } from 'lucide-react';
 import ContratarModal from '../components/ContratarModal';
 import FinanzasModal from '../components/FinanzasModal';
 import LiquidarModal from '../components/LiquidarModal';
 import EditarEmpleadoModal from '../components/EditarEmpleadoModal';
+import ImportarEmpleadosModal from '../components/ImportarEmpleadosModal';
 
 export default function Empleados() {
   const [empleados, setEmpleados] = useState([]);
@@ -15,6 +16,7 @@ export default function Empleados() {
   const [finanzasEmpleado, setFinanzasEmpleado] = useState(null);
   const [liquidarEmpleado, setLiquidarEmpleado] = useState(null);
   const [editarEmpleado, setEditarEmpleado] = useState(null);
+  const [showImportarModal, setShowImportarModal] = useState(false);
   const navigate = useNavigate();
 
   const fetchEmpleados = async () => {
@@ -59,9 +61,21 @@ export default function Empleados() {
           </h3>
           <p className="text-muted" style={{ margin: 0, fontSize: '0.85rem' }}>Gestiona el personal activo de la empresa.</p>
         </div>
-        <button onClick={() => navigate('/empleados/nuevo')} className="btn btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          <Plus size={16} /> Nuevo Empleado
-        </button>
+        <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+          <button 
+            type="button"
+            onClick={() => setShowImportarModal(true)} 
+            className="btn" 
+            style={{ backgroundColor: '#16A34A', color: 'white', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.85rem', boxShadow: '0 2px 8px rgba(22, 163, 74, 0.3)' }}
+            title="Importa 50+ colaboradores desde un archivo de Excel o CSV en 1 clic"
+          >
+            <FileSpreadsheet size={16} /> 📥 Importación Masiva Excel/CSV
+          </button>
+
+          <button onClick={() => navigate('/empleados/nuevo')} className="btn btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <Plus size={16} /> Nuevo Empleado
+          </button>
+        </div>
       </div>
       
       {error && <div style={{ color: '#DC2626', background: '#FEF2F2', padding: '1rem', borderRadius: '8px' }}>{error}</div>}
@@ -240,6 +254,16 @@ export default function Empleados() {
           }}
         />
       )}
+
+      {/* Modal de Importación Masiva Excel/CSV */}
+      <ImportarEmpleadosModal
+        isOpen={showImportarModal}
+        onClose={() => setShowImportarModal(false)}
+        onSuccess={() => {
+          setShowImportarModal(false);
+          fetchEmpleados();
+        }}
+      />
     </div>
   );
 }
