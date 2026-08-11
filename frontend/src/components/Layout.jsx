@@ -54,12 +54,23 @@ export default function Layout({ children }) {
     }
   }, [location.pathname, prevPath]);
 
+  const [mobileOpen, setMobileOpen] = useState(false);
+
+  useEffect(() => {
+    // Cerrar menú móvil al cambiar de ruta
+    setMobileOpen(false);
+  }, [location.pathname]);
+
   const toggleSidebar = () => {
-    setCollapsed(prev => {
-      const next = !prev;
-      localStorage.setItem('sidebar_collapsed', String(next));
-      return next;
-    });
+    if (window.innerWidth <= 768) {
+      setMobileOpen(prev => !prev);
+    } else {
+      setCollapsed(prev => {
+        const next = !prev;
+        localStorage.setItem('sidebar_collapsed', String(next));
+        return next;
+      });
+    }
   };
 
   const fetchEmpresa = async () => {
@@ -172,8 +183,11 @@ export default function Layout({ children }) {
       </div>
 
       <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
+        {/* Backdrop para menú móvil */}
+        {mobileOpen && <div className="mobile-overlay" onClick={() => setMobileOpen(false)} />}
+
         {/* Sidebar */}
-        <aside className={`sidebar ${collapsed ? 'collapsed' : ''}`}>
+        <aside className={`sidebar ${collapsed ? 'collapsed' : ''} ${mobileOpen ? 'mobile-open' : ''}`}>
           <div className="sidebar-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <div className="sidebar-logo">
               <Building size={24} className="logo-icon" />

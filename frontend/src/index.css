@@ -97,3 +97,45 @@ h1, h2, h3, h4 { color: var(--primary); font-weight: 600; }
   display: flex;
   min-height: 100vh;
 }
+
+/* =====================================================================
+   RESPONSIVE UX & TOUCH OPTIMIZATIONS FOR SMARTPHONES (< 768px)
+   ===================================================================== */
+@media (max-width: 768px) {
+  body {
+    font-size: 14px;
+  }
+
+  .card {
+    padding: 1rem !important;
+    border-radius: 12px !important;
+  }
+
+  /* Inputs & Touch Targets */
+  .form-input, .btn, button, select {
+    font-size: 16px !important; /* Previene auto-zoom en iOS Safari */
+    padding: 0.65rem 0.85rem !important;
+  }
+
+  /* Modales Flexibles en Pantalla Movil */
+  div[style*="position: fixed"] > div[style*="max-width"],
+  div[style*="position: fixed"] > div[style*="maxWidth"] {
+    max-width: 96% !important;
+    width: 96% !important;
+    max-height: 94vh !important;
+    border-radius: 14px !important;
+  }
+
+  /* Tablas con desplazamiento suave táctil */
+  table {
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Ajuste de flexbox en barras de acciones */
+  div[style*="display: flex"] {
+    flex-wrap: wrap;
+  }
+}
