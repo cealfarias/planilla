@@ -12,7 +12,7 @@ import schemas
 from fpdf import FPDF
 
 router = APIRouter(
-    prefix="/api/v1/exportaciones",
+    prefix="/exportaciones",
     tags=["Exportaciones Oficiales & Reportes Avanzados"]
 )
 

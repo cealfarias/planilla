@@ -9,7 +9,7 @@ import crud.soporte
 from datetime import datetime
 
 router = APIRouter(
-    prefix="/api/v1/contabilidad",
+    prefix="/contabilidad",
     tags=["Contabilidad & Partidas de Nómina"]
 )
 
