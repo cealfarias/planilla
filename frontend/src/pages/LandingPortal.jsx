@@ -38,13 +38,13 @@ export default function LandingPortal() {
     },
     {
       id: 'legal',
-      nombre: 'Legal Tech El Salvador (CSJ)',
-      badge: 'CERTIFICADO',
+      nombre: 'Constitución de Empresa & Legal Tech (CNR / CSJ)',
+      badge: 'TRÁMITE OFICIAL CNR',
       badgeColor: '#D97706',
-      descripcion: 'Asesoría legal laboral en vivo con abogados certificados CSJ, elaboración de contratos de trabajo y minutas legales.',
+      descripcion: 'Asesoría y trámite completo de constitución de sociedades (S.A. de C.V.) y comerciantes en el Registro de Comercio CNR (creaempresa.cnr.gob.sv) y Abogados CSJ.',
       icon: <Scale size={28} color="#D97706" />,
-      url: 'https://legal.demiempresa.online',
-      internalRoute: '/dashboard',
+      url: 'https://demiempresa.online/crear-empresa',
+      internalRoute: '/crear-empresa',
       gradient: 'linear-gradient(135deg, #78350F 0%, #D97706 100%)'
     },
     {
@@ -201,15 +201,35 @@ export default function LandingPortal() {
 
           <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem', flexWrap: 'wrap' }}>
             <button
+              onClick={() => navigate('/crear-empresa')}
+              style={{
+                padding: '0.85rem 1.85rem',
+                backgroundColor: '#D97706',
+                color: 'white',
+                border: 'none',
+                borderRadius: '10px',
+                fontWeight: 'bold',
+                fontSize: '0.95rem',
+                cursor: 'pointer',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                boxShadow: '0 10px 25px -5px rgba(217, 119, 6, 0.5)'
+              }}
+            >
+              🏛️ Crear & Registrar Empresa (CNR) <ArrowRight size={18} />
+            </button>
+
+            <button
               onClick={() => navigate(user ? '/dashboard' : '/registro')}
               style={{
-                padding: '0.85rem 2rem',
+                padding: '0.85rem 1.85rem',
                 backgroundColor: '#16A34A',
                 color: 'white',
                 border: 'none',
                 borderRadius: '10px',
                 fontWeight: 'bold',
-                fontSize: '1rem',
+                fontSize: '0.95rem',
                 cursor: 'pointer',
                 display: 'inline-flex',
                 alignItems: 'center',
@@ -217,7 +237,7 @@ export default function LandingPortal() {
                 boxShadow: '0 10px 25px -5px rgba(22, 163, 74, 0.5)'
               }}
             >
-              🚀 Comenzar Gratis Ahora <ArrowRight size={18} />
+              🚀 Acceder a SaaS Planilla <ArrowRight size={18} />
             </button>
           </div>
         </div>
