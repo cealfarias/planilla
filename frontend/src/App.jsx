@@ -13,6 +13,8 @@ import CookieBanner from './components/CookieBanner';
 
 import { GoogleOAuthProvider } from '@react-oauth/google';
 
+import LandingPortal from './pages/LandingPortal';
+
 function App() {
   const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || "564147336188-a3jci35rfq609v8d7sbopsd3aeuec93c.apps.googleusercontent.com";
   
@@ -20,8 +22,9 @@ function App() {
     <GoogleOAuthProvider clientId={clientId}>
       <CookieBanner />
       <Routes>
+        <Route path="/portal" element={<LandingPortal />} />
         <Route path="/login" element={<Login />} />
-      <Route path="/registro" element={<Registro />} />
+        <Route path="/registro" element={<Registro />} />
       
       {/* Rutas protegidas que usarán el Layout con Sidebar */}
       <Route element={<ProtectedRoute />}>
@@ -34,7 +37,7 @@ function App() {
       </Route>
 
       {/* Fallback */}
-      <Route path="*" element={<Navigate to="/" replace />} />
+      <Route path="*" element={<Navigate to="/portal" replace />} />
     </Routes>
     </GoogleOAuthProvider>
   );
