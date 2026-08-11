@@ -7,6 +7,7 @@ import csv
 from datetime import datetime
 from database import get_db
 from auth.dependencies import obtener_usuario_actual
+from pydantic import BaseModel
 import models
 import schemas
 from fpdf import FPDF
@@ -257,7 +258,7 @@ def exportar_f910_hacienda(
 # =====================================================================
 # 5. CÁLCULO DE LIQUIDACIÓN, INDEMNIZACIÓN Y FINIQUITO (ART. 58 C.T.)
 # =====================================================================
-class LiquidacionRequest(schemas.BaseModel):
+class LiquidacionRequest(BaseModel):
     empleado_id: int
     motivo: str = "Despido Injustificado" # Despido Injustificado, Renuncia Voluntaria
     fecha_salida: str
