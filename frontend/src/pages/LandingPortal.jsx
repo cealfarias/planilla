@@ -185,7 +185,7 @@ export default function LandingPortal() {
       }}>
         <div style={{ maxWidth: '900px', margin: '0 auto' }}>
           <span style={{ fontSize: '0.8rem', backgroundColor: 'rgba(59, 130, 246, 0.15)', color: '#60A5FA', border: '1px solid rgba(96, 165, 250, 0.3)', padding: '0.35rem 1rem', borderRadius: '999px', fontWeight: 'bold', letterSpacing: '0.5px' }}>
-            🇸🇻 SISTEMA ÚNICO UNIFICADO PARA EMPRESAS EN EL SALVADOR
+            🇸🇻 LA SUITE DIGITAL INTEGRADA PARA EMPRESAS EN EL SALVADOR
           </span>
 
           <h1 style={{ fontSize: '3rem', fontWeight: '800', margin: '1.25rem 0 1rem 0', lineHeight: '1.15', color: 'white' }}>
