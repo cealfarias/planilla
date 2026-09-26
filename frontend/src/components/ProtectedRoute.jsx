@@ -5,9 +5,10 @@ import Layout from './Layout';
 
 export default function ProtectedRoute() {
   const { user } = useAuth();
+  const token = localStorage.getItem('token');
 
-  if (!user) {
-    // Redirigir al login si no hay sesión
+  if (!user && !token) {
+    // Redirigir al login si no hay token ni usuario autenticado
     return <Navigate to="/login" replace />;
   }
 

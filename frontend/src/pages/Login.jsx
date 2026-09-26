@@ -51,7 +51,9 @@ export default function Login() {
     try {
       const data = await api.login(username, password);
       login({ username: username }, data.access_token);
-      navigate('/dashboard', { replace: true });
+      setTimeout(() => {
+        navigate('/dashboard', { replace: true });
+      }, 600);
     } catch (err) {
       setError(err.message || 'Credenciales inválidas');
       setLoading(false);
