@@ -14,16 +14,9 @@ if SQLALCHEMY_DATABASE_URL.startswith("postgres://"):
 elif SQLALCHEMY_DATABASE_URL.startswith("postgresql://") and "+" not in SQLALCHEMY_DATABASE_URL.split("://")[0]:
     SQLALCHEMY_DATABASE_URL = SQLALCHEMY_DATABASE_URL.replace("postgresql://", "postgresql+psycopg2://", 1)
 
-is_render = os.getenv("RENDER") == "true" or os.path.exists("/opt/render")
-
-# Detección y conversión automática a Red Interna de Render
-if is_render and "@dpg-" in SQLALCHEMY_DATABASE_URL:
-    SQLALCHEMY_DATABASE_URL = re.sub(r'(@dpg-[a-z0-9]+-[a-z0-9]+)\.[a-z0-9-]+\.render\.com', r'\1', SQLALCHEMY_DATABASE_URL)
-    SQLALCHEMY_DATABASE_URL = re.sub(r'(@dpg-[a-z0-9]+-[a-z0-9]+)\.render\.com', r'\1', SQLALCHEMY_DATABASE_URL)
-
 is_sqlite = SQLALCHEMY_DATABASE_URL.startswith("sqlite")
 
-if not is_sqlite and "sslmode" not in SQLALCHEMY_DATABASE_URL and not is_render:
+if not is_sqlite and "sslmode" not in SQLALCHEMY_DATABASE_URL:
     delimiter = "&" if "?" in SQLALCHEMY_DATABASE_URL else "?"
     SQLALCHEMY_DATABASE_URL += f"{delimiter}sslmode=require"
 
