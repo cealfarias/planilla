@@ -7,19 +7,6 @@ import logging
 
 load_dotenv()
 
-import sys
-
-def check_is_render() -> bool:
-    return (
-        str(os.getenv("RENDER", "")).lower() in ("true", "1", "yes")
-        or bool(os.getenv("RENDER_SERVICE_ID"))
-        or bool(os.getenv("RENDER_INSTANCE_ID"))
-        or os.path.exists("/opt/render")
-        or "/opt/render" in sys.executable
-        or "/opt/render" in os.getenv("VIRTUAL_ENV", "")
-        or "/opt/render" in os.getenv("PATH", "")
-    )
-
 def get_formatted_database_url(raw_url: str = None) -> str:
     if not raw_url:
         raw_url = os.getenv("DATABASE_URL", "sqlite:///./planillas.db")
@@ -31,19 +18,10 @@ def get_formatted_database_url(raw_url: str = None) -> str:
         url = url.replace("postgresql://", "postgresql+psycopg2://", 1)
     
     is_sqlite = url.startswith("sqlite")
-    is_render = check_is_render()
     
-    if not is_sqlite:
-        if is_render and "@dpg-" in url:
-            url = re.sub(r'(@dpg-[^.:/@]+)\.[^:/@]*render\.com', r'\1', url)
-            url = re.sub(r'[?&]sslmode=[^&]+', '', url)
-            url = url.replace("?&", "?")
-            if url.endswith("?"):
-                url = url[:-1]
-        else:
-            if "sslmode" not in url:
-                delimiter = "&" if "?" in url else "?"
-                url += f"{delimiter}sslmode=require"
+    if not is_sqlite and "sslmode" not in url:
+        delimiter = "&" if "?" in url else "?"
+        url += f"{delimiter}sslmode=require"
                 
     return url
 
