@@ -7,7 +7,7 @@ from models.enums import (
 )
 
 class ParametroGlobal(Base):
-    __tablename__ = "pla_parametro_global"
+    __tablename__ = "rrhh_pla_parametro_global"
     id = Column(Integer, primary_key=True, index=True)
     clave = Column(String, unique=True, nullable=False)
     valor = Column(Numeric(10, 4), nullable=False)
@@ -15,7 +15,7 @@ class ParametroGlobal(Base):
     descripcion = Column(Text, nullable=True)
 
 class TramoRenta(Base):
-    __tablename__ = "pla_tramo_renta"
+    __tablename__ = "rrhh_pla_tramo_renta"
     id = Column(Integer, primary_key=True, index=True)
     periodo_pago = Column(Enum(PeriodoRentaEnum), nullable=False)
     tramo_numero = Column(Integer, nullable=False)
@@ -26,7 +26,7 @@ class TramoRenta(Base):
     cuota_fija = Column(Numeric(10, 2), nullable=False)
 
 class ConceptoPlanilla(Base):
-    __tablename__ = "pla_concepto"
+    __tablename__ = "rrhh_pla_concepto"
     id = Column(Integer, primary_key=True, index=True)
     codigo = Column(String, unique=True, nullable=False)
     descripcion = Column(String, nullable=False)
@@ -37,9 +37,9 @@ class ConceptoPlanilla(Base):
     es_sistema = Column(Boolean, default=False)
 
 class PrestamoEmpleado(Base):
-    __tablename__ = "pla_prestamo_empleado"
+    __tablename__ = "rrhh_pla_prestamo_empleado"
     id = Column(Integer, primary_key=True, index=True)
-    empleado_id = Column(Integer, ForeignKey("empleados.id"), nullable=False)
+    empleado_id = Column(Integer, ForeignKey("rrhh_empleados.id"), nullable=False)
     tipo_prestamo = Column(Enum(TipoPrestamoEnum), nullable=False)
     monto_total = Column(Numeric(10, 2), nullable=False)
     saldo_pendiente = Column(Numeric(10, 2), nullable=False)
@@ -51,27 +51,27 @@ class PrestamoEmpleado(Base):
     fecha_registro = Column(DateTime, default=datetime.utcnow)
 
 class BeneficioRecurrente(Base):
-    __tablename__ = "pla_beneficio_recurrente"
+    __tablename__ = "rrhh_pla_beneficio_recurrente"
     id = Column(Integer, primary_key=True, index=True)
-    empleado_id = Column(Integer, ForeignKey("empleados.id"), nullable=False)
-    concepto_id = Column(Integer, ForeignKey("pla_concepto.id"), nullable=False)
+    empleado_id = Column(Integer, ForeignKey("rrhh_empleados.id"), nullable=False)
+    concepto_id = Column(Integer, ForeignKey("rrhh_pla_concepto.id"), nullable=False)
     monto_asignado = Column(Numeric(10, 2), nullable=False)
     estado = Column(Boolean, default=True)
 
 class RegistroComision(Base):
-    __tablename__ = "pla_registro_comision"
+    __tablename__ = "rrhh_pla_registro_comision"
     id = Column(Integer, primary_key=True, index=True)
-    empleado_id = Column(Integer, ForeignKey("empleados.id"), nullable=False)
-    periodo_planilla_id = Column(Integer, ForeignKey("pla_periodo.id"), nullable=False)
-    concepto_id = Column(Integer, ForeignKey("pla_concepto.id"), nullable=False)
+    empleado_id = Column(Integer, ForeignKey("rrhh_empleados.id"), nullable=False)
+    periodo_planilla_id = Column(Integer, ForeignKey("rrhh_pla_periodo.id"), nullable=False)
+    concepto_id = Column(Integer, ForeignKey("rrhh_pla_concepto.id"), nullable=False)
     monto_generado = Column(Numeric(10, 2), nullable=False)
     origen_calculo = Column(Text, nullable=False)
     fecha_registro = Column(DateTime, default=datetime.utcnow)
 
 class PeriodoPlanilla(Base):
-    __tablename__ = "pla_periodo"
+    __tablename__ = "rrhh_pla_periodo"
     id = Column(Integer, primary_key=True, index=True)
-    empresa_id = Column(Integer, ForeignKey("empresas.id"), nullable=False)
+    empresa_id = Column(Integer, ForeignKey("rrhh_empresas.id"), nullable=False)
     codigo_periodo = Column(String, unique=True, nullable=False)
     tipo_planilla = Column(Enum(TipoPlanillaEnum), nullable=False)
     fecha_inicio = Column(Date, nullable=False)
@@ -81,19 +81,19 @@ class PeriodoPlanilla(Base):
     fecha_procesamiento = Column(DateTime, nullable=True)
 
 class NovedadPlanilla(Base):
-    __tablename__ = "pla_novedad"
+    __tablename__ = "rrhh_pla_novedad"
     id = Column(Integer, primary_key=True, index=True)
-    empleado_id = Column(Integer, ForeignKey("empleados.id"), nullable=False)
-    periodo_planilla_id = Column(Integer, ForeignKey("pla_periodo.id"), nullable=False)
-    concepto_id = Column(Integer, ForeignKey("pla_concepto.id"), nullable=False)
+    empleado_id = Column(Integer, ForeignKey("rrhh_empleados.id"), nullable=False)
+    periodo_planilla_id = Column(Integer, ForeignKey("rrhh_pla_periodo.id"), nullable=False)
+    concepto_id = Column(Integer, ForeignKey("rrhh_pla_concepto.id"), nullable=False)
     cantidad = Column(Numeric(10, 2), default=1)
     monto_total = Column(Numeric(10, 2), nullable=False)
 
 class BoletaPago(Base):
-    __tablename__ = "pla_boleta_pago"
+    __tablename__ = "rrhh_pla_boleta_pago"
     id = Column(Integer, primary_key=True, index=True)
-    empleado_id = Column(Integer, ForeignKey("empleados.id"), nullable=False)
-    periodo_planilla_id = Column(Integer, ForeignKey("pla_periodo.id"), nullable=False)
+    empleado_id = Column(Integer, ForeignKey("rrhh_empleados.id"), nullable=False)
+    periodo_planilla_id = Column(Integer, ForeignKey("rrhh_pla_periodo.id"), nullable=False)
     salario_base_aplicado = Column(Numeric(10, 2), nullable=False)
     dias_trabajados = Column(Integer, nullable=False)
     total_ingresos = Column(Numeric(10, 2), default=0.00)
@@ -101,24 +101,24 @@ class BoletaPago(Base):
     liquido_a_recibir = Column(Numeric(10, 2), default=0.00)
 
 class BoletaPagoDetalle(Base):
-    __tablename__ = "pla_boleta_pago_detalle"
+    __tablename__ = "rrhh_pla_boleta_pago_detalle"
     id = Column(Integer, primary_key=True, index=True)
-    boleta_pago_id = Column(Integer, ForeignKey("pla_boleta_pago.id"), nullable=False)
-    concepto_id = Column(Integer, ForeignKey("pla_concepto.id"), nullable=False)
+    boleta_pago_id = Column(Integer, ForeignKey("rrhh_pla_boleta_pago.id"), nullable=False)
+    concepto_id = Column(Integer, ForeignKey("rrhh_pla_concepto.id"), nullable=False)
     monto = Column(Numeric(10, 2), nullable=False)
 
 class AmortizacionPrestamo(Base):
-    __tablename__ = "pla_amortizacion_prestamo"
+    __tablename__ = "rrhh_pla_amortizacion_prestamo"
     id = Column(Integer, primary_key=True, index=True)
-    prestamo_empleado_id = Column(Integer, ForeignKey("pla_prestamo_empleado.id"), nullable=False)
-    boleta_pago_id = Column(Integer, ForeignKey("pla_boleta_pago.id"), nullable=False)
+    prestamo_empleado_id = Column(Integer, ForeignKey("rrhh_pla_prestamo_empleado.id"), nullable=False)
+    boleta_pago_id = Column(Integer, ForeignKey("rrhh_pla_boleta_pago.id"), nullable=False)
     monto_amortizado = Column(Numeric(10, 2), nullable=False)
     fecha_aplicacion = Column(Date, nullable=False)
 
 class LiquidacionEmpleado(Base):
-    __tablename__ = "rh_liquidacion_empleado"
+    __tablename__ = "rrhh_liquidacion_empleado"
     id = Column(Integer, primary_key=True, index=True)
-    empleado_id = Column(Integer, ForeignKey("empleados.id"), nullable=False)
+    empleado_id = Column(Integer, ForeignKey("rrhh_empleados.id"), nullable=False)
     fecha_retiro = Column(Date, nullable=False)
     motivo_salida = Column(Enum(MotivoSalidaEnum), nullable=False)
     salario_base_calculo = Column(Numeric(10, 2), nullable=False)

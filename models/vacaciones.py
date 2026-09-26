@@ -3,11 +3,11 @@ from sqlalchemy.orm import relationship
 from database import Base
 
 class ProgramacionVacacion(Base):
-    __tablename__ = "pla_programacion_vacacion"
+    __tablename__ = "rrhh_pla_programacion_vacacion"
 
     id = Column(Integer, primary_key=True, index=True)
-    empresa_id = Column(Integer, ForeignKey("empresas.id"), nullable=False)
-    empleado_id = Column(Integer, ForeignKey("empleados.id"), nullable=False)
+    empresa_id = Column(Integer, ForeignKey("rrhh_empresas.id"), nullable=False)
+    empleado_id = Column(Integer, ForeignKey("rrhh_empleados.id"), nullable=False)
     anio_ejercicio = Column(Integer, nullable=False)
     
     fecha_derecho = Column(Date, nullable=False)           # Fecha cumplimiento 200 días / 1 año

@@ -4,11 +4,11 @@ from datetime import datetime
 from database import Base
 
 class TicketSoporte(Base):
-    __tablename__ = "sop_ticket"
+    __tablename__ = "rrhh_sop_ticket"
 
     id = Column(Integer, primary_key=True, index=True)
-    empresa_id = Column(Integer, ForeignKey("empresas.id"), nullable=False)
-    usuario_id = Column(Integer, ForeignKey("seg_usuario.id"), nullable=False)
+    empresa_id = Column(Integer, ForeignKey("rrhh_empresas.id"), nullable=False)
+    usuario_id = Column(Integer, ForeignKey("rrhh_seg_usuario.id"), nullable=False)
     asunto = Column(String(200), nullable=False)
     categoria = Column(String(50), default="Soporte Técnico")
     prioridad = Column(String(20), default="Media")
@@ -21,11 +21,11 @@ class TicketSoporte(Base):
     mensajes = relationship("MensajeTicket", back_populates="ticket", cascade="all, delete-orphan", order_by="MensajeTicket.fecha_envio.asc()")
 
 class MensajeTicket(Base):
-    __tablename__ = "sop_mensaje"
+    __tablename__ = "rrhh_sop_mensaje"
 
     id = Column(Integer, primary_key=True, index=True)
-    ticket_id = Column(Integer, ForeignKey("sop_ticket.id"), nullable=False)
-    remitente_usuario_id = Column(Integer, ForeignKey("seg_usuario.id"), nullable=False)
+    ticket_id = Column(Integer, ForeignKey("rrhh_sop_ticket.id"), nullable=False)
+    remitente_usuario_id = Column(Integer, ForeignKey("rrhh_seg_usuario.id"), nullable=False)
     es_propietario = Column(Boolean, default=False)
     contenido = Column(Text, nullable=False)
     fecha_envio = Column(DateTime, default=datetime.utcnow)

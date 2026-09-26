@@ -87,7 +87,7 @@ def poblar_datos_iniciales():
                 
             # Contraseña por defecto para el primer acceso seguro
             password_plana = "AdminPlanilla2026*"
-            hash_seguro = pwd_context.hash(password_plana)
+            hash_seguro = pwd_context.hash(password_plana[:72])
             
             usuario_inicial = models.seguridad.Usuario(
                 username=username_inicial,

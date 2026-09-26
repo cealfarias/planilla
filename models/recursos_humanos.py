@@ -4,10 +4,10 @@ from sqlalchemy.sql import func
 from database import Base
 
 class Empleado(Base):
-    __tablename__ = "empleados"
+    __tablename__ = "rrhh_empleados"
 
     id = Column(Integer, primary_key=True, index=True)
-    empresa_id = Column(Integer, ForeignKey("empresas.id"), nullable=False)
+    empresa_id = Column(Integer, ForeignKey("rrhh_empresas.id"), nullable=False)
     primer_nombre = Column(String(50), nullable=False)
     segundo_nombre = Column(String(50), nullable=True)
     primer_apellido = Column(String(50), nullable=False)
@@ -52,10 +52,10 @@ class Empleado(Base):
 
 
 class EstudioAcademico(Base):
-    __tablename__ = "estudios_academicos"
+    __tablename__ = "rrhh_estudios_academicos"
 
     id = Column(Integer, primary_key=True, index=True)
-    empleado_id = Column(Integer, ForeignKey("empleados.id"), nullable=False)
+    empleado_id = Column(Integer, ForeignKey("rrhh_empleados.id"), nullable=False)
     institucion = Column(String(150), nullable=False)
     titulo_obtenido = Column(String(150), nullable=False)
     fecha_graduacion = Column(Date, nullable=True)
@@ -65,10 +65,10 @@ class EstudioAcademico(Base):
 
 
 class ExperienciaLaboral(Base):
-    __tablename__ = "experiencias_laborales"
+    __tablename__ = "rrhh_experiencias_laborales"
 
     id = Column(Integer, primary_key=True, index=True)
-    empleado_id = Column(Integer, ForeignKey("empleados.id"), nullable=False)
+    empleado_id = Column(Integer, ForeignKey("rrhh_empleados.id"), nullable=False)
     empresa = Column(String(150), nullable=False)
     puesto_desempeniado = Column(String(150), nullable=False)
     fecha_inicio = Column(Date, nullable=False)
@@ -79,10 +79,10 @@ class ExperienciaLaboral(Base):
 
 
 class DependienteEconomico(Base):
-    __tablename__ = "dependientes_economicos"
+    __tablename__ = "rrhh_dependientes_economicos"
 
     id = Column(Integer, primary_key=True, index=True)
-    empleado_id = Column(Integer, ForeignKey("empleados.id"), nullable=False)
+    empleado_id = Column(Integer, ForeignKey("rrhh_empleados.id"), nullable=False)
     nombre_completo = Column(String(200), nullable=False)
     parentesco = Column(String(50), nullable=False)
     fecha_nacimiento = Column(Date, nullable=False)
@@ -92,10 +92,10 @@ class DependienteEconomico(Base):
 
 
 class Contrato(Base):
-    __tablename__ = "contratos"
+    __tablename__ = "rrhh_contratos"
 
     id = Column(Integer, primary_key=True, index=True)
-    empleado_id = Column(Integer, ForeignKey("empleados.id"), nullable=False)
+    empleado_id = Column(Integer, ForeignKey("rrhh_empleados.id"), nullable=False)
     
     tipo_contrato = Column(String(50), nullable=False)
     cargo = Column(String(100), nullable=False)
@@ -131,11 +131,11 @@ class Contrato(Base):
     empleado = relationship("Empleado", back_populates="contratos")
 
 class CatalogoHabilidad(Base):
-    __tablename__ = "rh_catalogo_habilidad"
+    __tablename__ = "rrhh_catalogo_habilidad"
     id = Column(Integer, primary_key=True, index=True)
     nombre = Column(String)
 
 class CatalogoIdioma(Base):
-    __tablename__ = "rh_catalogo_idioma"
+    __tablename__ = "rrhh_catalogo_idioma"
     id = Column(Integer, primary_key=True, index=True)
     nombre = Column(String)

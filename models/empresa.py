@@ -2,7 +2,7 @@ from sqlalchemy import Column, Integer, String, Boolean, Text
 from database import Base
 
 class Empresa(Base):
-    __tablename__ = "empresas"
+    __tablename__ = "rrhh_empresas"
 
     id = Column(Integer, primary_key=True, index=True)
     nombre = Column(String(150), nullable=False)
