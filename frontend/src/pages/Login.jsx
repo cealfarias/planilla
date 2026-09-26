@@ -24,7 +24,7 @@ export default function Login() {
   const navigate = useNavigate();
   const { login, user } = useAuth();
 
-  // Si ya existe sesión, redirigir inmediatamente a /dashboard
+  // Si ya existe sesión, redirigir inmediatamente a /dashboard sin esperas
   useEffect(() => {
     const token = localStorage.getItem('token');
     if (token || user) {
@@ -39,7 +39,7 @@ export default function Login() {
     }
     const interval = setInterval(() => {
       setLoadingStepIdx(prev => (prev < LOADING_STEPS.length - 1 ? prev + 1 : prev));
-    }, 500);
+    }, 300);
     return () => clearInterval(interval);
   }, [loading]);
 
@@ -52,8 +52,9 @@ export default function Login() {
       const data = await api.login(username, password);
       login({ username: username }, data.access_token);
       setTimeout(() => {
+        setLoading(false);
         navigate('/dashboard', { replace: true });
-      }, 2000);
+      }, 400);
     } catch (err) {
       setError(err.message || 'Credenciales inválidas');
       setLoading(false);
@@ -88,7 +89,7 @@ export default function Login() {
             color: '#ffffff',
             fontFamily: 'system-ui, -apple-system, sans-serif'
           }}>
-            {/* Top Pill Badge */}
+            {/* Top Pill Badge sin referencias a hosting */}
             <div style={{
               display: 'inline-flex',
               alignItems: 'center',
@@ -109,10 +110,10 @@ export default function Login() {
                 backgroundColor: '#10b981',
                 boxShadow: '0 0 10px #10b981'
               }} />
-              <span>Servidor Render • Conexión Segura</span>
+              <span>Servidor de Alta Seguridad • Conexión Cifrada</span>
             </div>
 
-            {/* Glowing Ring & Shield Icon with Orbiting Badge */}
+            {/* Glowing Ring & Shield Icon */}
             <div style={{
               position: 'relative',
               width: '100px',
@@ -148,7 +149,6 @@ export default function Login() {
                 <ShieldCheck style={{ width: '34px', height: '34px', color: '#ffffff' }} />
               </div>
 
-              {/* Orbiting Arrow Badge */}
               <div style={{
                 position: 'absolute',
                 right: '-2px',
@@ -191,7 +191,7 @@ export default function Login() {
               {LOADING_STEPS[loadingStepIdx].sub}
             </p>
 
-            {/* Animated Glowing Progress Bar */}
+            {/* Progress Bar */}
             <div style={{
               width: '100%',
               height: '5px',
@@ -205,7 +205,7 @@ export default function Login() {
                 width: `${((loadingStepIdx + 1) / LOADING_STEPS.length) * 100}%`,
                 background: 'linear-gradient(90deg, #a855f7 0%, #6366f1 50%, #10b981 100%)',
                 borderRadius: '9999px',
-                transition: 'width 0.4s ease-in-out',
+                transition: 'width 0.3s ease-in-out',
                 boxShadow: '0 0 14px #6366f1'
               }} />
             </div>
@@ -224,14 +224,13 @@ export default function Login() {
                 <Sparkles style={{ width: '14px', height: '14px', color: '#f59e0b' }} />
                 Planillas & RRHH SaaS
               </span>
-              <span style={{ fontFamily: 'monospace', fontSize: '0.7rem' }}>v2.4 • Render Cloud</span>
+              <span style={{ fontFamily: 'monospace', fontSize: '0.7rem' }}>v2.4 • Nube Privada</span>
             </div>
           </div>
         </div>
       )}
 
       <div className="login-wrapper">
-        {/* Lado izquierdo (Solo visible en desktop) */}
         <div className="login-left">
           <div className="login-left-content">
             <h1>Administración Planilla de Sueldos</h1>
@@ -267,7 +266,6 @@ export default function Login() {
           </div>
         </div>
 
-        {/* Lado derecho (Formulario) */}
         <div className="login-right">
           <div className="login-card">
             <div className="login-header">
@@ -280,13 +278,13 @@ export default function Login() {
               {error && <div className="login-error">{error}</div>}
               
               <div className="form-group">
-                <label className="form-label">Usuario</label>
+                <label className="form-label">Usuario o Correo Electrónico</label>
                 <input 
                   type="text" 
                   className="form-input" 
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
-                  placeholder="ej: admin_planilla"
+                  placeholder="ej: admin_planilla o correo@empresa.com"
                   required 
                 />
               </div>
@@ -345,8 +343,9 @@ export default function Login() {
                       const data = await api.loginWithGoogle(credentialResponse.credential);
                       login({ username: data.username, email: data.email }, data.access_token);
                       setTimeout(() => {
+                        setLoading(false);
                         navigate('/dashboard', { replace: true });
-                      }, 2000);
+                      }, 400);
                     } catch (err) {
                       setError(err.message || 'Falló la autenticación con Google');
                       setLoading(false);
