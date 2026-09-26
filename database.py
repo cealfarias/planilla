@@ -1,41 +1,54 @@
 import os
-from sqlalchemy import create_engine
+import re
+from sqlalchemy import create_engine, text
 from sqlalchemy.orm import declarative_base, sessionmaker
 from dotenv import load_dotenv
+import logging
 
-# Cargar variables de entorno desde el archivo .env
 load_dotenv()
 
-# Obtener la URL de la base de datos
-SQLALCHEMY_DATABASE_URL = os.getenv("DATABASE_URL")
+SQLALCHEMY_DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./planillas.db")
 
-if not SQLALCHEMY_DATABASE_URL:
-    raise ValueError("La variable de entorno DATABASE_URL no está configurada. Verifica el archivo .env.")
+if SQLALCHEMY_DATABASE_URL.startswith("postgres://"):
+    SQLALCHEMY_DATABASE_URL = SQLALCHEMY_DATABASE_URL.replace("postgres://", "postgresql+psycopg2://", 1)
+elif SQLALCHEMY_DATABASE_URL.startswith("postgresql://") and "+" not in SQLALCHEMY_DATABASE_URL.split("://")[0]:
+    SQLALCHEMY_DATABASE_URL = SQLALCHEMY_DATABASE_URL.replace("postgresql://", "postgresql+psycopg2://", 1)
 
-if SQLALCHEMY_DATABASE_URL:
-    if SQLALCHEMY_DATABASE_URL.startswith("postgres://"):
-        SQLALCHEMY_DATABASE_URL = SQLALCHEMY_DATABASE_URL.replace("postgres://", "postgresql+psycopg2://", 1)
-    elif SQLALCHEMY_DATABASE_URL.startswith("postgresql://") and not SQLALCHEMY_DATABASE_URL.startswith("postgresql+psycopg2://"):
-        SQLALCHEMY_DATABASE_URL = SQLALCHEMY_DATABASE_URL.replace("postgresql://", "postgresql+psycopg2://", 1)
+is_render = os.getenv("RENDER") == "true" or os.path.exists("/opt/render")
 
-# Crear el motor de conexión dinámicamente
-connect_args = {}
-if SQLALCHEMY_DATABASE_URL and SQLALCHEMY_DATABASE_URL.startswith("sqlite"):
-    connect_args = {"check_same_thread": False}
+# Detección y conversión automática a Red Interna de Render
+if is_render and "@dpg-" in SQLALCHEMY_DATABASE_URL:
+    SQLALCHEMY_DATABASE_URL = re.sub(r'(@dpg-[a-z0-9]+-[a-z0-9]+)\.[a-z0-9-]+\.render\.com', r'\1', SQLALCHEMY_DATABASE_URL)
+    SQLALCHEMY_DATABASE_URL = re.sub(r'(@dpg-[a-z0-9]+-[a-z0-9]+)\.render\.com', r'\1', SQLALCHEMY_DATABASE_URL)
 
-engine = create_engine(
-    SQLALCHEMY_DATABASE_URL, 
-    echo=False, 
-    connect_args=connect_args
-)
+is_sqlite = SQLALCHEMY_DATABASE_URL.startswith("sqlite")
 
-# Configurar la fábrica de sesiones transaccionales
+if not is_sqlite and "sslmode" not in SQLALCHEMY_DATABASE_URL and not is_render:
+    delimiter = "&" if "?" in SQLALCHEMY_DATABASE_URL else "?"
+    SQLALCHEMY_DATABASE_URL += f"{delimiter}sslmode=require"
+
+connect_args = {"check_same_thread": False} if is_sqlite else {
+    "keepalives": 1,
+    "keepalives_idle": 30,
+    "keepalives_interval": 10,
+    "keepalives_count": 5
+}
+
+engine_kwargs = {"connect_args": connect_args, "echo": False}
+
+if not is_sqlite:
+    engine_kwargs.update({
+        "pool_pre_ping": True,
+        "pool_recycle": 280,
+        "pool_size": 10,
+        "max_overflow": 20
+    })
+
+engine = create_engine(SQLALCHEMY_DATABASE_URL, **engine_kwargs)
+
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-
-# Clase base que todos los modelos heredan
 Base = declarative_base()
 
-# Dependencia para inyectar la sesión de base de datos en las rutas de FastAPI
 def get_db():
     db = SessionLocal()
     try:
@@ -43,24 +56,16 @@ def get_db():
     finally:
         db.close()
 
-from sqlalchemy import text
-import logging
-
 def auto_migrate_db():
     try:
-        # Importar modelos aquí para evitar dependencias circulares
         from models.seguridad import Usuario
         from models.empresa import Empresa
         from models.recursos_humanos import Empleado, Contrato
         from models.planillas import PeriodoPlanilla, BoletaPago
-        from models.vacaciones import ProgramacionVacacion
         
-        # Crear tablas nuevas si no existen
         Base.metadata.create_all(bind=engine)
         
-        # Migraciones para columnas añadidas
         columns_to_add = [
-            # Empleados
             "ALTER TABLE empleados ADD COLUMN departamento_residencia VARCHAR(50) DEFAULT '' NOT NULL",
             "ALTER TABLE empleados ADD COLUMN municipio_residencia VARCHAR(50) DEFAULT '' NOT NULL",
             "ALTER TABLE empleados ADD COLUMN distrito_residencia VARCHAR(50) DEFAULT '' NOT NULL",
@@ -68,7 +73,6 @@ def auto_migrate_db():
             "ALTER TABLE empleados ADD COLUMN dui_municipio_expedicion VARCHAR(50) DEFAULT '' NOT NULL",
             "ALTER TABLE empleados ADD COLUMN dui_distrito_expedicion VARCHAR(50) DEFAULT '' NOT NULL",
             "ALTER TABLE empleados ADD COLUMN dui_fecha_expedicion DATE DEFAULT CURRENT_DATE NOT NULL",
-            # Contratos
             "ALTER TABLE contratos ADD COLUMN proporciona_alojamiento BOOLEAN DEFAULT FALSE NOT NULL",
             "ALTER TABLE contratos ADD COLUMN direccion_alojamiento TEXT",
             "ALTER TABLE contratos ADD COLUMN dias_jornada VARCHAR(100) DEFAULT '' NOT NULL",
@@ -86,10 +90,8 @@ def auto_migrate_db():
             "ALTER TABLE contratos ADD COLUMN lugar_trabajo_municipio VARCHAR(50) DEFAULT '' NOT NULL",
             "ALTER TABLE contratos ADD COLUMN lugar_trabajo_departamento VARCHAR(50) DEFAULT '' NOT NULL",
             "ALTER TABLE contratos ADD COLUMN distrito_celebracion VARCHAR(50) DEFAULT '' NOT NULL",
-            # Empresas
             "ALTER TABLE empresas ADD COLUMN logo_base64 TEXT",
             "ALTER TABLE empresas ADD COLUMN politica_indemnizacion VARCHAR(20) DEFAULT 'Acumulada'",
-            # Datos Bancarios y Fotografia Empleados
             "ALTER TABLE empleados ADD COLUMN banco_nombre VARCHAR(100)",
             "ALTER TABLE empleados ADD COLUMN numero_cuenta_bancaria VARCHAR(50)",
             "ALTER TABLE empleados ADD COLUMN foto_url_base64 TEXT"
@@ -98,10 +100,9 @@ def auto_migrate_db():
             try:
                 with engine.begin() as conn:
                     conn.execute(text(col))
-            except Exception as e:
+            except Exception:
                 pass
     except Exception as e:
         logging.error(f"Error en auto-migración: {e}")
 
-# Ejecutar migración al iniciar
 auto_migrate_db()
