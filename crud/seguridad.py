@@ -3,8 +3,8 @@ from passlib.context import CryptContext
 import models
 import schemas
 
-# Configuración del contexto de hasheo utilizando bcrypt
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+# Configuración del contexto de hasheo utilizando pbkdf2_sha256 y bcrypt
+pwd_context = CryptContext(schemes=["pbkdf2_sha256", "bcrypt"], default="pbkdf2_sha256", deprecated="auto")
 
 # ==========================================
 # OPERACIONES DE PERMISOS
