@@ -16,10 +16,26 @@ load_dotenv()
 # access to the values within the .ini file in use.
 config = context.config
 
-# 2. Sobrescribir sqlalchemy.url en el config de Alembic con la variable del .env
 database_url = os.getenv("DATABASE_URL")
 if not database_url:
     raise ValueError("La variable de entorno DATABASE_URL no está configurada.")
+
+if database_url.startswith("postgres://"):
+    database_url = database_url.replace("postgres://", "postgresql+psycopg2://", 1)
+elif database_url.startswith("postgresql://") and "+" not in database_url.split("://")[0]:
+    database_url = database_url.replace("postgresql://", "postgresql+psycopg2://", 1)
+
+import re
+is_render = os.getenv("RENDER") == "true" or os.path.exists("/opt/render")
+
+if is_render and "@dpg-" in database_url:
+    database_url = re.sub(r'(@dpg-[a-z0-9]+-[a-z0-9]+)\.[a-z0-9-]+\.render\.com', r'\1', database_url)
+    database_url = re.sub(r'(@dpg-[a-z0-9]+-[a-z0-9]+)\.render\.com', r'\1', database_url)
+
+if "postgresql" in database_url and "sslmode" not in database_url and not is_render:
+    delimiter = "&" if "?" in database_url else "?"
+    database_url += f"{delimiter}sslmode=require"
+
 config.set_main_option("sqlalchemy.url", database_url)
 
 # Interpret the config file for Python logging.
