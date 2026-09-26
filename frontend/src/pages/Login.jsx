@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Eye, EyeOff, ShieldCheck, Sparkles, ArrowRight } from 'lucide-react';
+import { Eye, EyeOff, ShieldCheck, Sparkles } from 'lucide-react';
 import { api } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { GoogleLogin } from '@react-oauth/google';
@@ -24,7 +24,7 @@ export default function Login() {
   const navigate = useNavigate();
   const { login, user } = useAuth();
 
-  // Si ya existe sesión, redirigir inmediatamente a /dashboard sin pausas
+  // Si ya existe sesión, redirigir inmediatamente a /dashboard
   useEffect(() => {
     const token = localStorage.getItem('token');
     if (token || user) {
@@ -39,7 +39,7 @@ export default function Login() {
     }
     const interval = setInterval(() => {
       setLoadingStepIdx(prev => (prev < LOADING_STEPS.length - 1 ? prev + 1 : prev));
-    }, 800);
+    }, 500);
     return () => clearInterval(interval);
   }, [loading]);
 
@@ -53,7 +53,7 @@ export default function Login() {
       login({ username: username }, data.access_token);
       setTimeout(() => {
         navigate('/dashboard', { replace: true });
-      }, 600);
+      }, 2000);
     } catch (err) {
       setError(err.message || 'Credenciales inválidas');
       setLoading(false);
@@ -62,6 +62,174 @@ export default function Login() {
 
   return (
     <div className="login-container">
+      {/* Modal Interactivo de Acceso Exitoso / Carga */}
+      {loading && (
+        <div style={{
+          position: 'fixed',
+          inset: 0,
+          backgroundColor: 'rgba(9, 13, 22, 0.88)',
+          backdropFilter: 'blur(12px)',
+          zIndex: 9999,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '1rem',
+          animation: 'fadeIn 0.3s ease-out'
+        }}>
+          <div style={{
+            width: '100%',
+            maxWidth: '450px',
+            backgroundColor: '#0d1527',
+            border: '1px solid rgba(255, 255, 255, 0.1)',
+            borderRadius: '28px',
+            padding: '2.5rem 2rem 1.75rem',
+            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.8), 0 0 50px rgba(99, 102, 241, 0.2)',
+            textAlign: 'center',
+            color: '#ffffff',
+            fontFamily: 'system-ui, -apple-system, sans-serif'
+          }}>
+            {/* Top Pill Badge */}
+            <div style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+              backgroundColor: 'rgba(255, 255, 255, 0.05)',
+              border: '1px solid rgba(255, 255, 255, 0.12)',
+              borderRadius: '9999px',
+              padding: '0.35rem 1.1rem',
+              fontSize: '0.78rem',
+              color: '#94a3b8',
+              fontWeight: '600',
+              marginBottom: '2.25rem'
+            }}>
+              <span style={{
+                width: '8px',
+                height: '8px',
+                borderRadius: '50%',
+                backgroundColor: '#10b981',
+                boxShadow: '0 0 10px #10b981'
+              }} />
+              <span>Servidor Render • Conexión Segura</span>
+            </div>
+
+            {/* Glowing Ring & Shield Icon with Orbiting Badge */}
+            <div style={{
+              position: 'relative',
+              width: '100px',
+              height: '100px',
+              margin: '0 auto 2.25rem',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}>
+              <div style={{
+                position: 'absolute',
+                inset: 0,
+                borderRadius: '50%',
+                padding: '4px',
+                background: 'conic-gradient(from 0deg, #a855f7, #6366f1, #10b981, #a855f7)',
+                animation: 'spin 2.5s linear infinite',
+                WebkitMask: 'radial-gradient(farthest-side, transparent calc(100% - 4px), #fff calc(100% - 3px))',
+                mask: 'radial-gradient(farthest-side, transparent calc(100% - 4px), #fff calc(100% - 3px))'
+              }} />
+
+              <div style={{
+                width: '64px',
+                height: '64px',
+                borderRadius: '18px',
+                background: 'linear-gradient(135deg, #6366f1 0%, #a855f7 100%)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                boxShadow: '0 10px 25px rgba(99, 102, 241, 0.45)',
+                position: 'relative',
+                zIndex: 2
+              }}>
+                <ShieldCheck style={{ width: '34px', height: '34px', color: '#ffffff' }} />
+              </div>
+
+              {/* Orbiting Arrow Badge */}
+              <div style={{
+                position: 'absolute',
+                right: '-2px',
+                bottom: '12px',
+                width: '26px',
+                height: '26px',
+                borderRadius: '50%',
+                backgroundColor: '#6366f1',
+                border: '2px solid #0d1527',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: '#fff',
+                fontSize: '11px',
+                fontWeight: 'bold',
+                zIndex: 3
+              }}>
+                ↘
+              </div>
+            </div>
+
+            {/* Dynamic Step Title and Subtitle */}
+            <h3 style={{
+              fontSize: '1.25rem',
+              fontWeight: '800',
+              color: '#ffffff',
+              marginBottom: '0.5rem',
+              lineHeight: 1.3,
+              letterSpacing: '-0.02em'
+            }}>
+              {LOADING_STEPS[loadingStepIdx].title}
+            </h3>
+
+            <p style={{
+              fontSize: '0.85rem',
+              color: '#94a3b8',
+              marginBottom: '2.25rem',
+              lineHeight: 1.4
+            }}>
+              {LOADING_STEPS[loadingStepIdx].sub}
+            </p>
+
+            {/* Animated Glowing Progress Bar */}
+            <div style={{
+              width: '100%',
+              height: '5px',
+              backgroundColor: 'rgba(255, 255, 255, 0.08)',
+              borderRadius: '9999px',
+              overflow: 'hidden',
+              marginBottom: '2rem'
+            }}>
+              <div style={{
+                height: '100%',
+                width: `${((loadingStepIdx + 1) / LOADING_STEPS.length) * 100}%`,
+                background: 'linear-gradient(90deg, #a855f7 0%, #6366f1 50%, #10b981 100%)',
+                borderRadius: '9999px',
+                transition: 'width 0.4s ease-in-out',
+                boxShadow: '0 0 14px #6366f1'
+              }} />
+            </div>
+
+            {/* Footer Line */}
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              paddingTop: '1rem',
+              borderTop: '1px solid rgba(255, 255, 255, 0.08)',
+              fontSize: '0.75rem',
+              color: '#64748b'
+            }}>
+              <span style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', color: '#cbd5e1', fontWeight: '600' }}>
+                <Sparkles style={{ width: '14px', height: '14px', color: '#f59e0b' }} />
+                Planillas & RRHH SaaS
+              </span>
+              <span style={{ fontFamily: 'monospace', fontSize: '0.7rem' }}>v2.4 • Render Cloud</span>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="login-wrapper">
         {/* Lado izquierdo (Solo visible en desktop) */}
         <div className="login-left">
@@ -108,112 +276,94 @@ export default function Login() {
               <p className="text-muted">Ingresa tus credenciales para acceder al sistema</p>
             </div>
 
-            {loading ? (
-              <div style={{ padding: '2rem 1rem', textAlign: 'center' }}>
-                <div style={{
-                  width: '48px',
-                  height: '48px',
-                  border: '4px solid #e2e8f0',
-                  borderTopColor: '#4f46e5',
-                  borderRadius: '50%',
-                  margin: '0 auto 1.5rem',
-                  animation: 'spin 0.8s linear infinite'
-                }} />
-                <h3 style={{ fontSize: '1rem', fontWeight: 'bold', color: '#1e293b', marginBottom: '0.25rem' }}>
-                  {LOADING_STEPS[loadingStepIdx].title}
-                </h3>
-                <p style={{ fontSize: '0.75rem', color: '#64748b' }}>
-                  {LOADING_STEPS[loadingStepIdx].sub}
-                </p>
+            <form onSubmit={handleSubmit}>
+              {error && <div className="login-error">{error}</div>}
+              
+              <div className="form-group">
+                <label className="form-label">Usuario</label>
+                <input 
+                  type="text" 
+                  className="form-input" 
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  placeholder="ej: admin_planilla"
+                  required 
+                />
               </div>
-            ) : (
-              <form onSubmit={handleSubmit}>
-                {error && <div className="login-error">{error}</div>}
-                
-                <div className="form-group">
-                  <label className="form-label">Usuario</label>
+
+              <div className="form-group">
+                <label className="form-label">Contraseña</label>
+                <div style={{ position: 'relative' }}>
                   <input 
-                    type="text" 
+                    type={showPassword ? "text" : "password"} 
                     className="form-input" 
-                    value={username}
-                    onChange={(e) => setUsername(e.target.value)}
-                    placeholder="ej: admin_planilla"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="••••••••"
                     required 
+                    style={{ paddingRight: '2.5rem' }}
                   />
+                  <button 
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    style={{
+                      position: 'absolute',
+                      right: '0.75rem',
+                      top: '50%',
+                      transform: 'translateY(-50%)',
+                      background: 'none',
+                      border: 'none',
+                      cursor: 'pointer',
+                      color: 'var(--text-muted)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      padding: 0
+                    }}
+                  >
+                    {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                  </button>
                 </div>
+              </div>
 
-                <div className="form-group">
-                  <label className="form-label">Contraseña</label>
-                  <div style={{ position: 'relative' }}>
-                    <input 
-                      type={showPassword ? "text" : "password"} 
-                      className="form-input" 
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      placeholder="••••••••"
-                      required 
-                      style={{ paddingRight: '2.5rem' }}
-                    />
-                    <button 
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      style={{
-                        position: 'absolute',
-                        right: '0.75rem',
-                        top: '50%',
-                        transform: 'translateY(-50%)',
-                        background: 'none',
-                        border: 'none',
-                        cursor: 'pointer',
-                        color: 'var(--text-muted)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        padding: 0
-                      }}
-                    >
-                      {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-                    </button>
-                  </div>
-                </div>
+              <button type="submit" className="btn btn-primary btn-block" disabled={loading} style={{ marginTop: '1rem', padding: '0.75rem' }}>
+                Iniciar Sesión
+              </button>
 
-                <button type="submit" className="btn btn-primary btn-block" disabled={loading} style={{ marginTop: '1rem', padding: '0.75rem' }}>
-                  Iniciar Sesión
-                </button>
+              <div style={{ display: 'flex', alignItems: 'center', margin: '1.5rem 0' }}>
+                <hr style={{ flex: 1, borderTop: '1px solid #e2e8f0', margin: 0 }} />
+                <span style={{ padding: '0 1rem', color: '#64748b', fontSize: '0.875rem' }}>O continuar con</span>
+                <hr style={{ flex: 1, borderTop: '1px solid #e2e8f0', margin: 0 }} />
+              </div>
 
-                <div style={{ display: 'flex', alignItems: 'center', margin: '1.5rem 0' }}>
-                  <hr style={{ flex: 1, borderTop: '1px solid #e2e8f0', margin: 0 }} />
-                  <span style={{ padding: '0 1rem', color: '#64748b', fontSize: '0.875rem' }}>O continuar con</span>
-                  <hr style={{ flex: 1, borderTop: '1px solid #e2e8f0', margin: 0 }} />
-                </div>
-
-                <div style={{ display: 'flex', justify: 'center', width: '100%', minHeight: '44px' }}>
-                  <GoogleLogin
-                    onSuccess={async (credentialResponse) => {
-                      try {
-                        setLoading(true);
-                        setError(null);
-                        const data = await api.loginWithGoogle(credentialResponse.credential);
-                        login({ username: data.username, email: data.email }, data.access_token);
+              <div style={{ display: 'flex', justifyContent: 'center', width: '100%', minHeight: '44px' }}>
+                <GoogleLogin
+                  onSuccess={async (credentialResponse) => {
+                    try {
+                      setLoading(true);
+                      setError(null);
+                      const data = await api.loginWithGoogle(credentialResponse.credential);
+                      login({ username: data.username, email: data.email }, data.access_token);
+                      setTimeout(() => {
                         navigate('/dashboard', { replace: true });
-                      } catch (err) {
-                        setError(err.message || 'Falló la autenticación con Google');
-                        setLoading(false);
-                      }
-                    }}
-                    onError={() => {
-                      setError('Falló la autenticación con Google');
-                    }}
-                    theme="outline"
-                    size="large"
-                    width="350"
-                    text="continue_with"
-                    locale="es"
-                    shape="rectangular"
-                  />
-                </div>
-              </form>
-            )}
+                      }, 2000);
+                    } catch (err) {
+                      setError(err.message || 'Falló la autenticación con Google');
+                      setLoading(false);
+                    }
+                  }}
+                  onError={() => {
+                    setError('Falló la autenticación con Google');
+                  }}
+                  theme="outline"
+                  size="large"
+                  width="350"
+                  text="continue_with"
+                  locale="es"
+                  shape="rectangular"
+                />
+              </div>
+            </form>
 
             <div style={{ textAlign: 'center', marginTop: '1.5rem', paddingTop: '1.5rem', borderTop: '1px solid #e2e8f0' }}>
               <Link to="/registro" className="text-muted" style={{ textDecoration: 'none', fontSize: '0.875rem' }}>
