@@ -7,18 +7,36 @@ import logging
 
 load_dotenv()
 
-SQLALCHEMY_DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./planillas.db")
+def get_formatted_database_url(raw_url: str = None) -> str:
+    if not raw_url:
+        raw_url = os.getenv("DATABASE_URL", "sqlite:///./planillas.db")
+    
+    url = raw_url
+    if url.startswith("postgres://"):
+        url = url.replace("postgres://", "postgresql+psycopg2://", 1)
+    elif url.startswith("postgresql://") and "+" not in url.split("://")[0]:
+        url = url.replace("postgresql://", "postgresql+psycopg2://", 1)
+    
+    is_sqlite = url.startswith("sqlite")
+    is_render = os.getenv("RENDER") == "true" or os.path.exists("/opt/render")
+    
+    if not is_sqlite:
+        if is_render and "@dpg-" in url:
+            url = re.sub(r'(@dpg-[^.:/@]+)\.[^:/@]*render\.com', r'\1', url)
+            url = re.sub(r'[?&]sslmode=[^&]+', '', url)
+            url = url.replace("?&", "?")
+            if url.endswith("?"):
+                url = url[:-1]
+        else:
+            if "sslmode" not in url:
+                delimiter = "&" if "?" in url else "?"
+                url += f"{delimiter}sslmode=require"
+                
+    return url
 
-if SQLALCHEMY_DATABASE_URL.startswith("postgres://"):
-    SQLALCHEMY_DATABASE_URL = SQLALCHEMY_DATABASE_URL.replace("postgres://", "postgresql+psycopg2://", 1)
-elif SQLALCHEMY_DATABASE_URL.startswith("postgresql://") and "+" not in SQLALCHEMY_DATABASE_URL.split("://")[0]:
-    SQLALCHEMY_DATABASE_URL = SQLALCHEMY_DATABASE_URL.replace("postgresql://", "postgresql+psycopg2://", 1)
+SQLALCHEMY_DATABASE_URL = get_formatted_database_url()
 
 is_sqlite = SQLALCHEMY_DATABASE_URL.startswith("sqlite")
-
-if not is_sqlite and "sslmode" not in SQLALCHEMY_DATABASE_URL:
-    delimiter = "&" if "?" in SQLALCHEMY_DATABASE_URL else "?"
-    SQLALCHEMY_DATABASE_URL += f"{delimiter}sslmode=require"
 
 connect_args = {"check_same_thread": False} if is_sqlite else {
     "keepalives": 1,

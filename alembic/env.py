@@ -4,36 +4,21 @@ from sqlalchemy import engine_from_config, pool
 from alembic import context
 from dotenv import load_dotenv
 
+from database import Base, get_formatted_database_url
+import models
+
 # Cargar variables de entorno
 load_dotenv()
 
 # Configuración de Alembic
 config = context.config
 
-database_url = os.getenv("DATABASE_URL")
-if not database_url:
-    raise ValueError("La variable de entorno DATABASE_URL no está configurada.")
-
-# Sanitización de URL de base de datos
-if database_url.startswith("postgres://"):
-    database_url = database_url.replace("postgres://", "postgresql+psycopg2://", 1)
-elif database_url.startswith("postgresql://") and "+" not in database_url.split("://")[0]:
-    database_url = database_url.replace("postgresql://", "postgresql+psycopg2://", 1)
-
-# Asegurar sslmode=require para conexiones PostgreSQL
-if "postgresql" in database_url and "sslmode" not in database_url:
-    delimiter = "&" if "?" in database_url else "?"
-    database_url += f"{delimiter}sslmode=require"
-
+database_url = get_formatted_database_url()
 config.set_main_option("sqlalchemy.url", database_url)
 
 # Interpretación del archivo de log
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
-
-# Importar modelos después de configurar la URL
-from database import Base
-import models
 
 target_metadata = Base.metadata
 
