@@ -1,10 +1,17 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Eye, EyeOff } from 'lucide-react';
+import { Eye, EyeOff, ShieldCheck, Sparkles, ArrowRight } from 'lucide-react';
 import { api } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { GoogleLogin } from '@react-oauth/google';
 import './Login.css';
+
+const LOADING_STEPS = [
+  { title: "Verificando credenciales...", sub: "Iniciando protocolo de seguridad SSL 256-Bit" },
+  { title: "Conectando con el Servidor...", sub: "Estableciendo sesión segura de alta velocidad" },
+  { title: "Sincronizando expedientes de Planillas...", sub: "Cargando empleados, contratos y deducciones de ley" },
+  { title: "¡Autenticación exitosa! Entrando al Dashboard...", sub: "Abriendo el portal principal de RRHH" }
+];
 
 export default function Login() {
   const [username, setUsername] = useState('');
@@ -12,8 +19,29 @@ export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [loadingStepIdx, setLoadingStepIdx] = useState(0);
+
   const navigate = useNavigate();
-  const { login } = useAuth();
+  const { login, user } = useAuth();
+
+  // Si ya existe sesión, redirigir inmediatamente a /dashboard sin pausas
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (token || user) {
+      navigate('/dashboard', { replace: true });
+    }
+  }, [user, navigate]);
+
+  useEffect(() => {
+    if (!loading) {
+      setLoadingStepIdx(0);
+      return;
+    }
+    const interval = setInterval(() => {
+      setLoadingStepIdx(prev => (prev < LOADING_STEPS.length - 1 ? prev + 1 : prev));
+    }, 800);
+    return () => clearInterval(interval);
+  }, [loading]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -23,10 +51,9 @@ export default function Login() {
     try {
       const data = await api.login(username, password);
       login({ username: username }, data.access_token);
-      navigate('/');
+      navigate('/dashboard', { replace: true });
     } catch (err) {
-      setError(err.message);
-    } finally {
+      setError(err.message || 'Credenciales inválidas');
       setLoading(false);
     }
   };
@@ -44,7 +71,7 @@ export default function Login() {
             <ul className="login-benefits">
               <li className="benefit-item">
                 <div className="benefit-icon">
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M22 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M22 21v-2a4 4 0 0 3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
                 </div>
                 <span>Gestión centralizada de empleados activos e inactivos</span>
               </li>
@@ -52,19 +79,19 @@ export default function Login() {
                 <div className="benefit-icon">
                   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
                 </div>
-                <span>Cálculo automático de planillas y retenciones legales</span>
+                <span>Cálculo automático de planillas y retenciones legales (ISSS, AFP, ISR)</span>
               </li>
               <li className="benefit-item">
                 <div className="benefit-icon">
                   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
                 </div>
-                <span>Emisión de boletas de pago y reportes en PDF</span>
+                <span>Emisión de boletas de pago y archivos oficiales en 1-clic</span>
               </li>
               <li className="benefit-item">
                 <div className="benefit-icon">
                   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
                 </div>
-                <span>Cumplimiento estricto del límite legal (Art. 136)</span>
+                <span>Cumplimiento estricto del Código de Trabajo de El Salvador</span>
               </li>
             </ul>
           </div>
@@ -79,93 +106,112 @@ export default function Login() {
               <p className="text-muted">Ingresa tus credenciales para acceder al sistema</p>
             </div>
 
-            <form onSubmit={handleSubmit}>
-              {error && <div className="login-error">{error}</div>}
-              
-              <div className="form-group">
-                <label className="form-label">Usuario</label>
-                <input 
-                  type="text" 
-                  className="form-input" 
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  placeholder="ej: admin_planilla"
-                  required 
-                />
+            {loading ? (
+              <div style={{ padding: '2rem 1rem', textAlign: 'center' }}>
+                <div style={{
+                  width: '48px',
+                  height: '48px',
+                  border: '4px solid #e2e8f0',
+                  borderTopColor: '#4f46e5',
+                  borderRadius: '50%',
+                  margin: '0 auto 1.5rem',
+                  animation: 'spin 0.8s linear infinite'
+                }} />
+                <h3 style={{ fontSize: '1rem', fontWeight: 'bold', color: '#1e293b', marginBottom: '0.25rem' }}>
+                  {LOADING_STEPS[loadingStepIdx].title}
+                </h3>
+                <p style={{ fontSize: '0.75rem', color: '#64748b' }}>
+                  {LOADING_STEPS[loadingStepIdx].sub}
+                </p>
               </div>
-
-              <div className="form-group">
-                <label className="form-label">Contraseña</label>
-                <div style={{ position: 'relative' }}>
+            ) : (
+              <form onSubmit={handleSubmit}>
+                {error && <div className="login-error">{error}</div>}
+                
+                <div className="form-group">
+                  <label className="form-label">Usuario</label>
                   <input 
-                    type={showPassword ? "text" : "password"} 
+                    type="text" 
                     className="form-input" 
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="••••••••"
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                    placeholder="ej: admin_planilla"
                     required 
-                    style={{ paddingRight: '2.5rem' }}
                   />
-                  <button 
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    style={{
-                      position: 'absolute',
-                      right: '0.75rem',
-                      top: '50%',
-                      transform: 'translateY(-50%)',
-                      background: 'none',
-                      border: 'none',
-                      cursor: 'pointer',
-                      color: 'var(--text-muted)',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      padding: 0
-                    }}
-                  >
-                    {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-                  </button>
                 </div>
-              </div>
 
-              <button type="submit" className="btn btn-primary btn-block" disabled={loading} style={{ marginTop: '1rem', padding: '0.75rem' }}>
-              {loading ? 'Verificando...' : 'Iniciar Sesión'}
-            </button>
+                <div className="form-group">
+                  <label className="form-label">Contraseña</label>
+                  <div style={{ position: 'relative' }}>
+                    <input 
+                      type={showPassword ? "text" : "password"} 
+                      className="form-input" 
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder="••••••••"
+                      required 
+                      style={{ paddingRight: '2.5rem' }}
+                    />
+                    <button 
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      style={{
+                        position: 'absolute',
+                        right: '0.75rem',
+                        top: '50%',
+                        transform: 'translateY(-50%)',
+                        background: 'none',
+                        border: 'none',
+                        cursor: 'pointer',
+                        color: 'var(--text-muted)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        padding: 0
+                      }}
+                    >
+                      {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                    </button>
+                  </div>
+                </div>
 
-            <div style={{ display: 'flex', alignItems: 'center', margin: '1.5rem 0' }}>
-              <hr style={{ flex: 1, borderTop: '1px solid #e2e8f0', margin: 0 }} />
-              <span style={{ padding: '0 1rem', color: '#64748b', fontSize: '0.875rem' }}>O continuar con</span>
-              <hr style={{ flex: 1, borderTop: '1px solid #e2e8f0', margin: 0 }} />
-            </div>
+                <button type="submit" className="btn btn-primary btn-block" disabled={loading} style={{ marginTop: '1rem', padding: '0.75rem' }}>
+                  Iniciar Sesión
+                </button>
 
-            <div style={{ display: 'flex', justifyContent: 'center', width: '100%', minHeight: '44px' }}>
-              <GoogleLogin
-                onSuccess={async (credentialResponse) => {
-                  try {
-                    setLoading(true);
-                    setError(null);
-                    const data = await api.loginWithGoogle(credentialResponse.credential);
-                    login({ username: data.username, email: data.email }, data.access_token);
-                    navigate('/');
-                  } catch (err) {
-                    setError(err.message);
-                  } finally {
-                    setLoading(false);
-                  }
-                }}
-                onError={() => {
-                  setError('Falló la autenticación con Google');
-                }}
-                theme="outline"
-                size="large"
-                width="350"
-                text="continue_with"
-                locale="es"
-                shape="rectangular"
-              />
-            </div>
-          </form>
+                <div style={{ display: 'flex', alignItems: 'center', margin: '1.5rem 0' }}>
+                  <hr style={{ flex: 1, borderTop: '1px solid #e2e8f0', margin: 0 }} />
+                  <span style={{ padding: '0 1rem', color: '#64748b', fontSize: '0.875rem' }}>O continuar con</span>
+                  <hr style={{ flex: 1, borderTop: '1px solid #e2e8f0', margin: 0 }} />
+                </div>
+
+                <div style={{ display: 'flex', justify: 'center', width: '100%', minHeight: '44px' }}>
+                  <GoogleLogin
+                    onSuccess={async (credentialResponse) => {
+                      try {
+                        setLoading(true);
+                        setError(null);
+                        const data = await api.loginWithGoogle(credentialResponse.credential);
+                        login({ username: data.username, email: data.email }, data.access_token);
+                        navigate('/dashboard', { replace: true });
+                      } catch (err) {
+                        setError(err.message || 'Falló la autenticación con Google');
+                        setLoading(false);
+                      }
+                    }}
+                    onError={() => {
+                      setError('Falló la autenticación con Google');
+                    }}
+                    theme="outline"
+                    size="large"
+                    width="350"
+                    text="continue_with"
+                    locale="es"
+                    shape="rectangular"
+                  />
+                </div>
+              </form>
+            )}
 
             <div style={{ textAlign: 'center', marginTop: '1.5rem', paddingTop: '1.5rem', borderTop: '1px solid #e2e8f0' }}>
               <Link to="/registro" className="text-muted" style={{ textDecoration: 'none', fontSize: '0.875rem' }}>

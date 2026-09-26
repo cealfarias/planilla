@@ -23,7 +23,7 @@ function App() {
     <GoogleOAuthProvider clientId={clientId}>
       <CookieBanner />
       <Routes>
-        <Route path="/" element={<Navigate to="/login" replace />} />
+        <Route path="/" element={<Navigate to="/dashboard" replace />} />
         <Route path="/portal" element={<LandingPortal />} />
         <Route path="/login" element={<Login />} />
         <Route path="/registro" element={<Registro />} />
