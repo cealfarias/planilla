@@ -24,10 +24,10 @@ export default function Login() {
   const navigate = useNavigate();
   const { login, user } = useAuth();
 
-  // Si ya existe sesión, redirigir inmediatamente a /dashboard sin esperas
+  // Si ya existe sesión activa con usuario, redirigir a /dashboard
   useEffect(() => {
     const token = localStorage.getItem('token');
-    if (token || user) {
+    if (token && user) {
       navigate('/dashboard', { replace: true });
     }
   }, [user, navigate]);

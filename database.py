@@ -33,7 +33,8 @@ connect_args = {"check_same_thread": False} if is_sqlite else {
     "keepalives": 1,
     "keepalives_idle": 30,
     "keepalives_interval": 10,
-    "keepalives_count": 5
+    "keepalives_count": 5,
+    "connect_timeout": 10
 }
 
 engine_kwargs = {"connect_args": connect_args, "echo": False}
@@ -42,8 +43,8 @@ if not is_sqlite:
     engine_kwargs.update({
         "pool_pre_ping": True,
         "pool_recycle": 280,
-        "pool_size": 10,
-        "max_overflow": 20
+        "pool_size": 5,
+        "max_overflow": 10
     })
 
 engine = create_engine(SQLALCHEMY_DATABASE_URL, **engine_kwargs)
@@ -107,4 +108,7 @@ def auto_migrate_db():
     except Exception as e:
         logging.error(f"Error en auto-migración: {e}")
 
-auto_migrate_db()
+try:
+    auto_migrate_db()
+except Exception as _e:
+    logging.error(f"Error al ejecutar auto_migrate_db al inicio: {_e}")
