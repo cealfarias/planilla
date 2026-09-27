@@ -3,8 +3,15 @@ const API_URL = "https://planilla-l2y7.onrender.com";
 const handleResponse = async (response) => {
   if (response.status === 401) {
     localStorage.removeItem("token");
-    window.location.href = "/login";
-    throw new Error("Sesión expirada. Redirigiendo a login...");
+    let errorMessage = "Credenciales o sesión inválida.";
+    try {
+      const errorData = await response.json();
+      errorMessage = errorData.detail || errorMessage;
+    } catch (e) {}
+    if (window.location.pathname !== "/login") {
+      window.location.href = "/login";
+    }
+    throw new Error(errorMessage);
   }
   if (!response.ok) {
     let errorMessage = "Error en la petición";

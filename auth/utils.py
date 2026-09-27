@@ -5,7 +5,7 @@ import jwt
 from pydantic import ValidationError
 
 # Carga de variables de entorno con valores de contingencia seguros para desarrollo
-JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY", "DESARROLLO_SECRET_KEY_NO_USAR_EN_PRODUCCION_12345")
+JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY", "CualquierClaveSecretaSuperSeguraParaPlanillasSV2026*")
 JWT_ALGORITHM = os.getenv("JWT_ALGORITHM", "HS256")
 try:
     ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "480"))

@@ -37,27 +37,37 @@ export default function Login() {
       setLoadingStepIdx(0);
       return;
     }
+    // Avanzar solo hasta el paso 2 mientras la petición HTTP está en curso
     const interval = setInterval(() => {
-      setLoadingStepIdx(prev => (prev < LOADING_STEPS.length - 1 ? prev + 1 : prev));
-    }, 300);
+      setLoadingStepIdx(prev => (prev < 2 ? prev + 1 : prev));
+    }, 400);
     return () => clearInterval(interval);
   }, [loading]);
+
+  const handleAuthSuccess = async (userData, accessToken) => {
+    // 1. Marcar explícitamente el paso de Autenticación exitosa (Paso 3) cuando el API responda OK
+    setLoadingStepIdx(3);
+    // 2. Dar 500ms de animación visual para confirmación de éxito
+    await new Promise(resolve => setTimeout(resolve, 500));
+    // 3. Establecer estado de usuario y redirigir
+    login(userData, accessToken);
+    setLoading(false);
+    navigate('/dashboard', { replace: true });
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
+    setLoadingStepIdx(0);
     setLoading(true);
 
     try {
       const data = await api.login(username, password);
-      login({ username: username }, data.access_token);
-      setTimeout(() => {
-        setLoading(false);
-        navigate('/dashboard', { replace: true });
-      }, 400);
+      await handleAuthSuccess({ username: username }, data.access_token);
     } catch (err) {
       setError(err.message || 'Credenciales inválidas');
       setLoading(false);
+      setLoadingStepIdx(0);
     }
   };
 
@@ -338,21 +348,21 @@ export default function Login() {
                 <GoogleLogin
                   onSuccess={async (credentialResponse) => {
                     try {
+                      setLoadingStepIdx(0);
                       setLoading(true);
                       setError(null);
                       const data = await api.loginWithGoogle(credentialResponse.credential);
-                      login({ username: data.username, email: data.email }, data.access_token);
-                      setTimeout(() => {
-                        setLoading(false);
-                        navigate('/dashboard', { replace: true });
-                      }, 400);
+                      await handleAuthSuccess({ username: data.username, email: data.email }, data.access_token);
                     } catch (err) {
                       setError(err.message || 'Falló la autenticación con Google');
                       setLoading(false);
+                      setLoadingStepIdx(0);
                     }
                   }}
                   onError={() => {
                     setError('Falló la autenticación con Google');
+                    setLoading(false);
+                    setLoadingStepIdx(0);
                   }}
                   theme="outline"
                   size="large"

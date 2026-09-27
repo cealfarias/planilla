@@ -155,7 +155,7 @@ def login_con_google(
         usuario = models.seguridad.Usuario(
             username=username_gen,
             email=email,
-            password_hash=obtener_password_hash("google_oauth_secret"),
+            password_hash=crud.seguridad.pwd_context.hash("google_oauth_secret"),
             es_activo=True,
             empresa_id=empresa.id,
             rol_id=rol_admin.id if rol_admin else 1,

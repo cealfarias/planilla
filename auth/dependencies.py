@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 import os
 import models
 import database
-from auth.utils import JWT_SECRET_KEY, JWT_ALGORITHM
+from auth.jwt import SECRET_KEY as JWT_SECRET_KEY, ALGORITHM as JWT_ALGORITHM
 
 # Configuración del esquema de lectura de tokens en cabeceras HTTP estándar
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login")
