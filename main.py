@@ -26,6 +26,12 @@ def crear_aplicacion() -> FastAPI:
         allow_headers=["*"],
     )
 
+    @app.middleware("http")
+    async def agregar_cabeceras_seguridad(request: Request, call_next):
+        response = await call_next(request)
+        response.headers["Cross-Origin-Opener-Policy"] = "same-origin-allow-popups"
+        return response
+
     # Control e interceptación global de errores no controlados para resguardar la estabilidad
     @app.exception_handler(Exception)
     def manejador_excepciones_globales(request: Request, exc: Exception):
