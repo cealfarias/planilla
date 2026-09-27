@@ -1,4 +1,4 @@
-const API_URL = "https://planilla-l2y7.onrender.com";
+const API_URL = "https://planilla-sn7o.onrender.com";
 
 const handleResponse = async (response) => {
   if (response.status === 401) {
